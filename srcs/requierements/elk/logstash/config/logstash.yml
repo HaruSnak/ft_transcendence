@@ -1,0 +1,20 @@
+input {
+  beats { port => 5044 }
+  tcp   { port => 5000 }
+}
+filter {
+  if [fields][logtype] == "nginx" {
+    grok { match => { "message" => "%{COMBINEDAPACHELOG}" } }
+  } else if [fields][logtype] == "system" {
+    grok { match => { "message" => "%{SYSLOGLINE}" } }
+  }
+  # Ajout d'autres patterns selon les besoins
+}
+output {
+  elasticsearch {
+    hosts => ["elasticsearch:9200"]
+    user => "logstash_writer"
+    password => "${LOGSTASH_PASSWORD}"
+    index => "%{[fields][logtype]}-%{[fields][environment]}-%{+YYYY.MM.dd}"
+  }
+}

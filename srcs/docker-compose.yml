@@ -1,0 +1,146 @@
+version: "3"
+
+services:
+  backend-chat:
+    container_name: backend-chat
+    build: ./requierements/backend-chat
+    ports:
+      - "3001:3000"
+    restart: unless-stopped
+  backend-users:
+    container_name: backend-users
+    build: ./requierements/backend-users
+    ports:
+      - "3002:3000"
+    restart: unless-stopped
+  backend-game:
+    container_name: backend-game
+    build: ./requierements/backend-game
+    ports:
+      - "3003:3000"
+    restart: unless-stopped
+  frontend:
+    container_name: frontend
+    build: ./requierements/frontend
+    ports:
+      - "3004:3000"
+    restart: unless-stopped
+  nginx:
+    container_name: nginx
+    build: ./requierements/nginx
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      #- xpack.security.transport.ssl.enabled=true
+      - ELASTIC_PASSWORD=elasticpassword
+      - ES_JAVA_OPTS=-Xms2g -Xmx2g
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - elk_network
+    restart: unless-stopped
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.15.0
+    container_name: logstash
+    volumes:
+      - logs_pipeline:/usr/share/logstash/pipeline
+      - logs_config:/usr/share/logstash/config 
+    ports:
+      - "5044:5044"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - elasticsearch.username=logstash
+      - elasticsearch.password=logstashpassword
+      - xpack.monitoring.enabled=false
+    networks:
+      - elk_network
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.0
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - elasticsearch.username=kibana
+      - elasticsearch.password=kibanapassword
+    ports:
+      - "5601:5601"
+    networks:
+      - elk_network
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+  prometheus:
+    image: bitnami/prometheus:latest
+    container_name: prometheus
+    ports:
+     - "9090:9090"
+    volumes:
+      - prometheus_db:/prometheus
+    networks:
+      - promgraf_network
+    restart: unless-stopped
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+    ports:
+     - "3010:3000" #modif ports final vis-a-vis des micros serv
+    volumes:
+      - grafana_db:/var/lib/grafana
+    networks:
+      - promgraf_network
+    restart: unless-stopped
+
+
+volumes:
+  es_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/haru/dev/42/volumes/es_data
+
+  logs_pipeline:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/haru/dev/42/volumes/logs_pipeline
+
+  logs_config:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/haru/dev/42/volumes/logs_config
+
+  prometheus_db:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/haru/dev/42/volumes/prometheus_db
+
+  grafana_db:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/haru/dev/42/volumes/grafana_db
+
+networks:
+  elk_network:
+    driver: bridge
+  promgraf_network:
+    driver: bridge
