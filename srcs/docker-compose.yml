@@ -1,21 +1,21 @@
 version: "3"
 
 services:
-  backend-chat:
-    container_name: backend-chat
-    build: ./requierements/backend-chat
+  chat-service:
+    container_name: chat-service
+    build: ./requierements/services/chat-service
     ports:
       - "3001:3000"
     restart: unless-stopped
-  backend-users:
-    container_name: backend-users
-    build: ./requierements/backend-users
+  game-service:
+    container_name: game-service
+    build: ./requierements/services/game-service
     ports:
       - "3002:3000"
     restart: unless-stopped
-  backend-game:
-    container_name: backend-game
-    build: ./requierements/backend-game
+  user-service:
+    container_name: user-service
+    build: ./requierements/services/user-service
     ports:
       - "3003:3000"
     restart: unless-stopped

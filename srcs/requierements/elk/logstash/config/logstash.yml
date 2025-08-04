@@ -1,0 +1,19 @@
+# Adresse API interne de Logstash
+http.host: "0.0.0.0"
+http.port: 9600
+
+# Niveau de log global de Logstash ("info" : activité normale, "warn" : plus silencieux, "debug" en cas de troubleshooting avancé)
+log.level: info
+
+# Désactiver le monitoring X-Pack (useless pour Elastic Stack free)
+xpack.monitoring.enabled: false
+
+# Permet de recharger automatiquement la configuration des pipelines sans redémarrer Logstash
+config.reload.automatic: true
+config.reload.interval: 3s
+
+# Configuration pour les pipelines multiples
+pipeline.ordered: true
+
+# Sécurité (optionnel, SSL)
+# pipeline.ecs_compatibility: disabled  # Désactive les checks ECS (selon version)
