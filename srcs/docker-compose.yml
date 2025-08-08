@@ -5,31 +5,55 @@ services:
     container_name: chat-service
     build: ./requierements/services/chat-service
     ports:
-      - "3001:3000"
+      - "3001:3001"
+    networks:
+      - app_network
     restart: unless-stopped
   game-service:
     container_name: game-service
     build: ./requierements/services/game-service
     ports:
-      - "3002:3000"
+      - "3002:3002"
+    networks:
+      - app_network
     restart: unless-stopped
   user-service:
     container_name: user-service
     build: ./requierements/services/user-service
     ports:
-      - "3003:3000"
+      - "3003:3003"
+    networks:
+      - app_network
+    restart: unless-stopped
+  auth-service:
+    container_name: auth-service
+    build: ./requierements/services/auth-service
+    ports:
+      - "3004:3004"
+    networks:
+      - app_network
     restart: unless-stopped
   frontend:
     container_name: frontend
     build: ./requierements/frontend
     ports:
-      - "3004:3000"
+      - "3005:3005"
+    networks:
+      - app_network
     restart: unless-stopped
   nginx:
     container_name: nginx
     build: ./requierements/nginx
     ports:
       - "8080:80"
+    depends_on:
+      - chat-service
+      - game-service
+      - user-service
+      - auth-service
+      - frontend
+    networks:
+      - app_network
     restart: unless-stopped
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
@@ -41,18 +65,18 @@ services:
       - ELASTIC_PASSWORD=elasticpassword
       - ES_JAVA_OPTS=-Xms2g -Xmx2g
     volumes:
-      - es_data:/usr/share/elasticsearch/data
+      - ./volumes/es_data:/usr/share/elasticsearch/data
     ports:
       - "9200:9200"
     networks:
       - elk_network
     restart: unless-stopped
   logstash:
-    image: docker.elastic.co/logstash/logstash:8.15.0
+    build: ./requierements/elk/logstash
     container_name: logstash
     volumes:
-      - logs_pipeline:/usr/share/logstash/pipeline
-      - logs_config:/usr/share/logstash/config 
+      - ./volumes/logs_pipeline:/usr/share/logstash/pipeline
+      - ./volumes/logs_config:/usr/share/logstash/config
     ports:
       - "5044:5044"
     environment:
@@ -79,16 +103,16 @@ services:
     depends_on:
       - elasticsearch
     restart: unless-stopped
-  prometheus:
-    image: bitnami/prometheus:latest
-    container_name: prometheus
-    ports:
-     - "9090:9090"
-    volumes:
-      - prometheus_db:/prometheus
-    networks:
-      - promgraf_network
-    restart: unless-stopped
+  #prometheus:
+    #image: bitnami/prometheus:latest
+   # container_name: prometheus
+   # ports:
+    # - "9090:9090"
+    #volumes:
+    #  - prometheus_db:/prometheus
+    #networks:
+    #  - promgraf_network
+   # restart: unless-stopped
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -97,7 +121,7 @@ services:
     ports:
      - "3010:3000" #modif ports final vis-a-vis des micros serv
     volumes:
-      - grafana_db:/var/lib/grafana
+      - ./volumes/grafana_db:/var/lib/grafana
     networks:
       - promgraf_network
     restart: unless-stopped
@@ -106,41 +130,27 @@ services:
 volumes:
   es_data:
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /home/haru/dev/42/volumes/es_data
 
   logs_pipeline:
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /home/haru/dev/42/volumes/logs_pipeline
 
   logs_config:
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /home/haru/dev/42/volumes/logs_config
 
-  prometheus_db:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /home/haru/dev/42/volumes/prometheus_db
+#  prometheus_db:
+#    driver: local
+#    driver_opts:
+#      type: none
+#      o: bind
+#      device: /home/haru/dev/42/volumes/prometheus_db
 
   grafana_db:
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /home/haru/dev/42/volumes/grafana_db
 
 networks:
   elk_network:
     driver: bridge
   promgraf_network:
+    driver: bridge
+  app_network:
     driver: bridge

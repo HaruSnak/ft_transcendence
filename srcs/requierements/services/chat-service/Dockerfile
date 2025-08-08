@@ -14,6 +14,6 @@ COPY . .
 
 USER srcsuser
 
-EXPOSE 3000
+EXPOSE 3001
 
-#CMD ["", ""]
+CMD ["node", "srcs/server.js"]

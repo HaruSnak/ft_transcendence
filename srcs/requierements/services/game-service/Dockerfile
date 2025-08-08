@@ -14,4 +14,6 @@ COPY . .
 
 USER srcsuser
 
-EXPOSE 3000
+EXPOSE 3002
+
+CMD ["node", "srcs/server.js"]

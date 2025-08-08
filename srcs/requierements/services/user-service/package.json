@@ -1,6 +1,9 @@
 {
-  "name": "user-service",
-  "version": "1.0.0",
-  "main": "server.js",
-  "type": "module"
+	"name": "user-service",
+	"version": "1.0.0",
+	"main": "server.js",
+	"type": "module",
+	"dependencies": {
+		"fastify": "^4.24.0"
+	}
 }
