@@ -1,0 +1,13 @@
+# Global gitignore
+node_modules/
+.DS_Store
+npm-debug.log
+build
+
+# Frontend gitignore
+frontend/dist/
+frontend/.env
+
+# Backend gitignore
+backend/dist/
+backend/.env
