@@ -1,19 +1,7 @@
-FROM node:18-alpine
+FROM nginx:alpine
 
-WORKDIR /srcs
+COPY ../nginx/conf/nginx.conf /etc/nginx/nginx.conf
 
-COPY package*.json ./
-RUN npm install
+EXPOSE 80
 
-RUN if ! getent group srcsgroup > /dev/null 2>&1; then \
-      addgroup -g 1001 -S srcsgroup; \
-    fi && \
-    adduser -u 1001 -S srcsuser -G srcsgroup
-
-COPY . .
-
-USER srcsuser
-
-EXPOSE 3005
-
-CMD ["node", "srcs/server.js"]
+CMD ["nginx", "-g", "daemon off;"]

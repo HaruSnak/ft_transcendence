@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="fr">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Transcendance</title>
+
+    	<link rel="stylesheet" href="public/css/index.css">
+	</head>
+	<body class="bg-gray-900 text-gray-100">
+
+<!-- ================= NAVBAR ================= -->
+		<nav class="bg-gray-800 px-4 py-2 fixed w-full z-10">
+			<div class="max-w-6xl mx-auto flex justify-between items-center">
+				<button data-page="home" class="text-xl font-bold text-blue-400 cursor-pointer">Transcendance</button>
+				<div class="space-x-4">
+					<button data-page="home" class="hover:underline cursor-pointer">Home</button>
+					<button data-page="game" class="hover:underline cursor-pointer">Game</button>
+					<button data-page="live-chat" class="hover:underline cursor-pointer">LiveChat</button>
+					<button data-page="board" class="hover:underline cursor-pointer">Board</button>
+					<button data-page="create_room" class="hover:underline cursor-pointer">Create Room</button>
+					<button data-page="room" class="hover:underline cursor-pointer">Room</button>
+					<button data-page="profile" class="hover:underline cursor-pointer">Profil</button>
+					<button data-page="login" class="hover:underline cursor-pointer">Login</button>
+				</div>
+			</div>
+		</nav>
+
+		<!-- conteneur central -->
+		<main class="pt-16 max-w-4xl mx-auto space-y-8 px-4">
+
+<!-- ================= HOME ================= -->
+			<section id="home" class="page hidden flex flex-col items-center justify-center pt-16 space-y-6">
+				<h1 class="text-4xl font-bold text-blue-400">Welcome to Transcendance</h1>
+				<div class="flex space-x-4">
+					<button data-page="live-chat" class="px-4 py-2 border border-blue-400 rounded hover:bg-blue-500">LiveChat</button>
+					<button data-page="game" class="px-4 py-2 border border-blue-400 rounded hover:bg-blue-500">Play Game</button>
+					<button data-page="board" class="px-4 py-2 border border-blue-400 rounded hover:bg-blue-500">Board</button>
+				</div>
+			</section>
+
+<!-- ================= GAME ================= -->
+			<section id="game" class="page hidden flex flex-col items-center justify-center pt-16 space-y-6">
+				<h1 class="text-4xl font-bold text-blue-400">Pong Game</h1>
+				<p>Controls: W/S for left paddle | Arrow Up/Down for right paddle</p>
+				<div class="relative">
+					<canvas id="pongCanvas" class="bg-black border-2 border-white" width="800" height="600"></canvas>
+					<div id="gameMessageWinOrLose" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-4xl font-bold hidden transition-opacity duration-300"></div>
+				</div>
+				<div class="text-center mt-4 space-x-4">
+					<button id="pauseGameButton" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded">Pause</button>
+					<button id="startGameButton" class="bg-green-400 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Start Game</button>
+					<button id="resetGameButton" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Reset</button>
+				</div>
+			</section>
+
+<!-- ================= LIVE CHAT ================= -->
+			<section id="live-chat" class="page hidden p-6">
+				<h1 class="text-2xl font-bold mb-4">Live chat</h1>
+				<div class="flex space-x-4 items-stretch">
+
+					<!-- Colonne de gauche : général chan + private message -->
+					<div class="w-48 bg-gray-800 p-4 rounded flex flex-col">
+						<button id="btn-general" class="mb-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">General</button>
+						<div id="dm-list" class="flex-1 overflow-auto space-y-2"></div>
+					</div>
+
+					<!-- Colonne centrale : zone de chat -->
+					<div class="flex-1 bg-gray-700 p-4 flex flex-col rounded">
+
+						<!-- header du chat -->
+						<div id="chat-header" class="mb-2 flex items-center justify-between text-lg font-semibold text-white">
+							<span id="chat-title"># general</span>
+							<div class="flex space-x-2">
+								<button id="invite-btn" class="px-2 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-500 hidden">Play together</button>
+								<button id="block-btn" class="px-2 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-500 hidden">Block user</button>
+							</div>
+						</div>
+
+						<!-- Zone des messages -->
+						<div id="chat_messages" class="flex-1 overflow-auto space-y-2 mb-4 p-2 bg-gray-600 rounded min-h-[400px]"></div>
+
+						<!-- send boutton -->
+						<form id="chat_form" class="flex">
+							<input
+								id="chat_input"
+								type="text"
+								placeholder="Tape ton message..."
+								class="flex-1 p-2 rounded-l bg-gray-600 text-white"
+							/>
+							<button type="submit" class="px-4 bg-blue-500 rounded-r text-white">Send</button>
+						</form>
+					</div>
+
+					<!-- Colonne de droite : Utilisateurs en ligne -->
+					<div id="user-list" class="w-48 bg-gray-800 p-4 space-y-2 rounded overflow-auto flex flex-col">
+						<h2 class="text-lg font-semibold mb-2 text-blue-300">Users online</h2>
+					</div>
+				</div>
+			</section>
+
+<!-- ================= ROOM ================= -->
+			<section id="room" class="page hidden p-6">
+				<h1 class="text-2xl font-bold mb-4">Game Room</h1>
+				<div id="room_players" class="bg-gray-800 p-4 rounded space-y-4">
+				<h2 class="text-lg font-semibold text-white">
+					Players <span id="room_player_count">0</span>/<span id="room_player_max">0</span>
+				</h2>
+				<template id="room_player">
+					<div class="flex items-center space-x-2 p-2 bg-gray-700 rounded">
+					<span id="room_player_name" class="text-white"></span>
+					</div>
+				</template>
+				<button id="room_start_button" disabled class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50">Start game</button>
+				<canvas id="game" width="600" height="400" class="w-full border border-gray-600 rounded"></canvas>
+				</div>
+			</section>
+
+<!-- ================= CREATE ROOM ================= -->
+			<section id="create_room" class="page hidden p-6">
+				<h1 class="text-2xl font-bold mb-4">Create Room</h1>
+				<form id="create_room_form" class="bg-gray-800 p-4 rounded space-y-4">
+				<div>
+					<label class="block mb-1 text-gray-300">Room name</label>
+					<input
+					type="text"
+					name="room_name"
+					class="w-full p-2 rounded bg-gray-700 text-white"
+					required
+					/>
+				</div>
+				<div>
+					<label class="block mb-1 text-gray-300">Max players</label>
+					<select name="max_players" class="w-full p-2 rounded bg-gray-700 text-white">
+					<option value="2" selected>2</option>
+					<option value="4">4</option>
+					</select>
+				</div>
+				<button type="submit" class="mt-2 w-full bg-green-500 py-2 rounded text-white hover:bg-green-600">Create</button>
+				</form>
+			</section>
+
+<!-- ================= BOARD ================= -->
+			<section id="board" class="page hidden text-center">
+				<div class="bg-gray-800 p-6 rounded-2xl shadow-xl max-w-md mx-auto">
+					<div class="flex items-center justify-center mb-6">
+						<span class="text-3xl">🏆</span>
+						<h2 class="ml-2 text-2xl font-bold text-white">Players Leaderboard</h2>
+					</div>
+					<table class="w-full text-left text-gray-200">
+						<thead>
+							<tr class="border-b border-gray-700">
+								<th class="px-4 py-2 w-1/6">#</th>
+								<th class="px-4 py-2 w-1/2">Players</th>
+								<th class="px-4 py-2 w-1/3">Score</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr class="bg-gray-700 hover:bg-gray-600 transition">
+								<td class="px-4 py-3">1</td>
+								<td class="px-4 py-3 flex items-center">
+									<span class="text-xl">🥇</span><span class="ml-2">Phi</span>
+								</td>
+								<td class="px-4 py-3">1538</td>
+							</tr>
+							<tr class="bg-gray-800 hover:bg-gray-700 transition">
+								<td class="px-4 py-3">2</td>
+								<td class="px-4 py-3 flex items-center">
+									<span class="text-xl">🥈</span><span class="ml-2">Vesperal</span>
+								</td>
+								<td class="px-4 py-3">1294</td>
+							</tr>
+							<tr class="bg-gray-700 hover:bg-gray-600 transition">
+								<td class="px-4 py-3">3</td>
+								<td class="px-4 py-3 flex items-center">
+									<span class="text-xl">🥉</span><span class="ml-2">Torka</span>
+								</td>
+								<td class="px-4 py-3">1121</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</section>
+
+<!-- ================= LOGIN ================= -->
+			<section id="login" class="page hidden max-w-sm mx-auto bg-gray-800 p-6 rounded shadow-lg">
+				<h1 class="text-2xl font-bold text-center text-blue-400 mb-4">Sign In</h1>
+				<form id="login_form" class="space-y-4">
+					<div>
+						<label class="block mb-1">User</label>
+						<input id="username" name="identifier" type="text" class="w-full p-2 rounded bg-gray-700" required />
+					</div>
+					<div>
+						<label class="block mb-1">Password</label>
+						<input id="password" name="password" type="password" class="w-full p-2 rounded bg-gray-700" required />
+					</div>
+					<button type="submit" class="w-full bg-blue-500 py-2 rounded text-white">Login</button>
+				</form>
+				<div class="mt-4 text-center">
+					<button id="button-signup" class="text-sm text-gray-400 hover:underline">Create account</button>
+				</div>
+			</section>
+
+<!-- ================= SIGN UP ================= -->
+			<section id="signup" class="page hidden max-w-sm mx-auto bg-gray-800 p-6 rounded shadow-lg">
+				<h1 class="text-2xl font-bold text-center text-green-400 mb-4">Create account</h1>
+				<form id="signup_form" class="space-y-4">
+					<div>
+						<label class="block mb-1">User</label>
+						<input id="su_username" type="text" class="w-full p-2 rounded bg-gray-700" required />
+					</div>
+					<div>
+						<label class="block mb-1">Email</label>
+						<input id="su_email" type="email" class="w-full p-2 rounded bg-gray-700" required />
+					</div>
+					<div>
+						<label class="block mb-1">Password</label>
+						<input id="su_password" type="password" class="w-full p-2 rounded bg-gray-700" required />
+					</div>
+					<button type="submit" class="w-full bg-green-500 py-2 rounded text-white">Create account</button>
+				</form>
+				<div class="mt-4 text-center">
+					<button id="button-cancel-signup" class="text-sm text-gray-400 hover:underline">Cancel</button>
+				</div>
+			</section>
+		</main>
+
+<!-- ================= Profil page ================= -->
+			<section id="profile" class="hidden p-8">
+				<div class="flex flex-col items-center max-w-xl mx-auto">
+					<h1 class="text-2xl font-bold mb-4 text-center">Profil</h1>
+					<div id="profile-container"></div>
+				</div>
+			</section>
+
+		<script type="module" src="./public/js/index.js"></script>
+	</body>
+</html>
