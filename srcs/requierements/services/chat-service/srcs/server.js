@@ -47,37 +47,30 @@ fastify.get('/metrics', async (request, reply) => {
 fastify.get('/ws', { websocket: true }, (connection, req) => {
     const clientId = Date.now().toString();
     console.log('📡 Client connecté:', clientId);
-    console.log('🔍 Connection object:', typeof connection);
-    console.log('🔍 ReadyState:', connection?.readyState);
+    console.log('🔍 ReadyState initial:', connection?.readyState);
     
-    // Dans @fastify/websocket, connection EST directement le WebSocket
-    if (connection && connection.readyState === 1) {
-        clients.set(clientId, connection);
-        console.log('✅ Connexion stockée pour', clientId);
-        
-        // Envoyez un message de bienvenue IMMÉDIATEMENT
-        try {
-            connection.send(JSON.stringify({
-                type: 'welcome',
-                clientId: clientId,
-                message: 'Connexion établie'
-            }));
-            console.log('✅ Message de bienvenue envoyé à', clientId);
-        } catch (error) {
-            console.error('❌ Erreur envoi bienvenue:', error);
-            clients.delete(clientId); // Supprimez si erreur
-            return;
-        }
-    } else {
-        console.log('⚠️ Connexion non valide, ne pas stocker');
+    // STOCKEZ IMMÉDIATEMENT (pas de vérification readyState)
+    clients.set(clientId, connection);
+    console.log('✅ Connexion stockée pour', clientId);
+
+    // Envoyez le message de bienvenue (sans vérifier readyState)
+    try {
+        connection.send(JSON.stringify({
+            type: 'welcome',
+            clientId: clientId,
+            message: 'Connexion établie'
+        }));
+        console.log('✅ Message de bienvenue envoyé à', clientId);
+    } catch (error) {
+        console.error('❌ Erreur envoi bienvenue:', error);
+        clients.delete(clientId);
         return;
     }
 
-    // Gérez les événements
+    // Gérez les événements APRÈS
     connection.on('close', (code, reason) => {
         console.log('❌ Client déconnecté:', clientId, code, reason);
         clients.delete(clientId);
-        // Broadcaster après suppression - ça c'est OK
         broadcastUserList();
     });
 
@@ -86,62 +79,91 @@ fastify.get('/ws', { websocket: true }, (connection, req) => {
         clients.delete(clientId);
     });
 
-    connection.on('message', (rawMessage) => {
-        try {
-            const msg = JSON.parse(rawMessage.toString());
-            console.log('← message reçu:', msg);
-            
-            // Répondez au message pour maintenir la connexion
-            connection.send(JSON.stringify({
-                type: 'ack',
-                originalMessage: msg
-            }));
-        } catch (error) {
-            console.error('❌ Erreur parsing message:', error);
-        }
-    });
+	connection.on('message', (rawMessage) => {
+		try {
+			const msg = JSON.parse(rawMessage.toString());
+			console.log('← message reçu de', clientId, ':', msg);
+			
+			if (msg.type === 'message') {
+				// Créer le message à diffuser
+				const broadcastMessage = {
+					type: 'message',
+					from: clientId,
+					to: msg.to || '', // '' = général, sinon DM
+					text: msg.text,
+					timestamp: Date.now()
+				};
+				
+				const messageStr = JSON.stringify(broadcastMessage);
+				
+				if (msg.to && msg.to !== '') {
+					// MESSAGE PRIVÉ : envoyer seulement au destinataire
+					const targetClient = clients.get(msg.to);
+					if (targetClient) {
+						targetClient.send(messageStr);
+						console.log('✅ Message privé envoyé de', clientId, 'vers', msg.to);
+					} else {
+						console.log('⚠️ Destinataire introuvable:', msg.to);
+					}
+					
+					// Envoyer aussi à l'expéditeur pour qu'il voie son message
+					connection.send(messageStr);
+				} else {
+					// MESSAGE GÉNÉRAL : diffuser à tous les clients
+					for (const [otherClientId, otherConnection] of clients) {
+						try {
+							if (otherConnection && typeof otherConnection.send === 'function') {
+								otherConnection.send(messageStr);
+							}
+						} catch (error) {
+							console.error('❌ Erreur diffusion à', otherClientId, ':', error);
+							clients.delete(otherClientId);
+						}
+					}
+					console.log('✅ Message général diffusé à tous les clients');
+				}
+			}
+			
+			// ACK pour confirmer la réception
+			connection.send(JSON.stringify({
+				type: 'ack',
+				originalMessage: msg,
+				clientId: clientId
+			}));
+			
+		} catch (error) {
+			console.error('❌ Erreur parsing message:', error);
+		}
+	});
 
-    // RETARDEZ cet appel avec setTimeout pour que la connexion soit stable
-    setTimeout(() => {
-        console.log('⏰ Broadcasting user list après délai...');
-        // Double vérification avant broadcast
-        if (clients.has(clientId) && connection && connection.readyState === 1) {
-            broadcastUserList();
-        } else {
-            console.log('⚠️ Client déconnecté avant broadcast:', clientId);
-            clients.delete(clientId);
-        }
-    }, 100); // Réduit à 100ms
+    // Broadcast immédiat (sans setTimeout)
+    broadcastUserList();
 });
 
 function broadcastUserList() {
     console.log('📢 Broadcasting to', clients.size, 'clients');
     
+    if (clients.size === 0) {
+        console.log('📢 Aucun client connecté');
+        return;
+    }
+    
     const userList = Array.from(clients.keys());
     const message = JSON.stringify({
         type: 'user_list',
-        users: userList
+        users: userList,
+        timestamp: Date.now()
     });
 
-    // Créez une copie de la Map pour éviter les modifications concurrentes
-    const clientsCopy = new Map(clients);
-    
-    for (const [clientId, connection] of clientsCopy) {
-        console.log('🔍 Tentative envoi à:', clientId);
-        
+    // Parcourez directement la Map (pas de copie)
+    for (const [clientId, connection] of clients) {
         try {
-            // Triple vérification AVANT d'envoyer - connection EST le WebSocket
-            if (connection && 
-                typeof connection.send === 'function' &&
-                connection.readyState === 1) {
-                
+            // Test simple : juste vérifier que connection existe
+            if (connection && typeof connection.send === 'function') {
                 connection.send(message);
                 console.log('✅ Message envoyé à', clientId);
             } else {
-                console.log('⚠️ Connexion invalide pour', clientId, 
-                           '- readyState:', connection?.readyState,
-                           '- send exists:', typeof connection?.send);
-                // Supprimez les connexions invalides
+                console.log('⚠️ Connexion invalide pour', clientId);
                 clients.delete(clientId);
             }
         } catch (error) {

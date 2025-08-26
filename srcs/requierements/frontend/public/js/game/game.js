@@ -6,7 +6,7 @@ const PADDLE_WIDTH = 10; // Largeur des paddles
 const PADDLE_HEIGHT = 100; // Hauteur des paddles
 const BALL_SIZE = 10; // Taille de la balle
 const PADDLE_SPEED = 3; // Vitesse des paddles
-const BALL_SPEED = 3; // Vitesse de la balle (fixe, pas de changement)
+const BALL_SPEED = 2.5; // Vitesse de la balle (fixe, pas de changement)
 const WINNING_SCORE = 3; // Score pour gagner la partie
 // ==================== État du jeu ====================
 const INITIAL_PADDLE_Y = CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2; // Position verticale initiale des paddles
@@ -40,13 +40,14 @@ function draw() {
     if (!ctx)
         return;
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    ctx.fillStyle = 'white';
+    ctx.fillStyle = "white";
     ctx.fillRect(leftPaddle.x, leftPaddle.y, PADDLE_WIDTH, PADDLE_HEIGHT);
     ctx.fillRect(rightPaddle.x, rightPaddle.y, PADDLE_WIDTH, PADDLE_HEIGHT);
-    ctx.fillRect(ball.x - BALL_SIZE / 2, ball.y - BALL_SIZE / 2, BALL_SIZE, BALL_SIZE);
     ctx.font = '30px Arial';
     ctx.fillText(leftPaddle.score.toString(), SCORE_LEFT_X, 50);
     ctx.fillText(rightPaddle.score.toString(), SCORE_RIGHT_X, 50);
+    ctx.fillStyle = "red";
+    ctx.fillRect(ball.x - BALL_SIZE / 2, ball.y - BALL_SIZE / 2, BALL_SIZE, BALL_SIZE);
 }
 // Initialiser le jeu
 export function initGame() {
@@ -193,19 +194,24 @@ export function cleanupGame() {
         resetButton.removeEventListener('click', resetGame);
     }
 }
+function disableCanvas() {
+    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+}
 // Terminer la partie et afficher le message
 function endGame() {
     gameRunning = false;
     const messageElement = document.getElementById('gameMessageWinOrLose');
     messageElement.classList.remove('hidden');
-    if (leftPaddle.score >= WINNING_SCORE) {
+    if (leftPaddle.score >= WINNING_SCORE) // Si j'ai le temps, securiser cela cas cheat ou bug > WINNING_SCORE
+     {
         messageElement.textContent = 'YOU WIN !';
-        messageElement.classList.add('text-green-400');
+        messageElement.classList.add('text-green-600');
     }
-    else if (rightPaddle.score >= WINNING_SCORE) {
-        messageElement.textContent = 'Sale merde tu viens de perdre contre un bot nul a chier en plus, tu merite vraiment de nettoyer le cul des vieux dans un EMS';
-        messageElement.classList.add('text-red-400');
+    else {
+        messageElement.textContent = 'YOU LOSE !';
+        messageElement.classList.add('text-red-600');
     }
+    disableCanvas();
     document.getElementById('startGameButton').disabled = false; // Réactiver Start Game pour relancer
 }
 // ==================== BOT ====================
@@ -216,27 +222,23 @@ function moveBot() {
     // Position cible : centre du paddle aligné avec la balle
     const targetVerticalPosition = ball.y - TARGET_POSITION_OFFSET;
     // Simuler un délai (si le temps est écoulé, bouger)
-    if (Math.random() < 0.2 * (1000 / botDelay)) { // Probabilité ajustée
+    if (Math.random() < 0.2 * (1000 / botDelay)) // Probabilité ajustée
+     {
         console.log('Bot bouge, targetY:', targetVerticalPosition, 'currentY:', rightPaddle.y); // Débogage
-        if (targetVerticalPosition > rightPaddle.y && rightPaddle.y < PADDLE_MAX_Y) {
+        if (targetVerticalPosition > rightPaddle.y && rightPaddle.y < PADDLE_MAX_Y)
             rightPaddle.y += PADDLE_SPEED;
-        }
-        else if (targetVerticalPosition < rightPaddle.y && rightPaddle.y > 0) {
+        else if (targetVerticalPosition < rightPaddle.y && rightPaddle.y > 0)
             rightPaddle.y -= PADDLE_SPEED;
-        }
     }
 }
 // Ajuster la difficulté du bot par intervalles de score
 function adjustBotDifficulty() {
     const totalScore = leftPaddle.score + rightPaddle.score;
-    if (totalScore == 1) {
+    if (totalScore == 1)
         botDelay = 280; // Facile (0-4 points)
-    }
-    else if (totalScore == 2) {
+    else if (totalScore == 2)
         botDelay = 260; // Moyen (5-9 points, augmenté pour être moins dur)
-    }
-    else {
+    else
         botDelay = 250; // Difficile (10+ points, fixé pour éviter l'inbattabilité)
-    }
     console.log('Nouveau délai du bot:', botDelay); // Débogage
 }

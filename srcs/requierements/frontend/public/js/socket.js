@@ -10,35 +10,46 @@ class ChatWebSocket {
     }
     connect() {
         try {
+            // Test direct d'abord
             this.ws = new WebSocket(`ws://localhost:3001/ws`);
             this.ws.onopen = () => {
-                console.log('📡 WebSocket connecté');
+                console.log('📡 WebSocket connecté côté client');
                 this.reconnectAttempts = 0;
-                // Générer un ID temporaire
                 this.id = 'user_' + Math.random().toString(36).substr(2, 9);
+                // Envoyez un message de test
+                this.emit('test', { message: 'Hello from client' });
             };
             this.ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
                 console.log('📡 Message reçu:', data);
-                // Émettre l'événement aux listeners
-                this.triggerEvent(data.type || 'message', data);
-                // Compatibility avec les anciens événements
+                // Déclenchez les bons événements selon le type
                 if (data.type === 'message') {
-                    window.dispatchEvent(new CustomEvent('message_backend_to_frontend', { detail: data }));
+                    // Message de chat
+                    window.dispatchEvent(new CustomEvent('message_backend_to_frontend', {
+                        detail: {
+                            from: data.from,
+                            to: data.to,
+                            text: data.text
+                        }
+                    }));
                 }
                 else if (data.type === 'user_list') {
-                    window.dispatchEvent(new CustomEvent('user_list', { detail: data.users }));
+                    // Liste des utilisateurs
+                    window.dispatchEvent(new CustomEvent('user_list', {
+                        detail: data.users
+                    }));
                 }
+                // Votre code existant pour triggerEvent
+                this.triggerEvent(data.type || 'message', data);
             };
             this.ws.onclose = (event) => {
-                console.log('📡 WebSocket fermé');
+                console.log('📡 WebSocket fermé côté client');
                 console.log('Code de fermeture:', event.code);
                 console.log('Raison:', event.reason);
-                console.log('wasClean:', event.wasClean);
                 this.handleReconnect();
             };
             this.ws.onerror = (error) => {
-                console.error('❌ Erreur WebSocket:', error);
+                console.error('❌ Erreur WebSocket côté client:', error);
             };
         }
         catch (error) {
