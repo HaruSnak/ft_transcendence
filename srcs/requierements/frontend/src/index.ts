@@ -9,7 +9,7 @@ import { initCreateRoomPage, initRoomPage } from './pages/room.js';
 import { initLoginPage } from './pages/login.js';
 import { initSignupPage } from './pages/signup.js';
 import { initProfilePage } from './pages/profile.js';
-import { initGame, cleanupGame } from './game/game.js';
+import { initGame, cleanUpGame } from './game/game.js';
 
 // Expose startPong() au window
 declare global {
@@ -87,7 +87,7 @@ export function navigateTo(page: string, push = true) {
   if (page.split('/')[0] === 'game') {
     initGame(); // Initialise le jeu quand on arrive sur #game
   } else {
-    cleanupGame(); // Arrête le jeu si on quitte #game
+    cleanUpGame(); // Arrête le jeu si on quitte #game
   }
   //initPage(page);
 }

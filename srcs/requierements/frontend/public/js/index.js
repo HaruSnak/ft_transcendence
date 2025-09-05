@@ -4,7 +4,7 @@ import { initHomePage } from './pages/home.js';
 import { initChatPage } from './pages/livechat.js';
 import { initLoginPage } from './pages/login.js';
 import { initSignupPage } from './pages/signup.js';
-import { initGame, cleanupGame } from './game/game.js';
+import { initGame, cleanUpGame } from './game/game.js';
 // Toutes les pages de l’app
 const pages = [
     'home',
@@ -68,7 +68,7 @@ export function navigateTo(page, push = true) {
         initGame(); // Initialise le jeu quand on arrive sur #game
     }
     else {
-        cleanupGame(); // Arrête le jeu si on quitte #game
+        cleanUpGame(); // Arrête le jeu si on quitte #game
     }
     //initPage(page);
 }
