@@ -1,18 +1,16 @@
-FROM node:18-alpine
+FROM node:18-slim
+
+# Install required packages for SQLite
+RUN apt-get update && apt-get install -y sqlite3 && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /srcs
 
 COPY package*.json ./
 RUN npm install
 
-RUN if ! getent group srcsgroup > /dev/null 2>&1; then \
-      addgroup -g 1001 -S srcsgroup; \
-    fi && \
-    adduser -u 1001 -S srcsuser -G srcsgroup
-
 COPY . .
 
-USER srcsuser
+RUN mkdir -p /srcs/data && chmod 755 /srcs/data
 
 EXPOSE 3003
 

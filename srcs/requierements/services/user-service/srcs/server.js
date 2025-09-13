@@ -2,6 +2,7 @@ import Fastify from 'fastify'
 import client from 'prom-client'
 import userService from './userService.js'
 import { authenticateToken, validateUserData } from './middleware.js'
+//import { request } from 'http'
 
 /*					____SERVER Fastify____						*/
 
@@ -69,6 +70,7 @@ fastify.post('/api/auth/login', {
 			message: 'Login successful',
 			...result
 		});
+		//localStorage.setItem('authToken', result.token);
 	} catch (error) {
 		reply.code(401).send({
 			success: false,

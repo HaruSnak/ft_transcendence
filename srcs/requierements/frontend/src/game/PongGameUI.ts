@@ -46,6 +46,7 @@ export class PongGameUI {
 		this.divInterfaceInGame.style.display = 'none';
 	}
 
+	// Une fois le systeme bien foutu, mettre en place le replace des images profiles user
 	profileUser(username: string, type: string) {
 		const profileTemplate = document.getElementById('profile-template') as HTMLTemplateElement;
 		const profileClone = profileTemplate.content.cloneNode(true) as DocumentFragment;
@@ -60,16 +61,19 @@ export class PongGameUI {
 		this.divInterfaceMainMenu.style.display = 'none';
 		this.divInterfaceLogin.style.display = 'block';
 		//if (true) // Mettre en place une fois la DB faite le systeme de s'il est deja login sur son compte
+		if (this.tournaments.)
 		if (this.inputLoginGM.value) // securitation du password
 		{
-			if (!this.inputPasswordGM.value) {
-				this.tournaments.initDataPlayer('guest', this.inputLoginGM.value);
-				console.log('is good');
+			if (!this.inputPasswordGM.value && this.tournaments.initDataPlayer('guest', this.inputLoginGM.value)) {
+				console.log('Guest is good');
 				this.profileUser(this.inputLoginGM.value, 'Guest');
 			}
 			else
 				if (this.tournaments.initDataPlayer('login', this.inputLoginGM.value, this.inputPasswordGM.value))
-					console.log('is good');
+				{
+					console.log('Login is good');
+					this.profileUser(this.inputLoginGM.value, 'Login');
+				}
 			//this.updateScreen();
 			//this.pongGame.setStatusGame('gameTournamentGM');
 		}

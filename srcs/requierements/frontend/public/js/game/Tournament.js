@@ -1,62 +1,53 @@
+import { userApiService } from './UserAPIService.js';
 export class TournamentManager {
     constructor() {
         this.player = [];
         this.playerCount = 0;
+        this.userApiService = new userApiService;
     }
-    /*async initDataPlayer(type: 'guest' | 'login', username: string, password?: string): Promise<boolean> {
-        if (type === 'guest') {
-
-            const players = {
-                id: 'TEST123',
-                displayName: username,
-                type: type,
-                isAuthenticated: false,
-                controlsPly: false,
-                tournamentStats: {
-                    wins: 0,
-                    lose: 0,
-                    matches: 0,
-                },
+    async initDataPlayer(type, username, password) {
+        try {
+            if (type === 'guest') {
+                const players = {
+                    userId: `temp_${Date.now()}_${Math.random()}`,
+                    displayName: username,
+                    type: type,
+                    isAuthenticated: false,
+                    controlsPly: false,
+                    tournamentStats: {
+                        wins: 0,
+                        lose: 0,
+                        matches: 0,
+                    },
+                };
+                return (this.player.push(players));
+                console.log(players);
             }
-            this.player.push(players);
-            console.log(players);
-            return true;
-        }*/
-    initDataPlayer(type, username, password) {
-        if (type === 'guest') {
-            const players = {
-                id: 'TEST123',
-                displayName: username,
-                type: type,
-                isAuthenticated: false,
-                controlsPly: false,
-                tournamentStats: {
-                    wins: 0,
-                    lose: 0,
-                    matches: 0,
-                },
-            };
-            this.player.push(players);
-            console.log(players);
-            return true;
+            else if (type === 'login') {
+                const plyData = await this.userApiService.getUser(username, password);
+                const players = {
+                    userId: plyData.user.id,
+                    displayName: plyData.user.display_name,
+                    type: type,
+                    username: plyData.user.username,
+                    isAuthenticated: true,
+                    controlsPly: true,
+                    tournamentStats: {
+                        wins: 0,
+                        lose: 0,
+                        matches: 0,
+                    },
+                };
+                return (this.player.push(players));
+            }
         }
-        /*else if (type === 'login') {
-
-            const players = {
-                id: 'TEST1234',
-                displayName: username,
-                type: type,
-                //userId?: string;
-                //username?: string;
-                isAuthenticated: true,
-                controlsPly: true,
-                tournamentStats: {
-                    wins: 0,
-                    lose: 0,
-                    matches: 0,
-                },
-            }
-        }*/
-        return false;
+        catch (error) {
+            console.log(`Initialization of player data failed: ` + username);
+            return (null);
+        }
+    }
+    getUser(username) {
+        if (this.player[0].)
+            return (true);
     }
 }
