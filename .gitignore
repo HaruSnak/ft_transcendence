@@ -1,0 +1,89 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Frontend build artifacts
+srcs/requierements/frontend/public/js/
+srcs/requierements/frontend/public/css/
+*.js.map
+*.css.map
+
+# TypeScript
+*.tsbuildinfo
+
+# Docker volumes and data
+srcs/volumes/
+srcs/volumes/es_data/
+srcs/volumes/grafana_db/
+srcs/volumes/logstash/
+srcs/volumes/prometheus_db/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs/
+*.log
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+tmp/
+temp/
+
+# Docker
+.dockerignore
+
+# Elasticsearch
+*.lock
+_state/
+indices/
+snapshot_cache/
+
+# Grafana
+grafana.db
+csv/
+pdf/
+png/
+plugins/
+
+# Prometheus
+chunks_head/
+wal/
+queries.active
+01*/
+
+# Logstash
+logs_config/
+logs_pipeline/
+
+# Build artifacts
+dist/
+build/
