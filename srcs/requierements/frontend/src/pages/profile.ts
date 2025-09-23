@@ -2,30 +2,42 @@
 // src/pages/profile.ts
 
 interface UserProfile {
-  avatarUrl: string;
+  id: number;
   username: string;
-  ranking: number;
+  display_name: string;
+  email?: string;
+  avatar_url?: string;
+  is_online: boolean;
   wins: number;
   losses: number;
-  matches: number;
+  games_played: number;
 }
 
 // Profil de secours si l'API ne répond pas
 const DEMO_PROFILE: UserProfile = {
-  avatarUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=User42',
+  id: 0,
+  avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=User42',
   username: 'User42',
-  ranking: 12,
+  display_name: 'User42',
+  is_online: false,
   wins: 8,
   losses: 3,
-  matches: 11,
+  games_played: 11,
 };
 
 // Récupère le profil depuis l'API ou renvoie le mode démo
 async function fetchUserProfile(): Promise<UserProfile> {
   try {
-    const res = await fetch('/api/profile');
+    const token = localStorage.getItem('authToken');
+    if (!token) throw new Error('No token');
+    
+    const res = await fetch('http://localhost:3003/api/user/profile', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
     if (!res.ok) throw new Error();
-    return await res.json();
+    
+    const data = await res.json();
+    return data.user;
   } catch {
     return DEMO_PROFILE;
   }
@@ -42,24 +54,24 @@ function renderProfile(container: HTMLElement, user: Profile, isDemo: boolean) {
         : ''
     }
     <div class="bg-gray-800 rounded-2xl shadow-xl p-10 flex flex-col items-center gap-8 max-w-md mx-auto">
-      <h2 class="text-3xl font-bold text-white">${user.displayName}</h2>
-      <img src="${user.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.displayName}`}" alt="Avatar"
+      <h2 class="text-3xl font-bold text-white">${user.display_name}</h2>
+      <img src="${user.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.username}`}" alt="Avatar"
            class="w-32 h-32 rounded-full border-4 border-blue-500 shadow mb-4" />
 
       <div class="flex gap-6">
         <!-- Victoires en vert -->
         <div class="text-center">
-          <div class="text-lg font-bold text-green-400">${0}</div>
+          <div class="text-lg font-bold text-green-400">${user.wins}</div>
           <div class="text-gray-400">Victoires</div>
         </div>
         <!-- Défaites en rouge -->
         <div class="text-center">
-          <div class="text-lg font-bold text-red-400">${0}</div>
+          <div class="text-lg font-bold text-red-400">${user.losses}</div>
           <div class="text-gray-400">Défaites</div>
         </div>
         <!-- Matchs neutre -->
         <div class="text-center">
-          <div class="text-lg font-bold text-white">${0}</div>
+          <div class="text-lg font-bold text-white">${user.games_played}</div>
           <div class="text-gray-400">Matchs</div>
         </div>
       </div>
@@ -73,18 +85,12 @@ function renderProfile(container: HTMLElement, user: Profile, isDemo: boolean) {
 
   // clic sur le bouton Discuter depuis le profil
   container.querySelector('#dm-button')?.addEventListener('click', () => {
-    localStorage.setItem('dmTarget', user.id);
+    localStorage.setItem('dmTarget', user.id.toString());
     window.location.hash = '#live-chat';
   });
 }
 
-type Profile = {
-  id: string;
-  authUserId: string;
-  avatar: string | null;
-  displayName: string;
-  lastActivity: string;
-};
+type Profile = UserProfile;
 
 // Point d'entrée pour la page Profil
 export async function initProfilePage() {
@@ -93,20 +99,10 @@ export async function initProfilePage() {
   if (!container) return;
   console.log('Initializing profile page');
 
-  const id = window.location.hash.split('/')[1] || null;
-  const url = id
-    ? `http://localhost:3000/api/v1/user/${id}`
-    : 'http://localhost:3000/api/v1/user/me';
-  const res = await fetch(url, {
-    credentials: 'include',
-  });
-  if (!res.ok) {
-    // TODO: Redirect to error page
-    console.error('Failed to fetch profile:', res.statusText);
-    return;
-  }
-  const profile: Profile = await res.json();
-
+  // Récupérer le profil utilisateur connecté
+  const profile = await fetchUserProfile();
+  const isDemo = profile === DEMO_PROFILE;
+  
   // affiche le profil
-  renderProfile(container, profile, false);
+  renderProfile(container, profile, isDemo);
 }

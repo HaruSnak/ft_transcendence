@@ -19,7 +19,7 @@ declare global {
 }
 export {}; // Force le mode module TS
 
-// Toutes les pages de l’app
+// Toutes les pages de l'app
 const pages = [
   'home',
   'game',
@@ -47,15 +47,6 @@ initChatPage();
 //initCreateRoomPage();
 initLoginPage();
 initSignupPage();
-/*
-  // For the profile page, it's either #profile or #profile/:id
-  const profileRegex = /^profile(\/[a-zA-Z0-9]+)?$/;
-  if (page === 'profile' || profileRegex.test(page)) {
-    console.log('Initializing profile page');
-    return initProfilePage();
-  }
-}
-*/
 
 // Lie les clics de la navbar
 function initNav() {
@@ -77,22 +68,28 @@ function initNav() {
   });
 }
 
-// Change de page et met à jour l’URL (pushState par défaut)
+// Change de page et met à jour l'URL (pushState par défaut)
 export function navigateTo(page: string, push = true) {
   if (push) {
     window.history.pushState(null, '', `#${page}`);
   }
   showPage(page.split('/')[0]);
-  // Initialisation spécifique pour la page game
-  if (page.split('/')[0] === 'game') {
+  
+  // Initialisation spécifique pour les pages
+  const basePage = page.split('/')[0];
+  
+  if (basePage === 'game') {
     initGame(); // Initialise le jeu quand on arrive sur #game
   } else {
     cleanUpGame(); // Arrête le jeu si on quitte #game
   }
-  //initPage(page);
+  
+  if (basePage === 'profile') {
+    initProfilePage(); // Initialise le profil quand on arrive sur #profile
+  }
 }
 
-// Démarrage de l’app
+// Démarrage de l'app
 window.addEventListener('DOMContentLoaded', () => {
   initNav();
 
