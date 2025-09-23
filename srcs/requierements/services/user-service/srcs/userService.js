@@ -246,6 +246,108 @@ class UserService {
 			console.error('Error cleaning up expired tokens:', error);
 		}
 	}
+	
+	// ========== BLOCKED USERS ==========
+	
+	// Obtenir les utilisateurs bloqués
+	async getBlockedUsers(userId) {
+		try {
+			const blockedUsers = await database.query(
+				`SELECT u.id, u.username, u.display_name 
+				 FROM blocked_users bu
+				 JOIN users u ON bu.blocked_user_id = u.id
+				 WHERE bu.user_id = ?`,
+				[userId]
+			);
+			return blockedUsers;
+		} catch (error) {
+			throw error;
+		}
+	}
+
+	// Bloquer un utilisateur
+	async blockUser(userId, blockedUserId) {
+		if (userId === parseInt(blockedUserId)) {
+			throw new Error('Cannot block yourself');
+		}
+		
+		try {
+			await database.run(
+				'INSERT INTO blocked_users (user_id, blocked_user_id) VALUES (?, ?)',
+				[userId, blockedUserId]
+			);
+		} catch (error) {
+			if (error.message.includes('UNIQUE constraint failed')) {
+				throw new Error('User is already blocked');
+			}
+			throw error;
+		}
+	}
+
+	// Débloquer un utilisateur
+	async unblockUser(userId, blockedUserId) {
+		try {
+			const result = await database.run(
+				'DELETE FROM blocked_users WHERE user_id = ? AND blocked_user_id = ?',
+				[userId, blockedUserId]
+			);
+			if (result.changes === 0) {
+				throw new Error('User is not blocked');
+			}
+		} catch (error) {
+			throw error;
+		}
+	}
+	
+	// ========== GAME INVITATIONS ==========
+	
+	// Obtenir les invitations de jeu
+	async getGameInvitations(userId) {
+		try {
+			const invitations = await database.query(
+				`SELECT gi.*, u.username as from_username, u.display_name as from_display_name
+				 FROM game_invitations gi
+				 JOIN users u ON gi.from_user_id = u.id
+				 WHERE gi.to_user_id = ? AND gi.status = 'pending'`,
+				[userId]
+			);
+			return invitations;
+		} catch (error) {
+			throw error;
+		}
+	}
+
+	// Créer une invitation de jeu
+	async createGameInvitation(fromUserId, toUserId, gameType = 'pong') {
+		if (fromUserId === parseInt(toUserId)) {
+			throw new Error('Cannot invite yourself');
+		}
+		
+		try {
+			const result = await database.run(
+				'INSERT INTO game_invitations (from_user_id, to_user_id, game_type) VALUES (?, ?, ?)',
+				[fromUserId, toUserId, gameType]
+			);
+			return { id: result.id };
+		} catch (error) {
+			throw error;
+		}
+	}
+
+	// Répondre à une invitation
+	async respondToGameInvitation(invitationId, userId, status) {
+		try {
+			const result = await database.run(
+				'UPDATE game_invitations SET status = ? WHERE id = ? AND to_user_id = ?',
+				[status, invitationId, userId]
+			);
+			if (result.changes === 0) {
+				throw new Error('Invitation not found or not for this user');
+			}
+		} catch (error) {
+			throw error;
+		}
+	}
 }
 
 export default new UserService();
