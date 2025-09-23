@@ -61,7 +61,6 @@ export class PongGameUI {
 		this.divInterfaceMainMenu.style.display = 'none';
 		this.divInterfaceLogin.style.display = 'block';
 		//if (true) // Mettre en place une fois la DB faite le systeme de s'il est deja login sur son compte
-		if (this.tournaments.)
 		if (this.inputLoginGM.value) // securitation du password
 		{
 			if (!this.inputPasswordGM.value && this.tournaments.initDataPlayer('guest', this.inputLoginGM.value)) {

@@ -67,7 +67,8 @@ export class TournamentManager {
 	}
 
 	getUser(username: string) {
-		if (this.player[0].)
-		return (true);
+		return this.player.find(player => 
+			player.displayName === username || player.username === username
+		);
 	}
 }
