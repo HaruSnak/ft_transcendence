@@ -87,6 +87,29 @@ class Database {
 				blacklisted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 				expires_at DATETIME NOT NULL,
 				FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+			)`,
+			
+			// Table des utilisateurs bloqués
+			`CREATE TABLE IF NOT EXISTS blocked_users (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				user_id INTEGER NOT NULL,
+				blocked_user_id INTEGER NOT NULL,
+				created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+				FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+				FOREIGN KEY(blocked_user_id) REFERENCES users(id) ON DELETE CASCADE,
+				UNIQUE(user_id, blocked_user_id)
+			)`,
+			
+			// Table des invitations de jeu
+			`CREATE TABLE IF NOT EXISTS game_invitations (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				from_user_id INTEGER NOT NULL,
+				to_user_id INTEGER NOT NULL,
+				game_type VARCHAR(50) DEFAULT 'pong',
+				status VARCHAR(20) DEFAULT 'pending',
+				created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+				FOREIGN KEY(from_user_id) REFERENCES users(id) ON DELETE CASCADE,
+				FOREIGN KEY(to_user_id) REFERENCES users(id) ON DELETE CASCADE
 			)`
 		];
 
