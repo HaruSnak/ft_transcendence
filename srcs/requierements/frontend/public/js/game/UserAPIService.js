@@ -1,7 +1,7 @@
 export class userApiService {
     constructor() {
         // route API User
-        this.userURL = `http://localhost:3003/api/`;
+        this.userURL = `/api/`;
     }
     // Function qui send la demande cote backend pour get un USER en fonction de son username + password
     async getUser(username, password) {

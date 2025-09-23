@@ -18,7 +18,7 @@ export interface userStats {
 
 export class userApiService {
 	// route API User
-	private userURL = `http://localhost:3003/api/`;
+	private userURL = `/api/`;
 
 	// Function qui send la demande cote backend pour get un USER en fonction de son username + password
 	async getUser(username:string, password: string): Promise<authResponse | null> {
