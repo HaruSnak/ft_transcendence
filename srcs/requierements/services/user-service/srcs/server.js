@@ -223,6 +223,151 @@ fastify.post('/api/user/match', async (request, reply) => {
 	}
 });
 
+/*					____BLOCKED USERS ROUTES____						*/
+
+// Obtenir les utilisateurs bloqués
+fastify.get('/api/user/blocked', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		const blockedUsers = await userService.getBlockedUsers(request.user.userId);
+		reply.send({
+			success: true,
+			blocked_users: blockedUsers
+		});
+	} catch (error) {
+		reply.code(500).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
+// Bloquer un utilisateur
+fastify.post('/api/user/block', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		const { blocked_user_id } = request.body;
+		if (!blocked_user_id) {
+			return reply.code(400).send({
+				success: false,
+				error: 'blocked_user_id is required'
+			});
+		}
+		
+		await userService.blockUser(request.user.userId, blocked_user_id);
+		reply.send({
+			success: true,
+			message: 'User blocked successfully'
+		});
+	} catch (error) {
+		reply.code(400).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
+// Débloquer un utilisateur
+fastify.delete('/api/user/unblock/:blocked_user_id', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		await userService.unblockUser(request.user.userId, request.params.blocked_user_id);
+		reply.send({
+			success: true,
+			message: 'User unblocked successfully'
+		});
+	} catch (error) {
+		reply.code(400).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
+/*					____GAME INVITATIONS ROUTES____						*/
+
+// Obtenir les invitations de jeu
+fastify.get('/api/user/game-invitations', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		const invitations = await userService.getGameInvitations(request.user.userId);
+		reply.send({
+			success: true,
+			invitations: invitations
+		});
+	} catch (error) {
+		reply.code(500).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
+// Créer une invitation de jeu
+fastify.post('/api/user/game-invitation', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		const { to_user_id, game_type } = request.body;
+		if (!to_user_id) {
+			return reply.code(400).send({
+				success: false,
+				error: 'to_user_id is required'
+			});
+		}
+		
+		const invitation = await userService.createGameInvitation(
+			request.user.userId, 
+			to_user_id, 
+			game_type || 'pong'
+		);
+		reply.code(201).send({
+			success: true,
+			message: 'Game invitation sent',
+			invitation
+		});
+	} catch (error) {
+		reply.code(400).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
+// Répondre à une invitation
+fastify.put('/api/user/game-invitation/:id', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		const { status } = request.body;
+		if (!['accepted', 'declined'].includes(status)) {
+			return reply.code(400).send({
+				success: false,
+				error: 'Status must be "accepted" or "declined"'
+			});
+		}
+		
+		await userService.respondToGameInvitation(
+			request.params.id, 
+			request.user.userId, 
+			status
+		);
+		reply.send({
+			success: true,
+			message: `Invitation ${status} successfully`
+		});
+	} catch (error) {
+		reply.code(400).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
 // All interfaces IPV4 (host : '0.0.0.0'), 
 fastify.listen({ port : 3003, host : '0.0.0.0'}, function (err, address) {
 	if (err) {
