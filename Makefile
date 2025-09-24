@@ -48,7 +48,7 @@ MAKEFLAGS += --no-print-directory
 #   TRANSCENDANCE MAKEFILE (COLOR)
 # ===============================
 
-# ===============================
+COMPOSE_FILE = ./srcs/docker-compose.yml
 
 # Couleurs ANSI
 RESET=\033[0m
@@ -66,12 +66,12 @@ WHITE=\033[37m
 define spinner
 	for i in 1 2 3 4; do \
 		case $$i in \
-			1) printf "$(CYAN) | $(RESET)\b\b\b" ;; \
-			2) printf "$(CYAN) / $(RESET)\b\b\b" ;; \
-			3) printf "$(CYAN) - $(RESET)\b\b\b" ;; \
-			4) printf "$(CYAN) \\ $(RESET)\b\b\b" ;; \
+			1) printf "\rLoading." ;; \
+			2) printf "\rLoading.." ;; \
+			3) printf "\rLoading..." ;; \
+			4) printf "\rLoading...." ;; \
 		esac; \
-		sleep 0.2; \
+		sleep 0.3; \
 	done
 endef
 
@@ -114,27 +114,26 @@ up:
 	@echo "$(BLUE)🔧 Building and starting containers...$(RESET)"
 	@echo -n "$(CYAN)⏳ Processing$(RESET) "
 	@$(call spinner)
-	@docker compose -f $(COMPOSE_FILE) up --build --detach > .compose.log 2>&1 \
+	@docker-compose -f $(COMPOSE_FILE) up --build --detach > .compose.log 2>&1 \
 		&& echo "$(GREEN)✅ Containers are up!$(RESET)" \
 		|| (echo "$(RED)❌ Docker-compose failed. See .compose.log for details.$(RESET)" && tail -n 30 .compose.log)
 
 build:
 
 down:
-	docker compose -f $(COMPOSE_FILE) down --volumes --remove-orphans
+	docker-compose -f $(COMPOSE_FILE) down --volumes --remove-orphans
 
 
 build:
-	@echo "$(BLUE)🔨 Building docker images...$(RESET)"
-	@trap 'kill 0' INT; \
-	for service in chat-service game-service user-service auth-service nginx elasticsearch logstash; do \
-		echo "$(CYAN)  → Building $$service...$(RESET)"; \
+	@echo "Building Docker images..."
+	@mkdir -p ./srcs/volumes/es_data ./srcs/volumes/logstash/logs_pipeline ./srcs/volumes/logstash/logs_config ./srcs/volumes/prometheus_db ./srcs/volumes/grafana_db
+	@for service in chat-service game-service user-service auth-service nginx elasticsearch logstash; do \
+		echo "Building $$service..."; \
 		( while true; do $(call spinner); done ) & SPINNER_PID=$$! ; \
-		docker compose -f $(COMPOSE_FILE) build $$service --no-cache > /dev/null 2>&1 ; \
-		kill $$SPINNER_PID 2>/dev/null ; printf "\b\b\b   \b\b\b" ; \
-		if [ $$? -eq 0 ]; then echo "$(GREEN)✅ $$service built$(RESET)"; else echo "$(RED)❌ $$service failed$(RESET)"; fi ; \
+		docker-compose -f $(COMPOSE_FILE) build $$service > /dev/null 2>&1 ; \
+		kill $$SPINNER_PID 2>/dev/null ; \
+		if [ $$? -eq 0 ]; then printf "\r✅ $$service built              \n"; else printf "\r❌ $$service failed              \n"; fi ; \
 	done
-	@echo "$(GREEN)✅ All builds complete.$(RESET)"
 
 install:
 	@echo "$(YELLOW)📦 Installing frontend and backend dependencies...$(RESET)"
@@ -154,16 +153,13 @@ reset-db:
 	@echo "$(RED)💥 Resetting database (removing docker volumes)...$(RESET)"
 	@echo -n "$(CYAN)⏳ Resetting$(RESET) "
 	@$(call spinner)
-	@docker compose -f $(COMPOSE_FILE) down --volumes --remove-orphans
+	@docker-compose -f $(COMPOSE_FILE) down --volumes --remove-orphans
 	@echo "$(GREEN)✅ Database reset.$(RESET)"
 
 full-clean:
 	@echo "$(RED)🗑️  Performing full cleanup (containers, images, volumes, networks, deps)...$(RESET)"
 	@echo -n "$(CYAN)⏳ Cleaning$(RESET) "
 	@$(call spinner)
-	@docker compose -f $(COMPOSE_FILE) down --volumes --remove-orphans --rmi all > /dev/null 2>&1 || true
-	@RECLAIMED=$$(docker system prune -f 2>&1 | grep "Total reclaimed" || echo "No space reclaimed"); \
-	echo "$(CYAN)  → $$RECLAIMED$(RESET)"
 	@rm -rf .compose.log || true
 	@echo "$(CYAN)  → Removing frontend node_modules and dist...$(RESET)"
 	@rm -rf srcs/requierements/frontend/node_modules || true
@@ -171,4 +167,7 @@ full-clean:
 	@echo "$(CYAN)  → Removing services node_modules and dist...$(RESET)"
 	@find srcs/requierements/services -name "node_modules" -type d -exec rm -rf {} \; 2>/dev/null || true
 	@find srcs/requierements/services -name "dist" -type d -exec rm -rf {} \; 2>/dev/null || true
+	@docker-compose -f $(COMPOSE_FILE) down --volumes --remove-orphans --rmi all > /dev/null 2>&1 || true
+	@RECLAIMED=$$(docker system prune -f 2>&1 | grep "Total reclaimed" || echo "No space reclaimed"); \
+	echo "$(CYAN)  → $$RECLAIMED$(RESET)"
 	@echo "$(GREEN)✅ Full cleanup complete.$(RESET)"
