@@ -11,7 +11,6 @@ const pages = [
     'home',
     'game',
     'live-chat',
-    'board',
     'room',
     'create_room',
     'login',

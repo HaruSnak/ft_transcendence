@@ -1,4 +1,3 @@
-// src/pages/board.ts
-export async function loadBoardPage() {
-  console.log('Leaderboard');
-}
+// board page removed
+// (deleted by cleanup script)
+

@@ -4,7 +4,6 @@
 
 import { initHomePage } from './pages/home.js';
 import { initChatPage } from './pages/livechat.js';
-import { loadBoardPage } from './pages/board.js';
 import { initCreateRoomPage, initRoomPage } from './pages/room.js';
 import { initLoginPage } from './pages/login.js';
 import { initSignupPage } from './pages/signup.js';
@@ -24,7 +23,6 @@ const pages = [
   'home',
   'game',
   'live-chat',
-  'board',
   'room',
   'create_room',
   'login',
