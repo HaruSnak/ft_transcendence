@@ -1,2 +1,2 @@
-// board page removed (cleanup)
-
+// board page removed
+// (deleted by cleanup script)
