@@ -5,25 +5,18 @@ interface UserProfile {
   id: number;
   username: string;
   display_name: string;
-  email?: string;
+  email: string;
   avatar_url?: string;
   is_online: boolean;
   wins: number;
   losses: number;
   games_played: number;
+  matchHistory: Array<{
+    type: string;
+    date: string;
+    result: 'win' | 'lose';
+  }>;
 }
-
-// Profil de secours si l'API ne répond pas
-const DEMO_PROFILE: UserProfile = {
-  id: 0,
-  avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=User42',
-  username: 'User42',
-  display_name: 'User42',
-  is_online: false,
-  wins: 8,
-  losses: 3,
-  games_played: 11,
-};
 
 // Fonction pour afficher les messages d'erreur/succès
 function showMessage(message: string, isError = true) {
@@ -51,7 +44,7 @@ function showMessage(message: string, isError = true) {
 }
 
 // Fonction pour mettre à jour le profil
-async function updateProfile(newUsername: string): Promise<boolean> {
+async function updateProfile(updates: { avatar_url?: string; display_name?: string; username?: string; email?: string; password?: string }): Promise<boolean> {
   try {
     const token = localStorage.getItem('authToken');
     if (!token) {
@@ -64,10 +57,7 @@ async function updateProfile(newUsername: string): Promise<boolean> {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ 
-        username: newUsername.trim(),
-        display_name: newUsername.trim()
-      }),
+      body: JSON.stringify(updates),
     });
 
     const result = await response.json();
@@ -168,7 +158,7 @@ async function logout() {
     }, 1500);
   }
 }
-async function fetchUserProfile(): Promise<UserProfile> {
+async function fetchUserProfile(): Promise<UserProfile | null> {
   try {
     const token = localStorage.getItem('authToken');
     if (!token) throw new Error('No token');
@@ -179,44 +169,39 @@ async function fetchUserProfile(): Promise<UserProfile> {
     if (!res.ok) throw new Error();
     
     const data = await res.json();
-    return data.user;
+    const profile = data.user;
+    // Ensure matchHistory exists
+    if (!profile.matchHistory) {
+      profile.matchHistory = [];
+    }
+    return profile;
   } catch {
-    return DEMO_PROFILE;
+    return null;
   }
 }
 
 // element du profil
 function renderProfile(container: HTMLElement, user: Profile, isDemo: boolean) {
   container.innerHTML = `
-    ${
-      isDemo
-        ? `<div class="text-center text-yellow-500 mb-4">
-      Mode démo : Backend non disponible
-    </div>`
-        : ''
-    }
     <div class="bg-gray-800 rounded-2xl shadow-xl p-10 flex flex-col items-center gap-8 max-w-md mx-auto">
-      <h2 class="text-3xl font-bold text-white">${user.display_name}</h2>
+      <div class="text-center">
+        <h2 class="text-3xl font-bold text-white mb-2">${user.display_name}</h2>
+        <p class="text-sm text-gray-400">${user.username} • ${user.email}</p>
+      </div>
       
-      ${!isDemo ? `
-        <div class="flex gap-2">
-          <button id="edit-profile-btn" 
-                  class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded transition">
-            ✏️ Modifier profil
-          </button>
-          <button id="logout-btn" 
-                  class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm rounded transition">
-            🚪 Déconnexion
-          </button>
-          <button id="delete-account-btn" 
-                  class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm rounded transition">
-            🗑️ Supprimer compte
-          </button>
-        </div>
-      ` : ''}
-      
-      <img src="${user.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.username}`}" alt="Avatar"
+      <img src="${user.avatar_url || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDEyOCAxMjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiBmaWxsPSIjNGI1NTYzIi8+Cjx0ZXh0IHg9IjY0IiB5PSI3MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QXZhdGFyPC90ZXh0Pgo8L3N2Zz4K'}" alt="Avatar"
            class="w-32 h-32 rounded-full border-4 border-blue-500 shadow mb-4" />
+
+      <div class="flex gap-2">
+        <button id="edit-profile-btn" 
+                class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded transition">
+          ✏️ Modifier profil
+        </button>
+        <button id="logout-btn" 
+                class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm rounded transition">
+          🚪 Déconnexion
+        </button>
+      </div>
 
       <div class="flex gap-6">
         <!-- Victoires en vert -->
@@ -236,6 +221,23 @@ function renderProfile(container: HTMLElement, user: Profile, isDemo: boolean) {
         </div>
       </div>
 
+      <div class="w-full">
+        <h3 class="text-xl font-bold text-white mb-4">Historique des matchs</h3>
+        <div class="space-y-2 max-h-40 overflow-y-auto">
+          ${user.matchHistory.map(match => `
+            <div class="flex justify-between items-center bg-gray-700 p-3 rounded">
+              <div>
+                <div class="text-white font-medium">${match.type}</div>
+                <div class="text-gray-400 text-sm">${match.date}</div>
+              </div>
+              <div class="text-lg ${match.result === 'win' ? 'text-green-400' : 'text-red-400'}">
+                ${match.result === 'win' ? '🏆' : '❌'}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
       <button id="dm-button"
               class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-8 py-2 rounded">
         💬 Discuter
@@ -248,14 +250,45 @@ function renderProfile(container: HTMLElement, user: Profile, isDemo: boolean) {
         <h3 class="text-xl font-bold text-white mb-4">Modifier le profil</h3>
         
         <div class="mb-4">
-          <label class="block text-gray-300 mb-2">Nom d'utilisateur</label>
+          <label class="block text-gray-300 mb-2">Avatar URL</label>
+          <input id="new-avatar" 
+                 type="text" 
+                 value="${user.avatar_url || ''}"
+                 class="w-full p-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500">
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-gray-300 mb-2">Pseudo (Display Name)</label>
+          <input id="new-display-name" 
+                 type="text" 
+                 value="${user.display_name}"
+                 class="w-full p-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500">
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-gray-300 mb-2">Nom d'utilisateur (Login)</label>
           <input id="new-username" 
                  type="text" 
                  value="${user.username}"
                  class="w-full p-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500">
         </div>
-        
-        <div class="flex gap-3">
+
+        <div class="mb-4">
+          <label class="block text-gray-300 mb-2">Email</label>
+          <input id="new-email" 
+                 type="email" 
+                 value="${user.email}"
+                 class="w-full p-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500">
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-gray-300 mb-2">Nouveau mot de passe (laisser vide pour ne pas changer)</label>
+          <input id="new-password" 
+                 type="password" 
+                 class="w-full p-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500">
+        </div>
+
+        <div class="flex gap-3 mb-4">
           <button id="save-profile-btn" 
                   class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded transition">
             💾 Sauvegarder
@@ -265,59 +298,77 @@ function renderProfile(container: HTMLElement, user: Profile, isDemo: boolean) {
             ❌ Annuler
           </button>
         </div>
+
+        <button id="delete-account-btn" 
+                class="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded transition">
+          🗑️ Supprimer le compte
+        </button>
       </div>
     </div>
   `;
 
-  if (!isDemo) {
-    // Événements pour l'édition du profil
-    container.querySelector('#edit-profile-btn')?.addEventListener('click', () => {
-      const modal = document.getElementById('edit-modal');
-      modal?.classList.remove('hidden');
-    });
+  // Événements pour l'édition du profil
+  container.querySelector('#edit-profile-btn')?.addEventListener('click', () => {
+    const modal = document.getElementById('edit-modal');
+    modal?.classList.remove('hidden');
+  });
 
-    // Fermer le modal
-    container.querySelector('#cancel-edit-btn')?.addEventListener('click', () => {
+  // Fermer le modal
+  container.querySelector('#cancel-edit-btn')?.addEventListener('click', () => {
+    const modal = document.getElementById('edit-modal');
+    modal?.classList.add('hidden');
+  });
+
+  // Sauvegarder les modifications
+  container.querySelector('#save-profile-btn')?.addEventListener('click', async () => {
+    const newAvatarInput = document.getElementById('new-avatar') as HTMLInputElement;
+    const newDisplayNameInput = document.getElementById('new-display-name') as HTMLInputElement;
+    const newUsernameInput = document.getElementById('new-username') as HTMLInputElement;
+    const newEmailInput = document.getElementById('new-email') as HTMLInputElement;
+    const newPasswordInput = document.getElementById('new-password') as HTMLInputElement;
+
+    const updates: any = {};
+
+    const newAvatar = newAvatarInput.value.trim();
+    if (newAvatar !== (user.avatar_url || '')) updates.avatar_url = newAvatar;
+
+    const newDisplayName = newDisplayNameInput.value.trim();
+    if (newDisplayName && newDisplayName !== user.display_name) updates.display_name = newDisplayName;
+
+    const newUsername = newUsernameInput.value.trim();
+    if (newUsername && newUsername !== user.username) updates.username = newUsername;
+
+    const newEmail = newEmailInput.value.trim();
+    if (newEmail && newEmail !== user.email) updates.email = newEmail;
+
+    const newPassword = newPasswordInput.value.trim();
+    if (newPassword) updates.password = newPassword;
+
+    if (Object.keys(updates).length === 0) {
+      showMessage('Aucun changement détecté', false);
       const modal = document.getElementById('edit-modal');
       modal?.classList.add('hidden');
-    });
+      return;
+    }
 
-    // Sauvegarder les modifications
-    container.querySelector('#save-profile-btn')?.addEventListener('click', async () => {
-      const newUsernameInput = document.getElementById('new-username') as HTMLInputElement;
-      const newUsername = newUsernameInput.value.trim();
+    const success = await updateProfile(updates);
+    if (success) {
+      showMessage('Profil mis à jour avec succès !', false);
+      const modal = document.getElementById('edit-modal');
+      modal?.classList.add('hidden');
       
-      if (!newUsername) {
-        showMessage('Le nom d\'utilisateur ne peut pas être vide');
-        return;
-      }
+      // Recharger le profil après 2 secondes
+      setTimeout(() => {
+        initProfilePage();
+      }, 2000);
+    }
+  });
 
-      if (newUsername === user.username) {
-        showMessage('Aucun changement détecté', false);
-        const modal = document.getElementById('edit-modal');
-        modal?.classList.add('hidden');
-        return;
-      }
+  // Déconnexion
+  container.querySelector('#logout-btn')?.addEventListener('click', logout);
 
-      const success = await updateProfile(newUsername);
-      if (success) {
-        showMessage('Profil mis à jour avec succès !', false);
-        const modal = document.getElementById('edit-modal');
-        modal?.classList.add('hidden');
-        
-        // Recharger le profil après 2 secondes
-        setTimeout(() => {
-          initProfilePage();
-        }, 2000);
-      }
-    });
-
-    // Déconnexion
-    container.querySelector('#logout-btn')?.addEventListener('click', logout);
-
-    // Suppression du compte
-    container.querySelector('#delete-account-btn')?.addEventListener('click', deleteAccount);
-  }
+  // Suppression du compte
+  container.querySelector('#delete-account-btn')?.addEventListener('click', deleteAccount);
 
   // clic sur le bouton Discuter depuis le profil
   container.querySelector('#dm-button')?.addEventListener('click', () => {
@@ -337,8 +388,20 @@ export async function initProfilePage() {
 
   // Récupérer le profil utilisateur connecté
   const profile = await fetchUserProfile();
-  const isDemo = profile === DEMO_PROFILE;
+  if (!profile) {
+    container.innerHTML = `
+      <div class="text-center text-red-500 mb-4">
+        Erreur : Impossible de charger le profil. Veuillez vous reconnecter.
+      </div>
+      <div class="text-center">
+        <button onclick="window.location.hash = '#login'" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+          Se connecter
+        </button>
+      </div>
+    `;
+    return;
+  }
   
   // affiche le profil
-  renderProfile(container, profile, isDemo);
+  renderProfile(container, profile, false);
 }
