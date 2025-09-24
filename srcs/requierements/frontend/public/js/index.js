@@ -12,7 +12,6 @@ const pages = [
     'game',
     'live-chat',
     'room',
-    'create_room',
     'login',
     'signup',
     'profile',

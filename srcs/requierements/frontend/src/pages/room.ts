@@ -8,23 +8,7 @@ interface RoomPlayer {
   name: string;
 }
 
-// Initialise la page de création de room
-export function initCreateRoomPage() {
-  const form = document.getElementById('create_room_form') as HTMLFormElement;
-  form.onsubmit = (e) => {
-    e.preventDefault();
-    const data = new FormData(form);
-    const roomName = (data.get('room_name') as string).trim();
-    const maxPlayers = Number(data.get('max_players'));
-    if (!roomName) return;
-
-    // Émettre un événement socket pour créer la room
-    socket.emit('createRoom', { roomName, maxPlayers });
-
-    // Naviguer vers la page room
-    window.location.hash = '#room';
-  };
-}
+// Create-room UI removed: no initCreateRoomPage exported.
 
 // Initialise la page de room (liste des joueurs + démarrage)
 export function initRoomPage() {

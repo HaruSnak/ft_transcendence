@@ -1,22 +1,7 @@
 /* eslint-disable no-undef */
 // src/pages/room.ts
 import { socket } from '../socket';
-// Initialise la page de création de room
-export function initCreateRoomPage() {
-    const form = document.getElementById('create_room_form');
-    form.onsubmit = (e) => {
-        e.preventDefault();
-        const data = new FormData(form);
-        const roomName = data.get('room_name').trim();
-        const maxPlayers = Number(data.get('max_players'));
-        if (!roomName)
-            return;
-        // Émettre un événement socket pour créer la room
-        socket.emit('createRoom', { roomName, maxPlayers });
-        // Naviguer vers la page room
-        window.location.hash = '#room';
-    };
-}
+// create-room UI removed
 // Initialise la page de room (liste des joueurs + démarrage)
 export function initRoomPage() {
     const tpl = document.getElementById('room_player');
