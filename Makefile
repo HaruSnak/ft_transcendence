@@ -1,3 +1,7 @@
+DOCKER_COMPOSE = docker-compose
+DOCKER_COMPOSE_FILE = ./srcs/docker-compose.yml
+DATA_PATH = ./srcs/volumes
+
 SHELL :		echo -e "$(CYAN)$(BOLD)║$(RESET)   $(GREEN)1.$(RESET) $(BOLD)Lancer l'application (dev)$(RESET)                                 $(CYAN)║$(RESET)"; \
 		echo -e "$(CYAN)$(BOLD)║$(RESEfull-clean:
 	@echo "$(RED)🗑️  Performing full cleanup (containers, images, volumes, networks, and local artifacts)...$(RESET)"
@@ -125,15 +129,12 @@ down:
 
 
 build:
-	@echo "Building Docker images..."
+	@echo "Building and starting all containers..."
 	@mkdir -p ./srcs/volumes/es_data ./srcs/volumes/logstash/logs_pipeline ./srcs/volumes/logstash/logs_config ./srcs/volumes/prometheus_db ./srcs/volumes/grafana_db
-	@for service in chat-service game-service user-service auth-service nginx elasticsearch logstash; do \
-		echo "Building $$service..."; \
-		( while true; do $(call spinner); done ) & SPINNER_PID=$$! ; \
-		docker-compose -f $(COMPOSE_FILE) build $$service > /dev/null 2>&1 ; \
-		kill $$SPINNER_PID 2>/dev/null ; \
-		if [ $$? -eq 0 ]; then printf "\r✅ $$service built              \n"; else printf "\r❌ $$service failed              \n"; fi ; \
-	done
+	@docker-compose -f ./srcs/docker-compose.yml down > /dev/null 2>&1 || true
+	@docker network rm srcs_app_network > /dev/null 2>&1 || true
+	@docker-compose -f ./srcs/docker-compose.yml up --build --detach
+	@echo "All containers are up!"
 
 install:
 	@echo "$(YELLOW)📦 Installing frontend and backend dependencies...$(RESET)"
@@ -168,6 +169,7 @@ full-clean:
 	@find srcs/requierements/services -name "node_modules" -type d -exec rm -rf {} \; 2>/dev/null || true
 	@find srcs/requierements/services -name "dist" -type d -exec rm -rf {} \; 2>/dev/null || true
 	@docker-compose -f $(COMPOSE_FILE) down --volumes --remove-orphans --rmi all > /dev/null 2>&1 || true
+	@docker image prune -a -f > /dev/null 2>&1 || true
 	@RECLAIMED=$$(docker system prune -f 2>&1 | grep "Total reclaimed" || echo "No space reclaimed"); \
 	echo "$(CYAN)  → $$RECLAIMED$(RESET)"
 	@echo "$(GREEN)✅ Full cleanup complete.$(RESET)"
