@@ -98,3 +98,9 @@ build/
 **/.DS_Store
 **/*.tmp
 **/*.temp
+
+# Service-specific ignores
+srcs/requierements/services/*/node_modules/
+srcs/requierements/services/*/dist/
+srcs/requierements/services/*/.env
+srcs/requierements/services/*/logs/
