@@ -32,6 +32,7 @@ srcs/volumes/prometheus_db/
 # Logs
 logs/
 *.log
+.compose.log
 
 # Database files
 *.db
@@ -87,3 +88,13 @@ logs_pipeline/
 # Build artifacts
 dist/
 build/
+
+# Additional ignores
+**/*.log
+**/.env
+**/node_modules/
+**/dist/
+**/build/
+**/.DS_Store
+**/*.tmp
+**/*.temp

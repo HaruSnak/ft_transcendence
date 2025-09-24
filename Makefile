@@ -23,9 +23,52 @@ WHITE=\033[37m
 
 # Spinner function
 define spinner
-	echo -n "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
-	sleep 1
-	echo -n "\b\b\b\b\b\b\b\b\b\b          \b\b\b\b\b\b\b\b\b\b"
+	printf "Loading"; \
+	for i in 1 2 3 4 5; do \
+		printf "."; \
+		sleep 0.3; \
+	done; \
+	printf " "
+endef
+
+
+
+# ===============================
+#   TRANSCENDANCE MAKEFILE (COLOR)
+# ===============================
+
+COMPOSE_FILE = srcs/docker-compose.yml
+
+# Couleurs ANSI
+RESET=\033[0m
+BOLD=\033[1m
+DIM=\033[2m
+RED=\033[31m
+GREEN=\033[32m
+YELLOW=\033[33m
+BLUE=\033[34m
+MAGENTA=\033[35m
+CYAN=\033[36m
+WHITE=\033[37m
+
+# Spinner function
+define spinner
+	for i in 1 2 3 4 5 6 7 8 9 10; do \
+		case $$i in \
+			1) echo -ne "$(CYAN)⠋$(RESET)\b" ;; \
+			2) echo -ne "$(CYAN)⠙$(RESET)\b" ;; \
+			3) echo -ne "$(CYAN)⠹$(RESET)\b" ;; \
+			4) echo -ne "$(CYAN)⠸$(RESET)\b" ;; \
+			5) echo -ne "$(CYAN)⠼$(RESET)\b" ;; \
+			6) echo -ne "$(CYAN)⠴$(RESET)\b" ;; \
+			7) echo -ne "$(CYAN)⠦$(RESET)\b" ;; \
+			8) echo -ne "$(CYAN)⠧$(RESET)\b" ;; \
+			9) echo -ne "$(CYAN)⠇$(RESET)\b" ;; \
+			10) echo -ne "$(CYAN)⠏$(RESET)\b" ;; \
+		esac; \
+		sleep 0.1; \
+	done; \
+	echo -ne " \b"
 endef
 
 .PHONY: menu dev up down build logs ps install clean reset-db kill-ports help full-clean
@@ -67,7 +110,7 @@ dev:
 
 up:
 	@echo -e "$(BLUE)🔧 Building and starting containers...$(RESET)"
-	@echo -n "$(CYAN)⏳ Processing$(RESET) "
+	@echo -ne "$(CYAN)⏳ Processing$(RESET) "
 	@$(call spinner)
 	@docker compose -f $(COMPOSE_FILE) up --build --detach > .compose.log 2>&1 \
 		&& echo -e "$(GREEN)✅ Containers are up!$(RESET)" \
@@ -79,7 +122,7 @@ down:
 
 build:
 	@echo -e "$(BLUE)🔨 Building docker images...$(RESET)"
-	@echo -n "$(CYAN)⏳ Building$(RESET) "
+	@echo -ne "$(CYAN)⏳ Building$(RESET) "
 	@$(call spinner)
 	@docker compose -f $(COMPOSE_FILE) build --no-cache > .compose.log 2>&1 \
 		&& echo -e "$(GREEN)✅ Build complete.$(RESET)" \
@@ -93,7 +136,7 @@ ps:
 
 install:
 	@echo -e "$(YELLOW)📦 Installing frontend and backend dependencies...$(RESET)"
-	@echo -n "$(CYAN)⏳ Installing$(RESET) "
+	@echo -ne "$(CYAN)⏳ Installing$(RESET) "
 	@$(call spinner)
 	@cd srcs/requierements/frontend && npm ci --silent || true
 	@cd srcs/services/user-service && npm ci --silent || true
@@ -102,7 +145,7 @@ install:
 
 clean:
 	@echo -e "$(BLUE)🧹 Cleaning build artifacts and node_modules...$(RESET)"
-	@echo -n "$(CYAN)⏳ Cleaning$(RESET) "
+	@echo -ne "$(CYAN)⏳ Cleaning$(RESET) "
 	@$(call spinner)
 	@rm -rf srcs/requierements/frontend/dist srcs/services/*/dist || true
 	@rm -rf srcs/requierements/frontend/node_modules srcs/services/*/node_modules || true
@@ -121,14 +164,14 @@ kill-ports:
 
 reset-db:
 	@echo -e "$(RED)💥 Resetting database (removing docker volumes)...$(RESET)"
-	@echo -n "$(CYAN)⏳ Resetting$(RESET) "
+	@echo -ne "$(CYAN)⏳ Resetting$(RESET) "
 	@$(call spinner)
 	@docker compose -f $(COMPOSE_FILE) down --volumes --remove-orphans
 	@echo -e "$(GREEN)✅ Database reset.$(RESET)"
 
 full-clean:
 	@echo -e "$(RED)🗑️  Performing full cleanup (containers, images, volumes, networks)...$(RESET)"
-	@echo -n "$(CYAN)⏳ Cleaning$(RESET) "
+	@echo -ne "$(CYAN)⏳ Cleaning$(RESET) "
 	@$(call spinner)
 	@docker compose -f $(COMPOSE_FILE) down --volumes --remove-orphans --rmi all || true
 	@docker system prune -f || true
