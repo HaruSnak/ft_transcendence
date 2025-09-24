@@ -86,7 +86,7 @@ menu:
 		echo "$(CYAN)$(BOLD)║                  🚀 $(MAGENTA)TRANSCENDANCE DEV MENU$(CYAN) 🚀                   ║$(RESET)"; \
 		echo "$(CYAN)$(BOLD)╠═════════════════════════════════════════════════════════════════╣$(RESET)"; \
 		echo "$(CYAN)$(BOLD)║$(RESET)   $(GREEN)1.$(BOLD) Lancer l'application (dev)$(RESET)                                 $(CYAN)║$(RESET)"; \
-		echo "$(CYAN)$(BOLD)║$(RESET)   $(YELLOW)2.$(BOLD) Installer les dépendances                                  $(CYAN)║$(RESET)"; \
+		echo "$(CYAN)$(BOLD)║$(RESET)   $(YELLOW)2.$(BOLD) Installer les dépendances (npm)$(RESET)                            $(CYAN)║$(RESET)"; \
 		echo "$(CYAN)$(BOLD)║$(RESET)   $(BLUE)3.$(BOLD) Construire les images Docker                               $(CYAN)║$(RESET)"; \
 		echo "$(CYAN)$(BOLD)║$(RESET)   $(RED)4.$(BOLD) Nettoyer complètement                                      $(CYAN)║$(RESET)"; \
 		echo "$(CYAN)$(BOLD)║$(RESET)   $(MAGENTA)5.$(BOLD) Reset DB (docker volumes)                                  $(CYAN)║$(RESET)"; \
