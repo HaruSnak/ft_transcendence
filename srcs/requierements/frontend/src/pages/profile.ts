@@ -183,52 +183,52 @@ async function fetchUserProfile(): Promise<UserProfile | null> {
 // element du profil
 function renderProfile(container: HTMLElement, user: Profile, isDemo: boolean) {
   container.innerHTML = `
-    <div class="bg-gray-800 rounded-2xl shadow-xl p-10 flex flex-col items-center gap-8 max-w-md mx-auto">
+    <div class="bg-gray-800 rounded-2xl shadow-xl p-6 sm:p-10 flex flex-col items-center gap-6 sm:gap-8 max-w-sm sm:max-w-md mx-auto">
       <div class="text-center">
-        <h2 class="text-3xl font-bold text-white mb-2">${user.display_name}</h2>
-        <p class="text-sm text-gray-400">${user.username} • ${user.email}</p>
+        <h2 class="text-2xl sm:text-3xl font-bold text-white mb-2">${user.display_name}</h2>
+        <p class="text-xs sm:text-sm text-gray-400">${user.username} • ${user.email}</p>
       </div>
       
       <img src="${user.avatar_url || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDEyOCAxMjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMjgiIGhlaWdodD0iMTI4IiBmaWxsPSIjNGI1NTYzIi8+Cjx0ZXh0IHg9IjY0IiB5PSI3MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QXZhdGFyPC90ZXh0Pgo8L3N2Zz4K'}" alt="Avatar"
-           class="w-32 h-32 rounded-full border-4 border-blue-500 shadow mb-4" />
+           class="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-blue-500 shadow mb-4" />
 
-      <div class="flex gap-2">
+      <div class="flex gap-2 flex-wrap justify-center">
         <button id="edit-profile-btn" 
-                class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded transition">
+                class="px-3 py-2 sm:px-4 text-white text-xs sm:text-sm rounded transition bg-blue-500 hover:bg-blue-600">
           ✏️ Modifier profil
         </button>
         <button id="logout-btn" 
-                class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm rounded transition">
+                class="px-3 py-2 sm:px-4 text-white text-xs sm:text-sm rounded transition bg-yellow-500 hover:bg-yellow-600">
           🚪 Déconnexion
         </button>
       </div>
 
-      <div class="flex gap-6">
+      <div class="flex gap-4 sm:gap-6">
         <!-- Victoires en vert -->
         <div class="text-center">
-          <div class="text-lg font-bold text-green-400">${user.wins}</div>
-          <div class="text-gray-400">Victoires</div>
+          <div class="text-lg sm:text-lg font-bold text-green-400">${user.wins}</div>
+          <div class="text-gray-400 text-xs sm:text-sm">Victoires</div>
         </div>
         <!-- Défaites en rouge -->
         <div class="text-center">
-          <div class="text-lg font-bold text-red-400">${user.losses}</div>
-          <div class="text-gray-400">Défaites</div>
+          <div class="text-lg sm:text-lg font-bold text-red-400">${user.losses}</div>
+          <div class="text-gray-400 text-xs sm:text-sm">Défaites</div>
         </div>
         <!-- Matchs neutre -->
         <div class="text-center">
-          <div class="text-lg font-bold text-white">${user.games_played}</div>
-          <div class="text-gray-400">Matchs</div>
+          <div class="text-lg sm:text-lg font-bold text-white">${user.games_played}</div>
+          <div class="text-gray-400 text-xs sm:text-sm">Matchs</div>
         </div>
       </div>
 
       <div class="w-full">
-        <h3 class="text-xl font-bold text-white mb-4">Historique des matchs</h3>
+        <h3 class="text-lg sm:text-xl font-bold text-white mb-4">Historique des matchs</h3>
         <div class="space-y-2 max-h-40 overflow-y-auto">
           ${user.matchHistory.map(match => `
-            <div class="flex justify-between items-center bg-gray-700 p-3 rounded">
+            <div class="flex justify-between items-center bg-gray-700 p-2 sm:p-3 rounded text-sm">
               <div>
-                <div class="text-white font-medium">${match.type}</div>
-                <div class="text-gray-400 text-sm">${match.date}</div>
+                <div class="text-white font-medium text-xs sm:text-sm">${match.type}</div>
+                <div class="text-gray-400 text-xs">${match.date}</div>
               </div>
               <div class="text-lg ${match.result === 'win' ? 'text-green-400' : 'text-red-400'}">
                 ${match.result === 'win' ? '🏆' : '❌'}
@@ -239,68 +239,68 @@ function renderProfile(container: HTMLElement, user: Profile, isDemo: boolean) {
       </div>
 
       <button id="dm-button"
-              class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-8 py-2 rounded">
+              class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 sm:px-8 py-2 rounded text-sm sm:text-base">
         💬 Discuter
       </button>
     </div>
 
     <!-- Modal d'édition (caché par défaut) -->
-    <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50 hidden">
-      <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 class="text-xl font-bold text-white mb-4">Modifier le profil</h3>
+    <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50 hidden flex">
+      <div class="bg-gray-800 rounded-lg p-4 sm:p-6 max-w-sm sm:max-w-md w-full mx-4">
+        <h3 class="text-lg sm:text-xl font-bold text-white mb-4">Modifier le profil</h3>
         
         <div class="mb-4">
-          <label class="block text-gray-300 mb-2">Avatar URL</label>
+          <label class="block text-gray-300 mb-2 text-sm">Avatar URL</label>
           <input id="new-avatar" 
                  type="text" 
                  value="${user.avatar_url || ''}"
-                 class="w-full p-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500">
+                 class="w-full p-2 sm:p-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 text-sm">
         </div>
 
         <div class="mb-4">
-          <label class="block text-gray-300 mb-2">Pseudo (Display Name)</label>
+          <label class="block text-gray-300 mb-2 text-sm">Pseudo (Display Name)</label>
           <input id="new-display-name" 
                  type="text" 
                  value="${user.display_name}"
-                 class="w-full p-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500">
+                 class="w-full p-2 sm:p-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 text-sm">
         </div>
 
         <div class="mb-4">
-          <label class="block text-gray-300 mb-2">Nom d'utilisateur (Login)</label>
+          <label class="block text-gray-300 mb-2 text-sm">Nom d'utilisateur (Login)</label>
           <input id="new-username" 
                  type="text" 
                  value="${user.username}"
-                 class="w-full p-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500">
+                 class="w-full p-2 sm:p-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 text-sm">
         </div>
 
         <div class="mb-4">
-          <label class="block text-gray-300 mb-2">Email</label>
+          <label class="block text-gray-300 mb-2 text-sm">Email</label>
           <input id="new-email" 
                  type="email" 
                  value="${user.email}"
-                 class="w-full p-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500">
+                 class="w-full p-2 sm:p-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 text-sm">
         </div>
 
         <div class="mb-4">
-          <label class="block text-gray-300 mb-2">Nouveau mot de passe (laisser vide pour ne pas changer)</label>
+          <label class="block text-gray-300 mb-2 text-sm">Nouveau mot de passe (laisser vide pour ne pas changer)</label>
           <input id="new-password" 
                  type="password" 
-                 class="w-full p-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500">
+                 class="w-full p-2 sm:p-3 bg-gray-700 text-white rounded border border-gray-600 focus:border-blue-500 text-sm">
         </div>
 
-        <div class="flex gap-3 mb-4">
+        <div class="flex gap-2 sm:gap-3 mb-4 flex-col sm:flex-row">
           <button id="save-profile-btn" 
-                  class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded transition">
+                  class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded transition text-sm">
             💾 Sauvegarder
           </button>
           <button id="cancel-edit-btn" 
-                  class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 rounded transition">
+                  class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 rounded transition text-sm">
             ❌ Annuler
           </button>
         </div>
 
         <button id="delete-account-btn" 
-                class="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded transition">
+                class="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded transition text-sm">
           🗑️ Supprimer le compte
         </button>
       </div>
