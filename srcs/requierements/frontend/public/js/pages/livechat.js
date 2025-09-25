@@ -1,7 +1,28 @@
 /* eslint-disable no-undef */
 import { socket, sendMessageToBackend } from '../socket.js';
 const history = {};
-export function initChatPage() {
+async function getCurrentUsername() {
+    try {
+        const token = localStorage.getItem('authToken');
+        console.log('Token:', token ? 'present' : 'null');
+        if (!token)
+            return socket.id || '';
+        const res = await fetch('http://localhost:3003/api/user/profile', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        console.log('Fetch status:', res.status);
+        if (!res.ok)
+            return socket.id || '';
+        const data = await res.json();
+        console.log('Username:', data.user.username);
+        return data.user.username;
+    }
+    catch (error) {
+        console.log('Error fetching username:', error);
+        return socket.id || '';
+    }
+}
+export async function initChatPage() {
     const btnGen = document.getElementById('btn-general');
     const dmList = document.getElementById('dm-list');
     const userList = document.getElementById('user-list');
@@ -13,11 +34,10 @@ export function initChatPage() {
     const input = document.getElementById('chat_input');
     let current = '';
     history[current] = [];
-    // TODO: Only before real users through login
     let username = '';
-    setTimeout(() => {
-        username = socket.id ?? '';
-    }, 1000);
+    username = await getCurrentUsername();
+    // Send username to backend
+    socket.emit('register', { username });
     const blockedUsers = new Set(JSON.parse(localStorage.getItem('blockedUsers') || '[]'));
     const saveBlocked = () => {
         localStorage.setItem('blockedUsers', JSON.stringify([...blockedUsers]));

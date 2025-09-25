@@ -372,7 +372,7 @@ function renderProfile(container: HTMLElement, user: Profile, isDemo: boolean) {
 
   // clic sur le bouton Discuter depuis le profil
   container.querySelector('#dm-button')?.addEventListener('click', () => {
-    localStorage.setItem('dmTarget', user.id.toString());
+    localStorage.setItem('dmTarget', user.username);
     window.location.hash = '#live-chat';
   });
 }

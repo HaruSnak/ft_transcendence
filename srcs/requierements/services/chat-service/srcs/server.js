@@ -17,6 +17,7 @@ const fastify = Fastify({
 
 // Storage pour les clients connectés
 const clients = new Map();
+const clientUsernames = new Map();
 
 // Enregistrer le plugin WebSocket
 await fastify.register(import('@fastify/websocket'));
@@ -71,6 +72,11 @@ fastify.get('/ws', { websocket: true }, (connection, req) => {
     connection.on('close', (code, reason) => {
         console.log('❌ Client déconnecté:', clientId, code, reason);
         clients.delete(clientId);
+        const username = clientUsernames.get(clientId);
+        if (username) {
+            clients.delete(username);
+            clientUsernames.delete(clientId);
+        }
         broadcastUserList();
     });
 
@@ -84,11 +90,25 @@ fastify.get('/ws', { websocket: true }, (connection, req) => {
 			const msg = JSON.parse(rawMessage.toString());
 			console.log('← message reçu de', clientId, ':', msg);
 			
+			if (msg.type === 'register') {
+				// Enregistrer le username
+				const username = msg.username;
+				if (username) {
+					clientUsernames.set(clientId, username);
+					clients.set(username, connection);
+					clients.delete(clientId);
+					console.log('✅ Client enregistré:', username);
+					broadcastUserList();
+				}
+				return;
+			}
+			
 			if (msg.type === 'message') {
 				// Créer le message à diffuser
+				const fromUsername = clientUsernames.get(clientId) || clientId;
 				const broadcastMessage = {
 					type: 'message',
-					from: clientId,
+					from: fromUsername,
 					to: msg.to || '', // '' = général, sinon DM
 					text: msg.text,
 					timestamp: Date.now()
@@ -101,7 +121,7 @@ fastify.get('/ws', { websocket: true }, (connection, req) => {
 					const targetClient = clients.get(msg.to);
 					if (targetClient) {
 						targetClient.send(messageStr);
-						console.log('✅ Message privé envoyé de', clientId, 'vers', msg.to);
+						console.log('✅ Message privé envoyé de', username || clientId, 'vers', msg.to);
 					} else {
 						console.log('⚠️ Destinataire introuvable:', msg.to);
 					}
@@ -128,7 +148,7 @@ fastify.get('/ws', { websocket: true }, (connection, req) => {
 			connection.send(JSON.stringify({
 				type: 'ack',
 				originalMessage: msg,
-				clientId: clientId
+				clientId: username || clientId
 			}));
 			
 		} catch (error) {

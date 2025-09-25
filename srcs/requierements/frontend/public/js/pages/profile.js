@@ -324,7 +324,7 @@ function renderProfile(container, user, isDemo) {
     container.querySelector('#delete-account-btn')?.addEventListener('click', deleteAccount);
     // clic sur le bouton Discuter depuis le profil
     container.querySelector('#dm-button')?.addEventListener('click', () => {
-        localStorage.setItem('dmTarget', user.id.toString());
+        localStorage.setItem('dmTarget', user.username);
         window.location.hash = '#live-chat';
     });
 }

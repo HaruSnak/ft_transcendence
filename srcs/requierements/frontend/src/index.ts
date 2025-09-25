@@ -37,7 +37,7 @@ function showPage(page: string) {
 }
 
 initHomePage();
-initChatPage();
+//initChatPage(); // Removed, called on navigate
 //loadBoardPage();
 //initRoomPage();
 //initCreateRoomPage();
@@ -82,6 +82,10 @@ export function navigateTo(page: string, push = true) {
   
   if (basePage === 'profile') {
     initProfilePage(); // Initialise le profil quand on arrive sur #profile
+  }
+  
+  if (basePage === 'live-chat') {
+    initChatPage(); // Initialise le chat quand on arrive sur #live-chat
   }
 }
 
