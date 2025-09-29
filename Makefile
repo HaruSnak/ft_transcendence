@@ -136,9 +136,10 @@ install:
 	@echo "$(BLUE)$(BOLD) 🎮 Installation game-service...$(RESET)"
 	@cd srcs/requierements/services/game-service && npm install >nul 2>&1
 	@echo "$(GREEN)$(BOLD) ✅ Game-service installé$(RESET)"
-	@echo "$(BLUE)$(BOLD) 👤 Installation user-service...$(RESET)"
-	@cd srcs/requierements/services/user-service && rm -rf node_modules && npm install && npm rebuild bcrypt && npm rebuild sqlite3
-	@echo "$(GREEN)$(BOLD) ✅ User-service installé$(RESET)"
+		@echo "$(BLUE)$(BOLD) 👤 Installation user-service...$(RESET)"
+		@wsl bash -c "sudo apt-get update && sudo apt-get install -y build-essential python3 make g++"
+		@cd srcs/requierements/services/user-service && rm -rf node_modules && npm install && npm rebuild bcrypt && npm rebuild sqlite3
+		@echo "$(GREEN)$(BOLD) ✅ User-service installé$(RESET)"
 	@echo "$(BLUE)$(BOLD) 🌐 Installation frontend...$(RESET)"
 	@cd srcs/requierements/frontend && npm install >nul 2>&1
 	@echo "$(GREEN)$(BOLD) ✅ Frontend installé$(RESET)"
