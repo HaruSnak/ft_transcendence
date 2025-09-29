@@ -34,17 +34,18 @@ export async function initChatPage() {
   const titleElem = document.getElementById('chat-title')! as HTMLSpanElement;
   const blockBtn = document.getElementById('block-btn')! as HTMLButtonElement;
   const inviteBtn = document.getElementById('invite-btn')! as HTMLButtonElement;
-  const chatbox = document.getElementById('chat_messages')! as HTMLFormElement;
+  const chatbox = document.getElementById('chat_messages')! as HTMLDivElement;
   const form = document.getElementById('chat_form')! as HTMLFormElement;
   const input = document.getElementById('chat_input')! as HTMLInputElement;
 
   let current = '';
   history[current] = [];
 
+  // Récupère le display name depuis la DB
   let username: string = '';
   username = await getCurrentUsername();
 
-  // Send username to backend
+  // Envoie le display name au backend
   socket.emit('register', { username });
 
   const blockedUsers = new Set<string>(JSON.parse(localStorage.getItem('blockedUsers') || '[]'));
