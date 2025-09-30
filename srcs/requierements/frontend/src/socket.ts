@@ -1,133 +1,178 @@
-class ChatWebSocket {
-  private ws: WebSocket | null = null;
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private eventListeners: Map<string, Function[]> = new Map();
-  public id: string = '';
+// src/socket.ts
+console.log('🔌 Loading socket.ts...');
 
-  constructor(private url: string) {
-    // Connect will be called manually
-  }
+// Use native WebSocket instead of Socket.IO
+let socket: WebSocket | null = null;
+let reconnectAttempts = 0;
+const maxReconnectAttempts = 5;
 
-  public connect(): Promise<void> {
-    return new Promise((resolve) => {
-      this.privateConnect(resolve);
-    });
-  }
+export function initSocket() {
+    console.log('🔌 Initializing WebSocket connection...');
+    connectWebSocket();
+}
 
-  private privateConnect(onConnected?: () => void) {
+function connectWebSocket() {
+    console.log(`🔌 Attempting to connect to WebSocket (attempt ${reconnectAttempts + 1})...`);
     try {
-        // Test direct d'abord
-        this.ws = new WebSocket(`ws://localhost:3001/ws`);
-        
-        this.ws.onopen = () => {
-            console.log('📡 WebSocket connecté côté client');
-            this.reconnectAttempts = 0;
-            this.id = 'user_' + Math.random().toString(36).substr(2, 9);
-            
-            // Envoyez un message de test
-            this.emit('test', { message: 'Hello from client' });
-            if (onConnected) onConnected();
+        socket = new WebSocket('ws://localhost:3001/ws');
+
+        socket.onopen = (event) => {
+            console.log('✅ WebSocket connected successfully');
+            reconnectAttempts = 0;
         };
 
-		this.ws.onmessage = (event) => {
-			const data = JSON.parse(event.data);
-			console.log('📡 Message reçu:', data);
-			
-			// Déclenchez les bons événements selon le type
-			if (data.type === 'message') {
-				// Message de chat
-				window.dispatchEvent(new CustomEvent('message_backend_to_frontend', { 
-					detail: {
-						from: data.from,
-						to: data.to,
-						text: data.text
-					}
-				}));
-			} else if (data.type === 'user_list') {
-				// Liste des utilisateurs
-				window.dispatchEvent(new CustomEvent('user_list', { 
-					detail: data.users 
-				}));
-			}
-			
-			// Votre code existant pour triggerEvent
-			this.triggerEvent(data.type || 'message', data);
-		};
-
-        this.ws.onclose = (event) => {
-            console.log('📡 WebSocket fermé côté client');
-            console.log('Code de fermeture:', event.code);
-            console.log('Raison:', event.reason);
-            this.handleReconnect();
+        socket.onmessage = (event) => {
+            console.log('📨 WebSocket message received:', event.data);
+            try {
+                const data = JSON.parse(event.data);
+                handleMessage(data);
+            } catch (error) {
+                console.error('❌ Error parsing WebSocket message:', error);
+            }
         };
 
-        this.ws.onerror = (error) => {
-            console.error('❌ Erreur WebSocket côté client:', error);
+        socket.onclose = (event) => {
+            console.log(`❌ WebSocket disconnected (code: ${event.code}, reason: ${event.reason})`);
+            attemptReconnect();
+        };
+
+        socket.onerror = (error) => {
+            console.error('❌ WebSocket error:', error);
+            attemptReconnect();
         };
 
     } catch (error) {
-        console.error('❌ Impossible de se connecter:', error);
-        this.handleReconnect();
+        console.error('❌ Failed to create WebSocket connection:', error);
+        attemptReconnect();
     }
 }
 
-  private handleReconnect() {
-    if (this.reconnectAttempts < this.maxReconnectAttempts) {
-      this.reconnectAttempts++;
-      console.log(`🔄 Tentative de reconnexion ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
-      setTimeout(() => this.connect(), 2000);
-    }
-  }
-
-  // Méthode Socket.IO compatible : emit
-  public emit(event: string, data?: any) {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify({
-        type: event,
-        ...data
-      }));
+function attemptReconnect() {
+    if (reconnectAttempts < maxReconnectAttempts) {
+        reconnectAttempts++;
+        console.log(`Attempting to reconnect (${reconnectAttempts}/${maxReconnectAttempts})...`);
+        setTimeout(() => {
+            connectWebSocket();
+        }, 2000 * reconnectAttempts); // Exponential backoff
     } else {
-      console.warn('⚠️ WebSocket pas connecté');
+        console.error('Max reconnection attempts reached');
     }
-  }
-
-  // Méthode Socket.IO compatible : on
-  public on(event: string, callback: Function) {
-    if (!this.eventListeners.has(event)) {
-      this.eventListeners.set(event, []);
-    }
-    this.eventListeners.get(event)?.push(callback);
-  }
-
-  // Méthode pour déclencher les événements
-  private triggerEvent(event: string, data: any) {
-    const listeners = this.eventListeners.get(event);
-    if (listeners) {
-      listeners.forEach(callback => callback(data));
-    }
-  }
-
-  // Ancienne méthode pour compatibilité
-  public send(data: any) {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify(data));
-    } else {
-      console.warn('⚠️ WebSocket pas connecté');
-    }
-  }
-
-  public close() {
-    if (this.ws) {
-      this.ws.close();
-    }
-  }
 }
 
-// Instance globale
-export const socket = new ChatWebSocket('ws://localhost:3001/ws');
+function handleMessage(data: any) {
+    console.log('📨 Handling message:', data);
 
-// Fonction utilitaire pour envoyer un message
-export function sendMessageToBackend(to: string, text: string) {
-  socket.emit('message', { to, text });
+    switch (data.type) {
+        case 'welcome':
+            console.log('👋 Welcome message received:', data.message);
+            // Register with a username (you might want to get this from user auth)
+            registerUser('Anonymous' + Math.floor(Math.random() * 1000));
+            break;
+
+        case 'message':
+            console.log('💬 Chat message received:', data);
+            displayMessage({
+                username: data.from,
+                content: data.text,
+                timestamp: data.timestamp
+            });
+            break;
+
+        case 'user_list':
+            console.log('👥 User list received:', data.users);
+            updateUserList(data.users);
+            break;
+
+        case 'ack':
+            console.log('✅ Message acknowledged:', data);
+            break;
+
+        default:
+            console.log('❓ Unknown message type:', data.type);
+    }
+}
+
+function registerUser(username: string) {
+    console.log(`👤 Registering user: ${username}`);
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({
+            type: 'register',
+            username: username
+        }));
+        console.log('✅ Registration message sent');
+    } else {
+        console.log('❌ Cannot register: WebSocket not connected');
+    }
+}
+
+function displayMessage(data: any) {
+    console.log('📝 Displaying message:', data);
+    const messagesDiv = document.getElementById('chat_messages');
+    if (messagesDiv) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'mb-2';
+        const timestamp = new Date(data.timestamp).toLocaleTimeString();
+        messageDiv.innerHTML = `<strong>${data.username}:</strong> ${data.content} <small class="text-muted">(${timestamp})</small>`;
+        messagesDiv.appendChild(messageDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        console.log('✅ Message displayed in chat');
+    } else {
+        console.log('❌ Chat messages container not found');
+    }
+}
+
+function updateUserList(users: string[]) {
+    console.log('👥 Updating user list:', users);
+    const userListDiv = document.getElementById('user-list');
+    if (userListDiv) {
+        userListDiv.innerHTML = '';
+        users.forEach(user => {
+            if (user && user !== 'undefined') { // Filter out invalid entries
+                const userDiv = document.createElement('div');
+                userDiv.className = 'bg-gray-600 px-3 py-2 rounded cursor-pointer hover:bg-gray-500';
+                userDiv.textContent = user;
+                userDiv.addEventListener('click', () => {
+                    console.log(`👆 Starting DM with: ${user}`);
+                    startDM(user);
+                });
+                userListDiv.appendChild(userDiv);
+            }
+        });
+        console.log('✅ User list updated');
+    } else {
+        console.log('❌ User list container not found');
+    }
+}
+
+function startDM(targetUser: string) {
+    console.log(`💬 Starting DM with: ${targetUser}`);
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({
+            type: 'message',
+            to: targetUser,
+            text: 'Hello! Let\'s chat privately.'
+        }));
+        console.log('✅ DM message sent');
+    } else {
+        console.log('❌ Cannot send DM: WebSocket not connected');
+    }
+}
+
+export function sendMessage(message: string, toUser?: string) {
+    console.log(`📤 Sending message: "${message}" ${toUser ? `to ${toUser}` : '(general)'}`);
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({
+            type: 'message',
+            to: toUser || '',
+            text: message
+        }));
+        console.log('✅ Message sent via WebSocket');
+    } else {
+        console.error('❌ Cannot send message: WebSocket not connected');
+    }
+}
+
+export function joinGeneral() {
+    // Since we're always connected to general chat, this is a no-op
+    console.log('Already in general chat');
 }

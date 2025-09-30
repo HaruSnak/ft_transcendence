@@ -21,6 +21,10 @@ const fastify = Fastify({
 	logger : true
 })
 
+// In-memory user storage (temporary)
+const users = [];
+const sessions = new Map();
+
 // Route for testing health
 fastify.get('/health', async (request, reply) => {
 	console.log('health route accessed!');
@@ -48,6 +52,69 @@ fastify.get('/api/login', async (request, reply) => {
 	else
 		loginAttempts.inc({status: 'failed'});
 	return {message: successLogin ? 'Login OK' : 'Login failed'};
+});
+
+// POST /api/auth/register - User registration
+fastify.post('/api/auth/register', async (request, reply) => {
+	const { username, email, password } = request.body;
+
+	// Basic validation
+	if (!username || !email || !password) {
+		return reply.code(400).send({ error: 'Username, email, and password are required' });
+	}
+
+	// Check if user already exists
+	const existingUser = users.find(user => user.username === username || user.email === email);
+	if (existingUser) {
+		return reply.code(409).send({ error: 'User already exists' });
+	}
+
+	// Create user (in production, hash password!)
+	const user = {
+		id: users.length + 1,
+		username,
+		email,
+		password, // In production: hash this!
+		createdAt: new Date().toISOString()
+	};
+
+	users.push(user);
+
+	console.log(`New user registered: ${username}`);
+
+	return reply.code(201).send({
+		message: 'User registered successfully',
+		user: { id: user.id, username: user.username, email: user.email },
+		token: `fake-jwt-token-${user.id}` // In production: generate real JWT
+	});
+});
+
+// POST /api/auth/login - User login
+fastify.post('/api/auth/login', async (request, reply) => {
+	const { username, password } = request.body;
+
+	if (!username || !password) {
+		loginAttempts.inc({status: 'failed'});
+		return reply.code(400).send({ error: 'Username and password are required' });
+	}
+
+	const user = users.find(u => (u.username === username || u.email === username) && u.password === password);
+	if (!user) {
+		loginAttempts.inc({status: 'failed'});
+		return reply.code(401).send({ error: 'Invalid credentials' });
+	}
+
+	loginAttempts.inc({status: 'success'});
+	activeSessions.inc();
+
+	const token = `fake-jwt-token-${user.id}`;
+	sessions.set(token, user);
+
+	return reply.send({
+		message: 'Login successful',
+		user: { id: user.id, username: user.username, email: user.email },
+		token
+	});
 });
 
 // All interfaces IPV4 (host : '0.0.0.0'), 

@@ -1,143 +1,131 @@
 // src/index.ts
+console.log('🔄 Loading index.ts...');
 
-//import './style.css';
-
-import { initHomePage } from './pages/home.js';
-import { initChatPage } from './pages/livechat.js';
-// room page removed
-import { initLoginPage } from './pages/login.js';
-import { initSignupPage } from './pages/signup.js';
-import { initProfilePage } from './pages/profile.js';
 import { initGame, cleanUpGame } from './game/game.js';
+import { initSocket } from './socket.js';
+import { initLogin } from './pages/login.js';
+import { initSignup } from './pages/signup.js';
+import { initProfile } from './pages/profile.js';
+import { initLiveChat } from './pages/livechat.js';
 
-// Expose startPong() au window
-declare global {
-  interface Window {
-    startPong: () => void;
-  }
-}
-export {}; // Force le mode module TS
+console.log('✅ All imports loaded');
 
-// Toutes les pages de l'app
-const pages = [
-  'home',
-  'game',
-  'live-chat',
-  'login',
-  'signup',
-  'profile',
-] as const;
-type Page = (typeof pages)[number];
-
-// Affiche la page demandée et cache les autres
-function showPage(page: string) {
-  pages.forEach((p) => {
-    document.getElementById(p)!.classList.toggle('hidden', p !== page);
-  });
-}
-
-// Vérifie si l'utilisateur est connecté
-function isLoggedIn(): boolean {
-  return !!localStorage.getItem('authToken');
-}
-
-// Met à jour la visibilité des boutons de navigation selon l'état de connexion
-function updateNavVisibility() {
-  const loggedIn = isLoggedIn();
-  const liveChatBtn = document.querySelector('[data-page="live-chat"]') as HTMLElement;
-  if (liveChatBtn) {
-    liveChatBtn.style.display = loggedIn ? 'inline-block' : 'none';
-  }
-  const profileBtn = document.querySelector('[data-page="profile"]') as HTMLElement;
-  if (profileBtn) {
-    profileBtn.style.display = loggedIn ? 'inline-block' : 'none';
-  }
-  // Masquer le bouton LiveChat sur la page home si non connecté
-  const homeLiveChatBtn = document.querySelector('#home [data-page="live-chat"]') as HTMLElement;
-  if (homeLiveChatBtn) {
-    homeLiveChatBtn.style.display = loggedIn ? 'inline-block' : 'none';
-  }
-}
-
-initHomePage();
-//initChatPage(); // Removed, called on navigate
-//loadBoardPage();
-//initRoomPage();
-//initCreateRoomPage();
-initLoginPage();
-initSignupPage();
-
-// Lie les clics de la navbar
-function initNav() {
-  const links = document.querySelectorAll<HTMLElement>('[data-page]');
-  links.forEach((link) => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      const target = link.dataset.page as Page;
-      navigateTo(target);
-    });
-  });
-
-  // Support du back/forward
-  window.addEventListener('popstate', () => {
-    const hash = window.location.hash.slice(1) as Page;
-    if (pages.includes(hash)) {
-      navigateTo(hash, false);
+// Navigation
+function showPage(pageId: string) {
+    console.log(`📄 showPage called with: ${pageId}`);
+    // Clean up game if switching away from game page
+    if (pageId !== 'game') {
+        console.log('🎮 Cleaning up game...');
+        cleanUpGame();
     }
-  });
 
-  updateNavVisibility();
+    // Hide all pages
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.add('hidden');
+    });
+
+    // Show selected page
+    const page = document.getElementById(pageId);
+    if (page) {
+        console.log(`✅ Showing page: ${pageId}`);
+        page.classList.remove('hidden');
+    } else {
+        console.log(`❌ Page not found: ${pageId}`);
+    }
+
+    // Update nav active state
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+    });
+    const activeLink = document.querySelector(`[data-page="${pageId}"]`);
+    if (activeLink) {
+        console.log(`🎯 Setting active link for: ${pageId}`);
+        activeLink.classList.add('active');
+    }
 }
 
-// Change de page et met à jour l'URL (pushState par défaut)
-export function navigateTo(page: string, push = true) {
-  // Vérifier l'authentification pour les pages protégées avant d'afficher
-  const basePage = page.split('/')[0];
-  if (basePage === 'live-chat' && !isLoggedIn()) {
-    navigateTo('login', false);
-    return;
-  }
-  
-  if (push) {
-    window.history.pushState(null, '', `#${page}`);
-  }
-  showPage(page.split('/')[0]);
-  
-  // Initialisation spécifique pour les pages
-  if (basePage === 'game') {
-    initGame(); // Initialise le jeu quand on arrive sur #game
-  } else {
-    cleanUpGame(); // Arrête le jeu si on quitte #game
-  }
-  
-  if (basePage === 'profile') {
-    initProfilePage(); // Initialise le profil quand on arrive sur #profile
-  }
-  
-  if (basePage === 'live-chat') {
-    initChatPage(); // Initialise le chat quand on arrive sur #live-chat
-  }
+function initNavigation() {
+    console.log('🧭 Initializing navigation...');
+    // Handle nav links
+    document.querySelectorAll('[data-page]').forEach(link => {
+        console.log('🔗 Attaching event listener to:', link);
+        link.addEventListener('click', (e) => {
+            console.log('🖱️ Clicked on:', link, 'Page:', link.getAttribute('data-page'));
+            e.preventDefault();
+            const pageId = link.getAttribute('data-page');
+            if (pageId) {
+                showPage(pageId);
+                // Update URL hash
+                window.location.hash = pageId;
+            }
+        });
+    });
+
+    // Handle initial page based on hash
+    const hash = window.location.hash.substring(1);
+    if (hash && document.getElementById(hash)) {
+        console.log(`🔗 Initial page from hash: ${hash}`);
+        showPage(hash);
+    } else {
+        console.log('🏠 Showing default page: home');
+        showPage('home');
+    }
+
+    // Handle hash changes
+    window.addEventListener('hashchange', () => {
+        const hash = window.location.hash.substring(1);
+        if (hash && document.getElementById(hash)) {
+            console.log(`🔄 Hash changed to: ${hash}`);
+            showPage(hash);
+        }
+    });
+    console.log('✅ Navigation initialized');
 }
 
-// Démarrage de l'app
-window.addEventListener('DOMContentLoaded', () => {
-  initNav();
+// Game initialization
+function initGameSection() {
+    console.log('🎮 Initializing game section...');
+    const soloModeBtn = document.getElementById('solo-mode');
+    const localModeBtn = document.getElementById('vs-local-mode');
 
-  // Écouter les changements d'état d'authentification
-  window.addEventListener('authStateChanged', updateNavVisibility);
+    if (soloModeBtn) {
+        console.log('🎯 Solo mode button found');
+        soloModeBtn.addEventListener('click', () => {
+            console.log('🎮 Starting solo game...');
+            showPage('game');
+            initGame();
+        });
+    } else {
+        console.log('❌ Solo mode button not found');
+    }
 
-  // Page initiale selon le hash ou home
-  const hash = window.location.hash.substring(1);
-  const first = hash !== '' ? hash : 'home';
-  navigateTo(first);
+    if (localModeBtn) {
+        console.log('🎯 Local mode button found');
+        localModeBtn.addEventListener('click', () => {
+            console.log('🎮 Starting local game...');
+            showPage('game');
+            initGame();
+        });
+    } else {
+        console.log('❌ Local mode button not found');
+    }
+    console.log('✅ Game section initialized');
+}
+
+// Initialize everything
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('📋 DOM Content Loaded - Starting initialization...');
+    initNavigation();
+    initGameSection();
+    console.log('🔌 Initializing socket...');
+    initSocket();
+    console.log('🔐 Initializing login...');
+    initLogin();
+    console.log('📝 Initializing signup...');
+    initSignup();
+    console.log('👤 Initializing profile...');
+    initProfile();
+    console.log('💬 Initializing live chat...');
+    initLiveChat();
+    console.log('🎉 All initializations complete!');
 });
-
-// Remplace window.startPong
-window.startPong = () => {
-  const startButton = document.getElementById('startGameButton') as HTMLButtonElement;
-  if (startButton) {
-    startButton.click(); // Simule un clic sur le bouton Start Game
-  } else {
-    console.log('Bouton Start Game non trouvé');
-  }
-};
