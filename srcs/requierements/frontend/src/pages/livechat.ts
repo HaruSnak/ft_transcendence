@@ -145,7 +145,7 @@ class ChatManager {
   private inviteToGame() {
     console.log(`[DEBUG] Invite to game: ${this.currentChannel}`);
     localStorage.setItem('gameInvite', this.currentChannel);
-    window.location.assign('/#game');
+    window.location.hash = '#game';
   }
 
   private sendMessage() {

@@ -183,7 +183,7 @@ async function fetchUserProfile(): Promise<UserProfile | null> {
 }
 
 // element du profil
-function renderProfile(container: HTMLElement, user: Profile, isDemo: boolean) {
+function renderProfile(container: HTMLElement, user: UserProfile) {
   container.innerHTML = `
     <div class="bg-gray-800 rounded-2xl shadow-xl p-6 sm:p-10 flex flex-col items-center gap-6 sm:gap-8 max-w-sm sm:max-w-md mx-auto">
       <div class="text-center">
@@ -246,9 +246,8 @@ function renderProfile(container: HTMLElement, user: Profile, isDemo: boolean) {
       </button>
     </div>
 
-    <!-- Modal d'édition (caché par défaut) -->
-    <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50 hidden flex">
       <div class="bg-gray-800 rounded-lg p-4 sm:p-6 max-w-sm sm:max-w-md w-full mx-4">
+        <h3 class="text-lg sm:text-xl font-bold text-white mb-4">Modifier le profil</h3>
         <h3 class="text-lg sm:text-xl font-bold text-white mb-4">Modifier le profil</h3>
         
         <div class="mb-4">
@@ -313,12 +312,14 @@ function renderProfile(container: HTMLElement, user: Profile, isDemo: boolean) {
   container.querySelector('#edit-profile-btn')?.addEventListener('click', () => {
     const modal = document.getElementById('edit-modal');
     modal?.classList.remove('hidden');
+    modal?.classList.add('flex');
   });
 
   // Fermer le modal
   container.querySelector('#cancel-edit-btn')?.addEventListener('click', () => {
     const modal = document.getElementById('edit-modal');
     modal?.classList.add('hidden');
+    modal?.classList.remove('flex');
   });
 
   // Sauvegarder les modifications
@@ -350,6 +351,7 @@ function renderProfile(container: HTMLElement, user: Profile, isDemo: boolean) {
       showMessage('Aucun changement détecté', false);
       const modal = document.getElementById('edit-modal');
       modal?.classList.add('hidden');
+      modal?.classList.remove('flex');
       return;
     }
 
@@ -358,6 +360,7 @@ function renderProfile(container: HTMLElement, user: Profile, isDemo: boolean) {
       showMessage('Profil mis à jour avec succès !', false);
       const modal = document.getElementById('edit-modal');
       modal?.classList.add('hidden');
+      modal?.classList.remove('flex');
       
       // Recharger le profil après 2 secondes
       setTimeout(() => {
@@ -379,9 +382,6 @@ function renderProfile(container: HTMLElement, user: Profile, isDemo: boolean) {
   });
 }
 
-type Profile = UserProfile;
-
-// Point d'entrée pour la page Profil
 export async function initProfilePage() {
   // Récupère le container
   const container = document.getElementById('profile-container');
@@ -405,5 +405,5 @@ export async function initProfilePage() {
   }
   
   // affiche le profil
-  renderProfile(container, profile, false);
+  renderProfile(container, profile);
 }

@@ -1,34 +1,36 @@
 /* eslint-disable no-undef */
 // src/pages/login.ts
+
+// Fonction pour afficher les messages d'erreur
+function showMessage(message: string, isError = true) {
+  // Supprimer l'ancien message s'il existe
+  const existingMessage = document.querySelector('.login-message');
+  if (existingMessage) {
+    existingMessage.remove();
+  }
+
+  // Créer le nouveau message
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `login-message p-3 mb-4 rounded text-center ${
+    isError ? 'bg-red-600 text-white' : 'bg-green-600 text-white'
+  }`;
+  messageDiv.textContent = message;
+
+  // Insérer le message avant le formulaire
+  const form = document.getElementById('login_form') as HTMLFormElement;
+  form.parentNode?.insertBefore(messageDiv, form);
+
+  // Supprimer le message après 5 secondes
+  setTimeout(() => {
+    messageDiv.remove();
+  }, 5000);
+}
+
 export function initLoginPage() {
   console.log('Login');
   // Récup le formulaire de login et reset les input (champs)
   const form = document.getElementById('login_form') as HTMLFormElement;
-  // form.reset();
-
-  // Fonction pour afficher les messages d'erreur
-  function showMessage(message: string, isError = true) {
-    // Supprimer l'ancien message s'il existe
-    const existingMessage = document.querySelector('.login-message');
-    if (existingMessage) {
-      existingMessage.remove();
-    }
-
-    // Créer le nouveau message
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `login-message p-3 mb-4 rounded text-center ${
-      isError ? 'bg-red-600 text-white' : 'bg-green-600 text-white'
-    }`;
-    messageDiv.textContent = message;
-
-    // Insérer le message avant le formulaire
-    form.parentNode?.insertBefore(messageDiv, form);
-
-    // Supprimer le message après 5 secondes
-    setTimeout(() => {
-      messageDiv.remove();
-    }, 5000);
-  }
+  form.reset();
 
   // Bouton vers la page de creat account
   const button_Signup = document.getElementById('button-signup');
