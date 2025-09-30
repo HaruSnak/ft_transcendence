@@ -39,10 +39,12 @@ export function initSignupPage() {
     submitButton.disabled = true;
     submitButton.textContent = 'Création en cours...';
     
-    // Récupère les valeurs
-    const username = (document.getElementById('su_username') as HTMLInputElement).value.trim();
-    const email = (document.getElementById('su_email') as HTMLInputElement).value.trim();
-    const password = (document.getElementById('su_password') as HTMLInputElement).value;
+  // Récupère les valeurs
+  const username = (document.getElementById('su_username') as HTMLInputElement).value.trim();
+  const display_name = (document.getElementById('su_pseudo') as HTMLInputElement)?.value.trim();
+  const email = (document.getElementById('su_email') as HTMLInputElement).value.trim();
+  const password = (document.getElementById('su_password') as HTMLInputElement).value;
+  const avatar_url = (document.getElementById('su_avatar') as HTMLInputElement)?.value.trim();
 
     // Validation basique côté client
     if (!username || !email || !password) {
@@ -59,15 +61,19 @@ export function initSignupPage() {
       return;
     }
 
-    console.log('Create Account:', { username, email });
-    
+    console.log('Create Account:', { username, display_name, email, avatar_url });
     try {
+      // Prépare le corps de la requête
+      const payload: any = { username, email, password };
+      if (display_name) payload.display_name = display_name;
+      if (avatar_url) payload.avatar_url = avatar_url;
+
       const response = await fetch('http://localhost:3003/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, email, password }),
+        body: JSON.stringify(payload),
       });
 
       const result = await response.json();
@@ -77,20 +83,15 @@ export function initSignupPage() {
       }
 
       console.log('Registration successful:', result);
-      
       showMessage('Compte créé avec succès ! Redirection vers la connexion...', false);
-      
       // Redirection vers le login après succès
       setTimeout(() => {
         window.location.hash = '#login';
       }, 2000);
-      
     } catch (error: any) {
       console.error('Error during registration:', error);
-      
       // Messages d'erreur spécifiques
       let errorMessage = 'Erreur lors de la création du compte';
-      
       if (error.message.includes('Failed to fetch') || error.message.includes('ERR_CONNECTION_REFUSED')) {
         errorMessage = 'Impossible de se connecter au serveur. Vérifiez que les services sont démarrés.';
       } else if (error.message.includes('already exists')) {
@@ -100,7 +101,6 @@ export function initSignupPage() {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
       showMessage(errorMessage);
     } finally {
       // Réactiver le bouton

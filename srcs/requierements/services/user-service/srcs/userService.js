@@ -9,7 +9,7 @@ const SALT_ROUNDS = 10;
 class UserService {
 	// Créer un nouvel utilisateur
 	async createUser(userData) {
-		const { username, email, password, display_name } = userData;
+		const { username, email, password, display_name, avatar_url } = userData;
 
 		try {
 			// Vérifier si l'utilisateur existe déjà
@@ -25,11 +25,11 @@ class UserService {
 			// Hasher le mot de passe
 			const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
 
-			// Insérer l'utilisateur
+			// Insérer l'utilisateur avec avatar_url
 			const result = await database.run(
-				`INSERT INTO users (username, email, password_hash, display_name) 
-				 VALUES (?, ?, ?, ?)`,
-				[username, email, password_hash, display_name || username]
+				`INSERT INTO users (username, email, password_hash, display_name, avatar_url) 
+				 VALUES (?, ?, ?, ?, ?)`,
+				[username, email, password_hash, display_name || username, avatar_url || '/assets/default-avatar.png']
 			);
 
 			// Créer les statistiques utilisateur
@@ -38,7 +38,7 @@ class UserService {
 				[result.id]
 			);
 
-			return { id: result.id, username, email, display_name: display_name || username };
+			return { id: result.id, username, email, display_name: display_name || username, avatar_url: avatar_url || '/assets/default-avatar.png' };
 		} catch (error) {
 			throw error;
 		}

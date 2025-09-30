@@ -39,23 +39,23 @@ fastify.get('/api/user', async (request, reply) => {
 // Inscription
 fastify.post('/api/auth/register', {
 	preHandler: validateUserData({ username: true, email: true, password: true })
-}, async (request, reply) => {
-	try {
-		const { username, email, password, display_name } = request.body;
-		const user = await userService.createUser({ username, email, password, display_name });
-		
-		reply.code(201).send({
-			success: true,
-			message: 'User created successfully',
-			user
-		});
-	} catch (error) {
-		reply.code(400).send({
-			success: false,
-			error: error.message
-		});
-	}
-});
+	}, async (request, reply) => {
+		try {
+			const { username, email, password, display_name, avatar_url } = request.body;
+			const user = await userService.createUser({ username, email, password, display_name, avatar_url });
+        
+			reply.code(201).send({
+				success: true,
+				message: 'User created successfully',
+				user
+			});
+		} catch (error) {
+			reply.code(400).send({
+				success: false,
+				error: error.message
+			});
+		}
+	});
 
 // Connexion
 fastify.post('/api/auth/login', {
