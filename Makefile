@@ -58,8 +58,6 @@ menu:
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)4.$(RESET) $(RED)Nettoyer le projet$(RESET)                                     $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)5.$(RESET) $(MAGENTA)Nettoyer les ports$(RESET)                                     $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)6.$(RESET) $(BLUE)Vérifier les ports$(RESET)                                     $(CYAN)║$(RESET)"
-	@echo "$(CYAN) ║$(WHITE)  $(BOLD)7.$(RESET) $(BLUE)Construire le frontend$(RESET)                                 $(CYAN)║$(RESET)"
-	@echo "$(CYAN) ║$(WHITE)  $(BOLD)8.$(RESET) $(YELLOW)Upgrader Node.js$(RESET)                                    $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)0.$(RESET) $(DIM)Quitter$(RESET)                                                $(CYAN)║$(RESET)"
 	@echo "$(CYAN)$(BOLD) ║                                                            ║$(RESET)"
 	@echo "$(CYAN)$(BOLD) ╠════════════════════════════════════════════════════════════╣$(RESET)"
@@ -79,8 +77,6 @@ menu:
 			4) echo ""; make clean; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
 			5) echo ""; make clean-ports; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
 			6) echo ""; make check-ports; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
-			7) echo ""; make build-frontend; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
-			8) echo ""; make upgrade-node; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
 			0) echo "$(GREEN)$(BOLD)Au revoir ! 👋$(RESET)"; break ;; \
 			*) echo "$(RED)❌ Choix invalide ! Veuillez choisir entre 0-7.$(RESET)"; echo "" ;; \
 		esac \
@@ -95,8 +91,9 @@ run:
 	@echo "$(YELLOW)🔍 Vérification de Node.js...$(RESET)"
 	@node_version=$$(node --version | sed 's/v//' | awk -F. '{print $$1}'); \
 	if [ "$$node_version" -lt 20 ]; then \
-		echo "$(RED)❌ Node.js version $$node_version détectée. Lancement de l'upgrade automatique...$(RESET)"; \
-		make upgrade-node; \
+		echo "$(YELLOW)⬆️  Upgrading Node.js to version 20... Please wait...$(RESET)"; \
+		make upgrade-node > /dev/null 2>&1; \
+		echo "$(GREEN)✅ Node.js upgraded to $$(node --version)!$(RESET)"; \
 	fi
 	@echo "$(GREEN)✅ Node.js OK$(RESET)"
 	@echo "$(YELLOW)🔍 Vérification des dépendances...$(RESET)"
@@ -151,19 +148,6 @@ install:
 	@echo "$(GREEN)$(BOLD) ╚══════════════════════════════════════════════════════════════╝$(RESET)"
 	@echo ""
 
-build-frontend:
-	@echo "$(BLUE)$(BOLD) 🏗️  Construction du frontend...$(RESET)"
-	@cd srcs/requierements/frontend && npm run build-css >nul 2>&1 && npm run build >nul 2>&1
-	@echo "$(GREEN)$(BOLD) ✅ Frontend construit$(RESET)"
-
-upgrade-node:
-	@echo "$(YELLOW)$(BOLD) ⬆️  Upgrading Node.js to version 20...$(RESET)"
-	@echo "$(CYAN)  This will require sudo password.$(RESET)"
-	@curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-	@sudo apt-get install -y nodejs
-	@echo "$(GREEN)$(BOLD) ✅ Node.js upgraded!$(RESET)"
-	@node --version
-
 start-services:
 	@echo ""
 	@echo "$(BLUE)$(BOLD) 📡 Démarrage des services...$(RESET)"
@@ -203,7 +187,7 @@ clean-ports:
 	pids=$$(lsof -ti:3003 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi;\
 	pids=$$(lsof -ti:3004 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi;\
 	pids=$$(lsof -ti:5173 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi;\
-	'
+	' 2>/dev/null
 	@echo "$(GREEN)$(BOLD)✅ Ports nettoyés$(RESET)"
 
 check-ports:
@@ -309,4 +293,4 @@ logs:
 status:
 	cd ./srcs && $(DOCKER_COMPOSE) -f docker-compose.yml ps
 
-.PHONY: menu run install build-frontend upgrade-node start-services stop-services clean all build up down clean-docker fclean re logs status
+.PHONY: menu run install start-services stop-services clean all build up down clean-docker fclean re logs status
