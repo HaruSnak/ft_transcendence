@@ -37,11 +37,12 @@ export function initLogin() {
                 if (response.ok) {
                     const data = await response.json();
                     console.log('Login success response:', data);
-                    // Store token
+                    alert('Login successful!');
                     sessionStorage.setItem('authToken', data.token);
                     sessionStorage.setItem('user', JSON.stringify(data.user));
-                    // Redirect to profile
                     window.location.hash = 'profile';
+                    // Forcer le rechargement de la page profil pour éviter les soucis de cache
+                    setTimeout(() => location.reload(), 200);
                 } else {
                     let errorMsg = 'Unknown error';
                     try {

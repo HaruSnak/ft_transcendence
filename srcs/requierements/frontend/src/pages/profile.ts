@@ -76,7 +76,13 @@ function populateFields(user: any) {
 
     if (nameField) nameField.textContent = user.username || user.display_name;
     if (infoField) infoField.textContent = `Login: ${user.username} | Email: ${user.email}`;
-    if (avatarField) avatarField.src = user.avatar_url || '/default-avatar.png';
+    if (avatarField) {
+        let avatar = user.avatar_url;
+        if (!avatar || avatar === '' || avatar === 'null') {
+            avatar = '/assets/default-avatar.png';
+        }
+        avatarField.src = avatar;
+    }
 
     // Update edit form fields
     const editName = document.querySelector('[data-field="edit-name"]') as HTMLInputElement;
@@ -162,5 +168,6 @@ async function logout() {
     }
     sessionStorage.removeItem('authToken');
     sessionStorage.removeItem('user');
-    window.location.hash = 'home';
+    window.location.hash = 'login';
+    setTimeout(() => location.reload(), 200);
 }

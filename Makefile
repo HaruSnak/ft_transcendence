@@ -28,7 +28,7 @@ ifeq ($(OS),Windows_NT)
     KILL_3002 = taskkill /F /PID $(shell netstat -ano | findstr :3002 | findstr LISTENING | head -1 | awk '{print $$5}') >nul 2>&1 || true
     KILL_3003 = taskkill /F /PID $(shell netstat -ano | findstr :3003 | findstr LISTENING | head -1 | awk '{print $$5}') >nul 2>&1 || true
     KILL_3004 = taskkill /F /PID $(shell netstat -ano | findstr :3004 | findstr LISTENING | head -1 | awk '{print $$5}') >nul 2>&1 || true
-    KILL_5173 = taskkill /F /PID $(shell netstat -ano | findstr :5173 | findstr LISTENING | head -1 | awk '{print $$5}') >nul 2>&1 || true
+    KILL_5174 = taskkill /F /PID $(shell netstat -ano | findstr :5174 | findstr LISTENING | head -1 | awk '{print $$5}') >nul 2>&1 || true
 else
     RM = rm -rf
     KILL_NODE = pkill -f node > /dev/null 2>&1 || true
@@ -36,7 +36,7 @@ else
     KILL_3002 = bash -c 'pids=$$(lsof -ti:3002 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi' 2>/dev/null
     KILL_3003 = bash -c 'pids=$$(lsof -ti:3003 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi' 2>/dev/null
     KILL_3004 = bash -c 'pids=$$(lsof -ti:3004 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi' 2>/dev/null
-    KILL_5173 = bash -c 'pids=$$(lsof -ti:5173 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi' 2>/dev/null
+    KILL_5174 = bash -c 'pids=$$(lsof -ti:5174 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi' 2>/dev/null
 endif
 
 .SILENT:
@@ -116,7 +116,7 @@ run:
 	@sleep 3
 	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/user-service && bash create-user.sh powlar powlar@example.com password 'Powlar' 2>/dev/null || true
 	@echo "✅ Services démarrés en arrière-plan"
-	@echo "🌐 Accédez à http://localhost:5173"
+	@echo "🌐 Accédez à http://localhost:5174"
 	@echo "⚠️  Utilisez 'make stop-services' pour arrêter"
 	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/frontend && npm run dev
 
@@ -165,7 +165,7 @@ else
 	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/frontend && nohup npm run dev > /tmp/vite.log 2>&1 &
 endif
 	@echo "$(GREEN)$(BOLD) ✅ Services démarrés$(RESET)"
-	@echo "$(CYAN)$(BOLD) 🌐 Accédez à http://localhost:5173$(RESET)"
+	@echo "$(CYAN)$(BOLD) 🌐 Accédez à http://localhost:5174$(RESET)"
 
 stop-services:
 	@echo ""
@@ -174,7 +174,7 @@ stop-services:
 	@$(KILL_3002)
 	@$(KILL_3003)
 	@$(KILL_3004)
-	@$(KILL_5173)
+	@$(KILL_5174)
 	@$(KILL_NODE)
 	@echo "$(GREEN)$(BOLD) ✅ Services arrêtés$(RESET)"
 	@echo ""
@@ -186,7 +186,7 @@ clean-ports:
 	pids=$$(lsof -ti:3002 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi;\
 	pids=$$(lsof -ti:3003 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi;\
 	pids=$$(lsof -ti:3004 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi;\
-	pids=$$(lsof -ti:5173 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi;\
+	pids=$$(lsof -ti:5174 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi;\
 	' 2>/dev/null
 	@echo "$(GREEN)$(BOLD)✅ Ports nettoyés$(RESET)"
 
@@ -207,7 +207,7 @@ check-ports:
 	check_port 3002 "game-service"; \
 	check_port 3003 "user-service"; \
 	check_port 3004 "auth-service"; \
-	check_port 5173 "frontend"; \
+	check_port 5174 "frontend"; \
 	'
 	@echo ""
 
@@ -222,8 +222,8 @@ clean:
 	@$(KILL_3003) 2>/dev/null
 	@echo "$(CYAN)  - Arrêt des processus sur port 3004 (auth-service)$(RESET)"
 	@$(KILL_3004) 2>/dev/null
-	@echo "$(CYAN)  - Arrêt des processus sur port 5173 (frontend)$(RESET)"
-	@$(KILL_5173) 2>/dev/null
+	@echo "$(CYAN)  - Arrêt des processus sur port 5174 (frontend)$(RESET)"
+	@$(KILL_5174) 2>/dev/null
 	@echo "$(CYAN)  - Arrêt de tous les processus Node.js restants$(RESET)"
 	@$(KILL_NODE) 2>/dev/null
 	@echo "$(YELLOW) 🗑️  Suppression des fichiers...$(RESET)"
@@ -241,7 +241,7 @@ clean:
 	@echo "$(GREEN)$(BOLD) ║                        🧹 NETTOYAGE VIOLENT TERMINÉ 🧹               ║$(RESET)"
 	@echo "$(GREEN)$(BOLD) ╠══════════════════════════════════════════════════════════════╣$(RESET)"
 	@echo "$(GREEN)$(BOLD) ║                                                              ║$(RESET)"
-	@echo "$(GREEN)$(BOLD) ║$(RESET)  $(GREEN)$(BOLD)✅ Tous les ports libérés (3001-3004, 5173)$(RESET)             $(GREEN)$(BOLD)║$(RESET)"
+	@echo "$(GREEN)$(BOLD) ║$(RESET)  $(GREEN)$(BOLD)✅ Tous les ports libérés (3001-3004, 5174)$(RESET)             $(GREEN)$(BOLD)║$(RESET)"
 	@echo "$(GREEN)$(BOLD) ║$(RESET)  $(GREEN)$(BOLD)✅ Tous les processus Node.js tués$(RESET)                      $(GREEN)$(BOLD)║$(RESET)"
 	@echo "$(GREEN)$(BOLD) ║$(RESET)  $(GREEN)$(BOLD)✅ node_modules supprimés$(RESET)                                 $(GREEN)$(BOLD)║$(RESET)"
 	@echo "$(GREEN)$(BOLD) ║$(RESET)  $(GREEN)$(BOLD)✅ Fichiers build supprimés$(RESET)                               $(GREEN)$(BOLD)║$(RESET)"
