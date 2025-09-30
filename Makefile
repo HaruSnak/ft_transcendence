@@ -105,7 +105,7 @@ run:
 		echo "$(YELLOW)📦 Installation des dépendances frontend manquantes...$(RESET)"; \
 		cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/frontend && npm install > /dev/null 2>&1; \
 	fi
-	@echo "$(BLUE)🏗️ Construction du frontend...$(RESET)"
+	@echo "$(BLUE) Construction du frontend...$(RESET)"
 	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/frontend && npm run build-css > /dev/null 2>&1 && npm run build > /dev/null 2>&1
 	@echo ""
 	@echo "╔══════════════════════════════════════════════════════════════╗"
