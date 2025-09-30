@@ -6,10 +6,16 @@ class ChatWebSocket {
   public id: string = '';
 
   constructor(private url: string) {
-    this.connect();
+    // Connect will be called manually
   }
 
-private connect() {
+  public connect(): Promise<void> {
+    return new Promise((resolve) => {
+      this.privateConnect(resolve);
+    });
+  }
+
+  private privateConnect(onConnected?: () => void) {
     try {
         // Test direct d'abord
         this.ws = new WebSocket(`ws://localhost:3001/ws`);
@@ -21,6 +27,7 @@ private connect() {
             
             // Envoyez un message de test
             this.emit('test', { message: 'Hello from client' });
+            if (onConnected) onConnected();
         };
 
 		this.ws.onmessage = (event) => {

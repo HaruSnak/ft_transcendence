@@ -12,14 +12,26 @@ async function getCurrentUsername(): Promise<string> {
     console.log('Token:', token ? 'present' : 'null');
     if (!token) return socket.id || '';
 
+    // Decode token to get username as fallback
+    let usernameFromToken = '';
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      usernameFromToken = payload.username || '';
+    } catch (decodeError) {
+      console.log('Error decoding token:', decodeError);
+    }
+
     const res = await fetch('http://localhost:3003/api/user/profile', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     console.log('Fetch status:', res.status);
-    if (!res.ok) return socket.id || '';
+    if (!res.ok) {
+      console.log('API failed, using token username:', usernameFromToken);
+      return usernameFromToken || socket.id || '';
+    }
 
     const data = await res.json();
-    console.log('Username:', data.user.username);
+    console.log('Username from API:', data.user.username);
     return data.user.username;
   } catch (error) {
     console.log('Error fetching username:', error);
@@ -28,6 +40,8 @@ async function getCurrentUsername(): Promise<string> {
 }
 
 export async function initChatPage() {
+  // Connect socket only when entering chat
+  await socket.connect();
   const btnGen = document.getElementById('btn-general')! as HTMLButtonElement;
   const dmList = document.getElementById('dm-list')! as HTMLDivElement;
   const userList = document.getElementById('user-list')! as HTMLDivElement;
