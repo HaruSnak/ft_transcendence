@@ -74,7 +74,7 @@ function populateFields(user: any) {
     const infoField = document.querySelector('[data-field="info"]') as HTMLElement;
     const avatarField = document.querySelector('[data-field="avatar"]') as HTMLImageElement;
 
-    if (nameField) nameField.textContent = user.username || user.display_name;
+    if (nameField) nameField.textContent = user.display_name || user.username;
     if (infoField) infoField.textContent = `Login: ${user.username} | Email: ${user.email}`;
     if (avatarField) {
         let avatar = user.avatar_url;
