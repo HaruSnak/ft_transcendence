@@ -2,6 +2,23 @@
 console.log('💬 Loading livechat.ts...');
 
 export function initLiveChat() {
+    const token = sessionStorage.getItem('authToken');
+    const chatSection = document.getElementById('live-chat');
+    if (!token && chatSection) {
+        chatSection.innerHTML = `
+            <div class="container">
+                <div class="card text-center" style="max-width: 400px; margin: 0 auto;">
+                    <div class="text-xl mb-lg">🔒 Access denied</div>
+                    <button id="livechat-login-btn" class="btn btn-primary">Login</button>
+                </div>
+            </div>
+        `;
+        document.getElementById('livechat-login-btn')?.addEventListener('click', () => {
+            window.location.hash = 'login';
+        });
+        return;
+    }
+
     console.log('💬 Initializing live chat...');
 
     // Initialize chat form
