@@ -5,16 +5,31 @@ export function initLogin() {
     const signupBtn = document.getElementById('button-signup');
 
     if (loginForm) {
+        // Ajoute un conteneur pour les messages au-dessus du formulaire
+        let msgDiv = document.getElementById('login-message');
+        if (!msgDiv) {
+            msgDiv = document.createElement('div');
+            msgDiv.id = 'login-message';
+            msgDiv.style.marginBottom = '1rem';
+            loginForm.parentElement?.insertBefore(msgDiv, loginForm);
+        }
+        function showMsg(msg: string, ok: boolean) {
+            msgDiv!.textContent = msg;
+            msgDiv!.style.color = ok ? 'var(--success, #22c55e)' : 'var(--danger, #ef4444)';
+            msgDiv!.style.fontWeight = 'bold';
+            msgDiv!.style.textAlign = 'center';
+        }
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(loginForm);
             const identifier = formData.get('identifier') as string;
             const password = formData.get('password') as string;
 
+            showMsg('', true);
             console.log('Login form submit:', { identifier, password });
 
             if (!identifier || !password) {
-                alert('Please fill in username and password');
+                showMsg('Please fill in username and password', false);
                 return;
             }
 
@@ -37,12 +52,13 @@ export function initLogin() {
                 if (response.ok) {
                     const data = await response.json();
                     console.log('Login success response:', data);
-                    alert('Login successful!');
                     sessionStorage.setItem('authToken', data.token);
                     sessionStorage.setItem('user', JSON.stringify(data.user));
-                    window.location.hash = 'profile';
-                    // Forcer le rechargement de la page profil pour éviter les soucis de cache
-                    setTimeout(() => location.reload(), 200);
+                    showMsg('Login successful!', true);
+                    setTimeout(() => {
+                        window.location.hash = 'profile';
+                        location.reload();
+                    }, 600);
                 } else {
                     let errorMsg = 'Unknown error';
                     try {
@@ -52,11 +68,11 @@ export function initLogin() {
                     } catch (e) {
                         console.error('Error parsing backend error:', e);
                     }
-                    alert(`Login failed: ${errorMsg}`);
+                    showMsg('Login failed: ' + errorMsg, false);
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Login error:', error);
-                alert('Login failed');
+                showMsg('Network error: ' + (error?.message || error), false);
             }
         });
     }
