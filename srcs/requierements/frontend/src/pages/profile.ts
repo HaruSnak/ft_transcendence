@@ -115,6 +115,21 @@ function hideEditForm() {
     showState('main');
 }
 
+function showProfileMsg(msg: string, ok: boolean) {
+    let msgDiv = document.getElementById('profile-message');
+    if (!msgDiv) {
+        msgDiv = document.createElement('div');
+        msgDiv.id = 'profile-message';
+        msgDiv.style.marginBottom = '1rem';
+        msgDiv.style.fontWeight = 'bold';
+        msgDiv.style.textAlign = 'center';
+        const container = document.querySelector('#profile .container');
+        if (container) container.insertBefore(msgDiv, container.firstChild);
+    }
+    msgDiv.textContent = msg;
+    msgDiv.style.color = ok ? 'var(--success, #22c55e)' : 'var(--danger, #ef4444)';
+}
+
 async function updateProfile() {
     const token = sessionStorage.getItem('authToken');
     if (!token) return;
@@ -142,13 +157,13 @@ async function updateProfile() {
             const data = await response.json();
             populateFields(data.user);
             hideEditForm();
-            alert('Profile updated successfully');
+            showProfileMsg('Profile updated successfully!', true);
         } else {
-            alert('Profile update failed');
+            showProfileMsg('Profile update failed', false);
         }
     } catch (error) {
         console.error('Profile update error:', error);
-        alert('Profile update failed');
+        showProfileMsg('Profile update failed', false);
     }
 }
 
@@ -168,6 +183,9 @@ async function logout() {
     }
     sessionStorage.removeItem('authToken');
     sessionStorage.removeItem('user');
-    window.location.hash = 'login';
-    setTimeout(() => location.reload(), 200);
+    showProfileMsg('Logged out successfully!', true);
+    setTimeout(() => {
+        window.location.hash = 'login';
+        location.reload();
+    }, 800);
 }
