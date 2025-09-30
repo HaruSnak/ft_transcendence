@@ -58,6 +58,7 @@ menu:
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)4.$(RESET) $(RED)Nettoyer le projet$(RESET)                                     $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)5.$(RESET) $(MAGENTA)Nettoyer les ports$(RESET)                                     $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)6.$(RESET) $(BLUE)Vérifier les ports$(RESET)                                     $(CYAN)║$(RESET)"
+	@echo "$(CYAN) ║$(WHITE)  $(BOLD)7.$(RESET) $(BLUE)Construire le frontend$(RESET)                                 $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)0.$(RESET) $(DIM)Quitter$(RESET)                                                $(CYAN)║$(RESET)"
 	@echo "$(CYAN)$(BOLD) ║                                                            ║$(RESET)"
 	@echo "$(CYAN)$(BOLD) ╠════════════════════════════════════════════════════════════╣$(RESET)"
@@ -77,8 +78,9 @@ menu:
 			4) echo ""; make clean; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
 			5) echo ""; make clean-ports; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
 			6) echo ""; make check-ports; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
+			7) echo ""; make build-frontend; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
 			0) echo "$(GREEN)$(BOLD)Au revoir ! 👋$(RESET)"; break ;; \
-			*) echo "$(RED)❌ Choix invalide ! Veuillez choisir entre 0-6.$(RESET)"; echo "" ;; \
+			*) echo "$(RED)❌ Choix invalide ! Veuillez choisir entre 0-7.$(RESET)"; echo "" ;; \
 		esac \
 	done
 

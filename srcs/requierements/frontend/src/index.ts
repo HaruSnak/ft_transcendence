@@ -36,6 +36,11 @@ function showPage(page: string) {
   });
 }
 
+// Vérifie si l'utilisateur est connecté
+function isLoggedIn(): boolean {
+  return !!localStorage.getItem('authToken');
+}
+
 initHomePage();
 //initChatPage(); // Removed, called on navigate
 //loadBoardPage();
@@ -66,14 +71,19 @@ function initNav() {
 
 // Change de page et met à jour l'URL (pushState par défaut)
 export function navigateTo(page: string, push = true) {
+  // Vérifier l'authentification pour les pages protégées avant d'afficher
+  const basePage = page.split('/')[0];
+  if (basePage === 'live-chat' && !isLoggedIn()) {
+    navigateTo('login', false);
+    return;
+  }
+  
   if (push) {
     window.history.pushState(null, '', `#${page}`);
   }
   showPage(page.split('/')[0]);
   
   // Initialisation spécifique pour les pages
-  const basePage = page.split('/')[0];
-  
   if (basePage === 'game') {
     initGame(); // Initialise le jeu quand on arrive sur #game
   } else {
