@@ -25,6 +25,15 @@ const fastify = Fastify({
 const users = [];
 const sessions = new Map();
 
+// Add a default user for testing
+users.push({
+	id: 1,
+	username: 'testuser',
+	email: 'test@example.com',
+	password: 'password',
+	createdAt: new Date().toISOString()
+});
+
 // Route for testing health
 fastify.get('/health', async (request, reply) => {
 	console.log('health route accessed!');

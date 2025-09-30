@@ -11,24 +11,47 @@ export function initLogin() {
             const identifier = formData.get('identifier') as string;
             const password = formData.get('password') as string;
 
+            console.log('Login form submit:', { identifier, password });
+
+            if (!identifier || !password) {
+                alert('Please fill in username and password');
+                return;
+            }
+
             try {
-                const response = await fetch('http://localhost:3004/api/auth/login', {
+                let response = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({ username: identifier, password }),
                 });
+                console.log('POST /api/auth/login payload:', { username: identifier, password });
+                console.log('POST /api/auth/login response status:', response.status);
+
+                if (!response.ok) {
+                    // Try GET as fallback if POST fails (for debugging)
+                    response = await fetch(`/api/auth/login?username=${encodeURIComponent(identifier)}&password=${encodeURIComponent(password)}`);
+                }
 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('Login success response:', data);
                     // Store token
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('user', JSON.stringify(data.user));
+                    sessionStorage.setItem('authToken', data.token);
+                    sessionStorage.setItem('user', JSON.stringify(data.user));
                     // Redirect to profile
                     window.location.hash = 'profile';
                 } else {
-                    alert('Login failed');
+                    let errorMsg = 'Unknown error';
+                    try {
+                        const errorData = await response.json();
+                        errorMsg = errorData.error || JSON.stringify(errorData);
+                        console.error('Backend error:', errorData);
+                    } catch (e) {
+                        console.error('Error parsing backend error:', e);
+                    }
+                    alert(`Login failed: ${errorMsg}`);
                 }
             } catch (error) {
                 console.error('Login error:', error);

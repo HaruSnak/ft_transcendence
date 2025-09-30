@@ -12,8 +12,13 @@ export function initSignup() {
             const email = formData.get('email') as string;
             const password = formData.get('password') as string;
 
+            if (!username || !email || !password) {
+                alert('Please fill in all fields: username, email, and password');
+                return;
+            }
+
             try {
-                const response = await fetch('http://localhost:3004/api/auth/register', {
+                const response = await fetch('/api/auth/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -23,13 +28,12 @@ export function initSignup() {
 
                 if (response.ok) {
                     const data = await response.json();
-                    // Store token
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                    // Redirect to profile
-                    window.location.hash = 'profile';
+                    // Registration successful, redirect to login
+                    alert('Registration successful! Please log in.');
+                    window.location.hash = 'login';
                 } else {
-                    alert('Registration failed');
+                    const errorData = await response.json();
+                    alert(`Registration failed: ${errorData.error || 'Unknown error'}`);
                 }
             } catch (error) {
                 console.error('Registration error:', error);

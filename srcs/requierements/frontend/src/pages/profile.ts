@@ -16,10 +16,6 @@ export function initProfile() {
             showEditForm();
         } else if (action === 'cancel') {
             hideEditForm();
-        } else if (action === 'delete') {
-            if (confirm('Are you sure you want to delete your account?')) {
-                deleteAccount();
-            }
         }
     });
 
@@ -34,13 +30,14 @@ export function initProfile() {
 }
 
 async function loadProfile() {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('authToken');
+    console.log('Profile: token in sessionStorage:', token);
     if (!token) {
-        showProfileState('denied');
+        showState('denied');
         return;
     }
 
-    showProfileState('loading');
+    showState('loading');
 
     try {
         const response = await fetch('/api/user/profile', {
@@ -48,41 +45,50 @@ async function loadProfile() {
                 'Authorization': `Bearer ${token}`,
             },
         });
-
+        console.log('Profile: /api/user/profile response status:', response.status);
         if (response.ok) {
-            const user = await response.json();
-            displayProfile(user);
-            showProfileState('main');
+            const data = await response.json();
+            console.log('Profile: loaded user data:', data);
+            populateFields(data.user);
+            showState('main');
         } else {
-            showProfileState('denied');
+            let errorMsg = 'Unknown error';
+            try {
+                const errorData = await response.json();
+                errorMsg = errorData.error || JSON.stringify(errorData);
+                console.error('Profile: backend error:', errorData);
+            } catch (e) {
+                console.error('Profile: error parsing backend error:', e);
+            }
+            showState('denied');
         }
     } catch (error) {
         console.error('Profile load error:', error);
-        showProfileState('denied');
+        showState('denied');
     }
 }
 
-function displayProfile(user: any) {
+function populateFields(user: any) {
     // Update profile fields
     const nameField = document.querySelector('[data-field="name"]') as HTMLElement;
     const infoField = document.querySelector('[data-field="info"]') as HTMLElement;
     const avatarField = document.querySelector('[data-field="avatar"]') as HTMLImageElement;
 
-    if (nameField) nameField.textContent = user.username || user.name;
-    if (infoField) infoField.textContent = `Login: ${user.login || user.username} | Email: ${user.email}`;
-    if (avatarField) avatarField.src = user.avatar || '/default-avatar.png';
+    if (nameField) nameField.textContent = user.username || user.display_name;
+    if (infoField) infoField.textContent = `Login: ${user.username} | Email: ${user.email}`;
+    if (avatarField) avatarField.src = user.avatar_url || '/default-avatar.png';
 
     // Update edit form fields
     const editName = document.querySelector('[data-field="edit-name"]') as HTMLInputElement;
     const editEmail = document.querySelector('[data-field="edit-email"]') as HTMLInputElement;
     const editLogin = document.querySelector('[data-field="edit-login"]') as HTMLInputElement;
 
-    if (editName) editName.value = user.username || user.name || '';
+    if (editName) editName.value = user.display_name || user.username || '';
     if (editEmail) editEmail.value = user.email || '';
-    if (editLogin) editLogin.value = user.login || user.username || '';
+    if (editLogin) editLogin.value = user.username || '';
 }
 
-function showProfileState(state: string) {
+function showState(state: string) {
     // Hide all states
     document.querySelectorAll('[data-state]').forEach(el => {
         el.classList.add('hidden');
@@ -96,24 +102,24 @@ function showProfileState(state: string) {
 }
 
 function showEditForm() {
-    showProfileState('edit');
+    showState('edit');
 }
 
 function hideEditForm() {
-    showProfileState('main');
+    showState('main');
 }
 
 async function updateProfile() {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('authToken');
     if (!token) return;
 
     const form = document.querySelector('[data-state="edit"]') as HTMLFormElement;
     const formData = new FormData(form);
 
     const updateData: any = {};
-    if (formData.get('name')) updateData.name = formData.get('name');
+    if (formData.get('name')) updateData.display_name = formData.get('name');
     if (formData.get('email')) updateData.email = formData.get('email');
-    if (formData.get('login')) updateData.login = formData.get('login');
+    if (formData.get('login')) updateData.username = formData.get('login');
     if (formData.get('password')) updateData.password = formData.get('password');
 
     try {
@@ -127,9 +133,8 @@ async function updateProfile() {
         });
 
         if (response.ok) {
-            const updatedUser = await response.json();
-            localStorage.setItem('user', JSON.stringify(updatedUser));
-            displayProfile(updatedUser);
+            const data = await response.json();
+            populateFields(data.user);
             hideEditForm();
             alert('Profile updated successfully');
         } else {
@@ -141,32 +146,21 @@ async function updateProfile() {
     }
 }
 
-async function deleteAccount() {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
-    try {
-        const response = await fetch('/api/user/profile', {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
-        });
-
-        if (response.ok) {
-            logout();
-            alert('Account deleted successfully');
-        } else {
-            alert('Account deletion failed');
+async function logout() {
+    const token = sessionStorage.getItem('authToken');
+    if (token) {
+        try {
+            await fetch('/api/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+        } catch (error) {
+            console.error('Logout API error:', error);
         }
-    } catch (error) {
-        console.error('Account deletion error:', error);
-        alert('Account deletion failed');
     }
-}
-
-function logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('user');
     window.location.hash = 'home';
 }

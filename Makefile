@@ -65,7 +65,7 @@ menu:
 	@echo "$(CYAN) ║$(WHITE)  $(DIM)Chat: http://localhost:3001$(RESET)                               $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(DIM)Game: http://localhost:3002$(RESET)                               $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(DIM)User: http://localhost:3003$(RESET)                               $(CYAN)║$(RESET)"
-	@echo "$(CYAN)  $(DIM)Frontend: http://localhost:5173$(RESET)                             $(CYAN)║$(RESET)"
+	@echo "$(CYAN)  $(DIM)Frontend: http://localhost:5174$(RESET)                             $(CYAN)║$(RESET)"
 	@echo "$(CYAN)$(BOLD) ╚════════════════════════════════════════════════════════════╝$(RESET)"
 	@echo ""
 	@while true; do \
