@@ -1,6 +1,7 @@
 // src/index.ts
 console.log('🔄 Loading index.ts...');
 
+import './style.css';
 import { initGame, cleanUpGame } from './game/game.js';
 import { initSocket } from './socket.js';
 import { initLogin } from './pages/login.js';

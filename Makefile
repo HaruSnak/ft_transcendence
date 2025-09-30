@@ -28,7 +28,7 @@ ifeq ($(OS),Windows_NT)
     KILL_3002 = taskkill /F /PID $(shell netstat -ano | findstr :3002 | findstr LISTENING | head -1 | awk '{print $$5}') >nul 2>&1 || true
     KILL_3003 = taskkill /F /PID $(shell netstat -ano | findstr :3003 | findstr LISTENING | head -1 | awk '{print $$5}') >nul 2>&1 || true
     KILL_3004 = taskkill /F /PID $(shell netstat -ano | findstr :3004 | findstr LISTENING | head -1 | awk '{print $$5}') >nul 2>&1 || true
-    KILL_8081 = taskkill /F /PID $(shell netstat -ano | findstr :8081 | findstr LISTENING | head -1 | awk '{print $$5}') >nul 2>&1 || true
+    KILL_5173 = taskkill /F /PID $(shell netstat -ano | findstr :5173 | findstr LISTENING | head -1 | awk '{print $$5}') >nul 2>&1 || true
 else
     RM = rm -rf
     KILL_NODE = pkill -f node > /dev/null 2>&1 || true
@@ -36,7 +36,7 @@ else
     KILL_3002 = bash -c 'pids=$$(lsof -ti:3002 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi' 2>/dev/null
     KILL_3003 = bash -c 'pids=$$(lsof -ti:3003 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi' 2>/dev/null
     KILL_3004 = bash -c 'pids=$$(lsof -ti:3004 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi' 2>/dev/null
-    KILL_8081 = bash -c 'pids=$$(lsof -ti:8081 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi' 2>/dev/null
+    KILL_5173 = bash -c 'pids=$$(lsof -ti:5173 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi' 2>/dev/null
 endif
 
 .SILENT:
@@ -66,7 +66,7 @@ menu:
 	@echo "$(CYAN) ║$(WHITE)  $(DIM)Chat: http://localhost:3001$(RESET)                               $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(DIM)Game: http://localhost:3002$(RESET)                               $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(DIM)User: http://localhost:3003$(RESET)                               $(CYAN)║$(RESET)"
-	@echo "$(CYAN) ║$(WHITE)  $(DIM)Frontend: http://localhost:8081$(RESET)                           $(CYAN)║$(RESET)"
+	@echo "$(CYAN)  $(DIM)Frontend: http://localhost:5173$(RESET)                             $(CYAN)║$(RESET)"
 	@echo "$(CYAN)$(BOLD) ╚════════════════════════════════════════════════════════════╝$(RESET)"
 	@echo ""
 	@while true; do \
@@ -100,28 +100,18 @@ run:
 		cd srcs/requierements/frontend && npm install > /dev/null 2>&1; \
 	fi
 	@echo "$(BLUE)🏗️ Construction du frontend...$(RESET)"
-	@cd srcs/requierements/frontend && npm run build-css > /dev/null 2>&1 && npm run build-ts > /dev/null 2>&1
+	@cd srcs/requierements/frontend && npm run build-css > /dev/null 2>&1 && npm run build > /dev/null 2>&1
 	@echo ""
 	@echo "╔══════════════════════════════════════════════════════════════╗"
 	@echo "║                   🎉 APPLICATION LANCÉE ! 🎉                 ║"
 	@echo "╚══════════════════════════════════════════════════════════════╝"
 	@echo ""
-	@bash -c '\
-	echo "📡 Démarrage des services..."; \
-	# pkill -f node 2>/dev/null || true; \
-	cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/user-service && mkdir -p data && chmod 755 data; \
-	cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/user-service && nohup node srcs/server.js > user-service.log 2>&1 & \
-	sleep 3; \
-	cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/auth-service && nohup node srcs/server.js > /dev/null 2>&1 & \
-	cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/chat-service && nohup node srcs/server.js > /dev/null 2>&1 & \
-	cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/game-service && nohup node srcs/server.js > /dev/null 2>&1 & \
-	cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/frontend && nohup node server.js > /dev/null 2>&1 & \
-	sleep 3; \
-	cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/user-service && bash create-user.sh powlar powlar@example.com password "Powlar" 2>/dev/null || true; \
-	echo "✅ Services démarrés en arrière-plan"; \
-	echo "🌐 Accédez à http://localhost:8081"; \
-	echo "⚠️  Utilisez '\''make stop-services'\'' pour arrêter" \
-	'
+	@make start-services
+	@powershell -Command "Start-Sleep -Seconds 3"
+	@cd srcs/requierements/services/user-service && bash create-user.sh powlar powlar@example.com password 'Powlar' 2>/dev/null || true
+	@echo "✅ Services démarrés en arrière-plan"
+	@echo "🌐 Accédez à http://localhost:5173"
+	@echo "⚠️  Utilisez 'make stop-services' pour arrêter"
 
 install:
 	@echo ""
@@ -153,27 +143,27 @@ install:
 
 build-frontend:
 	@echo "$(BLUE)$(BOLD) 🏗️  Construction du frontend...$(RESET)"
-	@cd srcs/requierements/frontend && npm run build-css >nul 2>&1 && npm run build-ts >nul 2>&1
+	@cd srcs/requierements/frontend && npm run build-css >nul 2>&1 && npm run build >nul 2>&1
 	@echo "$(GREEN)$(BOLD) ✅ Frontend construit$(RESET)"
 
 start-services:
 	@echo ""
 	@echo "$(BLUE)$(BOLD) 📡 Démarrage des services...$(RESET)"
 ifeq ($(OS),Windows_NT)
-	@start /B cmd /C "cd srcs\requierements\services\auth-service && node srcs/server.js" >nul 2>&1
-	@start /B cmd /C "cd srcs\requierements\services\chat-service && node srcs/server.js" >nul 2>&1
-	@start /B cmd /C "cd srcs\requierements\services\game-service && node srcs/server.js" >nul 2>&1
-	@start /B cmd /C "cd srcs\requierements\services\user-service && node srcs/server.js" >nul 2>&1
-	@start /B cmd /C "cd srcs\requierements\frontend && node server.js" >nul 2>&1
+	@powershell -Command "Start-Process -NoNewWindow -FilePath 'node' -ArgumentList 'srcs/server.js' -WorkingDirectory 'srcs\requierements\services\auth-service'"
+	@powershell -Command "Start-Process -NoNewWindow -FilePath 'node' -ArgumentList 'srcs/server.js' -WorkingDirectory 'srcs\requierements\services\chat-service'"
+	@powershell -Command "Start-Process -NoNewWindow -FilePath 'node' -ArgumentList 'srcs/server.js' -WorkingDirectory 'srcs\requierements\services\game-service'"
+	@powershell -Command "Start-Process -NoNewWindow -FilePath 'node' -ArgumentList 'srcs/server.js' -WorkingDirectory 'srcs\requierements\services\user-service'"
+	@powershell -Command "Start-Process -NoNewWindow -FilePath 'npm' -ArgumentList 'run dev' -WorkingDirectory 'srcs\requierements\frontend'"
 else
 	@cd srcs/requierements/services/auth-service && nohup node srcs/server.js > /dev/null 2>&1 &
 	@cd srcs/requierements/services/chat-service && nohup node srcs/server.js > /dev/null 2>&1 &
 	@cd srcs/requierements/services/game-service && nohup node srcs/server.js > /dev/null 2>&1 &
 	@cd srcs/requierements/services/user-service && nohup node srcs/server.js > /dev/null 2>&1 &
-	@cd srcs/requierements/frontend && nohup node server.js > /dev/null 2>&1 &
+	@cd srcs/requierements/frontend && nohup npm run dev > /dev/null 2>&1 &
 endif
 	@echo "$(GREEN)$(BOLD) ✅ Services démarrés$(RESET)"
-	@echo "$(CYAN)$(BOLD) 🌐 Accédez à http://localhost:8081$(RESET)"
+	@echo "$(CYAN)$(BOLD) 🌐 Accédez à http://localhost:5173$(RESET)"
 
 stop-services:
 	@echo ""
@@ -182,7 +172,7 @@ stop-services:
 	@$(KILL_3002)
 	@$(KILL_3003)
 	@$(KILL_3004)
-	@$(KILL_8081)
+	@$(KILL_5173)
 	@$(KILL_NODE)
 	@echo "$(GREEN)$(BOLD) ✅ Services arrêtés$(RESET)"
 	@echo ""
@@ -194,7 +184,7 @@ clean-ports:
 	pids=$$(lsof -ti:3002 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi;\
 	pids=$$(lsof -ti:3003 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi;\
 	pids=$$(lsof -ti:3004 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi;\
-	pids=$$(lsof -ti:8081 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi;\
+	pids=$$(lsof -ti:5173 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi;\
 	'
 	@echo "$(GREEN)$(BOLD)✅ Ports nettoyés$(RESET)"
 
@@ -215,7 +205,7 @@ check-ports:
 	check_port 3002 "game-service"; \
 	check_port 3003 "user-service"; \
 	check_port 3004 "auth-service"; \
-	check_port 8081 "frontend"; \
+	check_port 5173 "frontend"; \
 	'
 	@echo ""
 
@@ -230,8 +220,8 @@ clean:
 	@$(KILL_3003) 2>/dev/null
 	@echo "$(CYAN)  - Arrêt des processus sur port 3004 (auth-service)$(RESET)"
 	@$(KILL_3004) 2>/dev/null
-	@echo "$(CYAN)  - Arrêt des processus sur port 8081 (frontend)$(RESET)"
-	@$(KILL_8081) 2>/dev/null
+	@echo "$(CYAN)  - Arrêt des processus sur port 5173 (frontend)$(RESET)"
+	@$(KILL_5173) 2>/dev/null
 	@echo "$(CYAN)  - Arrêt de tous les processus Node.js restants$(RESET)"
 	@$(KILL_NODE) 2>/dev/null
 	@echo "$(YELLOW) 🗑️  Suppression des fichiers...$(RESET)"
@@ -249,7 +239,7 @@ clean:
 	@echo "$(GREEN)$(BOLD) ║                        🧹 NETTOYAGE VIOLENT TERMINÉ 🧹               ║$(RESET)"
 	@echo "$(GREEN)$(BOLD) ╠══════════════════════════════════════════════════════════════╣$(RESET)"
 	@echo "$(GREEN)$(BOLD) ║                                                              ║$(RESET)"
-	@echo "$(GREEN)$(BOLD) ║$(RESET)  $(GREEN)$(BOLD)✅ Tous les ports libérés (3001-3004, 8081)$(RESET)             $(GREEN)$(BOLD)║$(RESET)"
+	@echo "$(GREEN)$(BOLD) ║$(RESET)  $(GREEN)$(BOLD)✅ Tous les ports libérés (3001-3004, 5173)$(RESET)             $(GREEN)$(BOLD)║$(RESET)"
 	@echo "$(GREEN)$(BOLD) ║$(RESET)  $(GREEN)$(BOLD)✅ Tous les processus Node.js tués$(RESET)                      $(GREEN)$(BOLD)║$(RESET)"
 	@echo "$(GREEN)$(BOLD) ║$(RESET)  $(GREEN)$(BOLD)✅ node_modules supprimés$(RESET)                                 $(GREEN)$(BOLD)║$(RESET)"
 	@echo "$(GREEN)$(BOLD) ║$(RESET)  $(GREEN)$(BOLD)✅ Fichiers build supprimés$(RESET)                               $(GREEN)$(BOLD)║$(RESET)"
