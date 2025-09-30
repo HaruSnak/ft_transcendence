@@ -246,8 +246,7 @@ function renderProfile(container: HTMLElement, user: UserProfile) {
       </button>
     </div>
 
-      <div class="bg-gray-800 rounded-lg p-4 sm:p-6 max-w-sm sm:max-w-md w-full mx-4">
-        <h3 class="text-lg sm:text-xl font-bold text-white mb-4">Modifier le profil</h3>
+      <div id="edit-form" class="bg-gray-800 rounded-lg p-4 sm:p-6 max-w-sm sm:max-w-md w-full mx-4 hidden">
         <h3 class="text-lg sm:text-xl font-bold text-white mb-4">Modifier le profil</h3>
         
         <div class="mb-4">
@@ -310,16 +309,14 @@ function renderProfile(container: HTMLElement, user: UserProfile) {
 
   // Événements pour l'édition du profil
   container.querySelector('#edit-profile-btn')?.addEventListener('click', () => {
-    const modal = document.getElementById('edit-modal');
-    modal?.classList.remove('hidden');
-    modal?.classList.add('flex');
+    const editForm = document.getElementById('edit-form');
+    editForm?.classList.remove('hidden');
   });
 
-  // Fermer le modal
+  // Fermer le formulaire d'édition
   container.querySelector('#cancel-edit-btn')?.addEventListener('click', () => {
-    const modal = document.getElementById('edit-modal');
-    modal?.classList.add('hidden');
-    modal?.classList.remove('flex');
+    const editForm = document.getElementById('edit-form');
+    editForm?.classList.add('hidden');
   });
 
   // Sauvegarder les modifications
@@ -349,18 +346,16 @@ function renderProfile(container: HTMLElement, user: UserProfile) {
 
     if (Object.keys(updates).length === 0) {
       showMessage('Aucun changement détecté', false);
-      const modal = document.getElementById('edit-modal');
-      modal?.classList.add('hidden');
-      modal?.classList.remove('flex');
+      const editForm = document.getElementById('edit-form');
+      editForm?.classList.add('hidden');
       return;
     }
 
     const success = await updateProfile(updates);
     if (success) {
       showMessage('Profil mis à jour avec succès !', false);
-      const modal = document.getElementById('edit-modal');
-      modal?.classList.add('hidden');
-      modal?.classList.remove('flex');
+      const editForm = document.getElementById('edit-form');
+      editForm?.classList.add('hidden');
       
       // Recharger le profil après 2 secondes
       setTimeout(() => {
