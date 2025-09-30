@@ -59,6 +59,7 @@ menu:
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)5.$(RESET) $(MAGENTA)Nettoyer les ports$(RESET)                                     $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)6.$(RESET) $(BLUE)Vérifier les ports$(RESET)                                     $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)7.$(RESET) $(BLUE)Construire le frontend$(RESET)                                 $(CYAN)║$(RESET)"
+	@echo "$(CYAN) ║$(WHITE)  $(BOLD)8.$(RESET) $(YELLOW)Upgrader Node.js$(RESET)                                    $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)0.$(RESET) $(DIM)Quitter$(RESET)                                                $(CYAN)║$(RESET)"
 	@echo "$(CYAN)$(BOLD) ║                                                            ║$(RESET)"
 	@echo "$(CYAN)$(BOLD) ╠════════════════════════════════════════════════════════════╣$(RESET)"
@@ -79,6 +80,7 @@ menu:
 			5) echo ""; make clean-ports; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
 			6) echo ""; make check-ports; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
 			7) echo ""; make build-frontend; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
+			8) echo ""; make upgrade-node; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
 			0) echo "$(GREEN)$(BOLD)Au revoir ! 👋$(RESET)"; break ;; \
 			*) echo "$(RED)❌ Choix invalide ! Veuillez choisir entre 0-7.$(RESET)"; echo "" ;; \
 		esac \
@@ -90,6 +92,13 @@ menu:
 
 run:
 	@echo ""
+	@echo "$(YELLOW)🔍 Vérification de Node.js...$(RESET)"
+	@node_version=$$(node --version | sed 's/v//' | awk -F. '{print $$1}'); \
+	if [ "$$node_version" -lt 20 ]; then \
+		echo "$(RED)❌ Node.js version $$node_version détectée. Lancement de l'upgrade automatique...$(RESET)"; \
+		make upgrade-node; \
+	fi
+	@echo "$(GREEN)✅ Node.js OK$(RESET)"
 	@echo "$(YELLOW)🔍 Vérification des dépendances...$(RESET)"
 	@if [ ! -d "srcs/requierements/services/user-service/node_modules" ]; then \
 		echo "$(YELLOW)📦 Installation des dépendances manquantes...$(RESET)"; \
@@ -97,21 +106,22 @@ run:
 	fi
 	@if [ ! -d "srcs/requierements/frontend/node_modules" ]; then \
 		echo "$(YELLOW)📦 Installation des dépendances frontend manquantes...$(RESET)"; \
-		cd srcs/requierements/frontend && npm install > /dev/null 2>&1; \
+		cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/frontend && npm install > /dev/null 2>&1; \
 	fi
 	@echo "$(BLUE)🏗️ Construction du frontend...$(RESET)"
-	@cd srcs/requierements/frontend && npm run build-css > /dev/null 2>&1 && npm run build > /dev/null 2>&1
+	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/frontend && npm run build-css > /dev/null 2>&1 && npm run build > /dev/null 2>&1
 	@echo ""
 	@echo "╔══════════════════════════════════════════════════════════════╗"
 	@echo "║                   🎉 APPLICATION LANCÉE ! 🎉                 ║"
 	@echo "╚══════════════════════════════════════════════════════════════╝"
 	@echo ""
 	@make start-services
-	@powershell -Command "Start-Sleep -Seconds 3"
-	@cd srcs/requierements/services/user-service && bash create-user.sh powlar powlar@example.com password 'Powlar' 2>/dev/null || true
+	@sleep 3
+	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/user-service && bash create-user.sh powlar powlar@example.com password 'Powlar' 2>/dev/null || true
 	@echo "✅ Services démarrés en arrière-plan"
 	@echo "🌐 Accédez à http://localhost:5173"
 	@echo "⚠️  Utilisez 'make stop-services' pour arrêter"
+	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/frontend && npm run dev
 
 install:
 	@echo ""
@@ -146,6 +156,14 @@ build-frontend:
 	@cd srcs/requierements/frontend && npm run build-css >nul 2>&1 && npm run build >nul 2>&1
 	@echo "$(GREEN)$(BOLD) ✅ Frontend construit$(RESET)"
 
+upgrade-node:
+	@echo "$(YELLOW)$(BOLD) ⬆️  Upgrading Node.js to version 20...$(RESET)"
+	@echo "$(CYAN)  This will require sudo password.$(RESET)"
+	@curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+	@sudo apt-get install -y nodejs
+	@echo "$(GREEN)$(BOLD) ✅ Node.js upgraded!$(RESET)"
+	@node --version
+
 start-services:
 	@echo ""
 	@echo "$(BLUE)$(BOLD) 📡 Démarrage des services...$(RESET)"
@@ -156,11 +174,11 @@ ifeq ($(OS),Windows_NT)
 	@powershell -Command "Start-Process -NoNewWindow -FilePath 'node' -ArgumentList 'srcs/server.js' -WorkingDirectory 'srcs\requierements\services\user-service'"
 	@powershell -Command "Start-Process -NoNewWindow -FilePath 'npm' -ArgumentList 'run dev' -WorkingDirectory 'srcs\requierements\frontend'"
 else
-	@cd srcs/requierements/services/auth-service && nohup node srcs/server.js > /dev/null 2>&1 &
-	@cd srcs/requierements/services/chat-service && nohup node srcs/server.js > /dev/null 2>&1 &
-	@cd srcs/requierements/services/game-service && nohup node srcs/server.js > /dev/null 2>&1 &
-	@cd srcs/requierements/services/user-service && nohup node srcs/server.js > /dev/null 2>&1 &
-	@cd srcs/requierements/frontend && nohup npm run dev > /dev/null 2>&1 &
+	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/auth-service && nohup node srcs/server.js > /dev/null 2>&1 &
+	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/chat-service && nohup node srcs/server.js > /dev/null 2>&1 &
+	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/game-service && nohup node srcs/server.js > /dev/null 2>&1 &
+	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/user-service && nohup node srcs/server.js > /dev/null 2>&1 &
+	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/frontend && nohup npm run dev > /tmp/vite.log 2>&1 &
 endif
 	@echo "$(GREEN)$(BOLD) ✅ Services démarrés$(RESET)"
 	@echo "$(CYAN)$(BOLD) 🌐 Accédez à http://localhost:5173$(RESET)"
@@ -291,4 +309,4 @@ logs:
 status:
 	cd ./srcs && $(DOCKER_COMPOSE) -f docker-compose.yml ps
 
-.PHONY: menu run install build-frontend start-services stop-services clean all build up down clean-docker fclean re logs status
+.PHONY: menu run install build-frontend upgrade-node start-services stop-services clean all build up down clean-docker fclean re logs status
