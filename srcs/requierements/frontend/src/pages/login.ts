@@ -79,6 +79,7 @@ export function initLoginPage() {
       // Sauvegarder le token si fourni
       if (result.token) {
         localStorage.setItem('authToken', result.token);
+        window.dispatchEvent(new Event('authStateChanged'));
       }
 
       showMessage('Connexion réussie ! Redirection...', false);

@@ -41,6 +41,24 @@ function isLoggedIn(): boolean {
   return !!localStorage.getItem('authToken');
 }
 
+// Met à jour la visibilité des boutons de navigation selon l'état de connexion
+function updateNavVisibility() {
+  const loggedIn = isLoggedIn();
+  const liveChatBtn = document.querySelector('[data-page="live-chat"]') as HTMLElement;
+  if (liveChatBtn) {
+    liveChatBtn.style.display = loggedIn ? 'inline-block' : 'none';
+  }
+  const profileBtn = document.querySelector('[data-page="profile"]') as HTMLElement;
+  if (profileBtn) {
+    profileBtn.style.display = loggedIn ? 'inline-block' : 'none';
+  }
+  // Masquer le bouton LiveChat sur la page home si non connecté
+  const homeLiveChatBtn = document.querySelector('#home [data-page="live-chat"]') as HTMLElement;
+  if (homeLiveChatBtn) {
+    homeLiveChatBtn.style.display = loggedIn ? 'inline-block' : 'none';
+  }
+}
+
 initHomePage();
 //initChatPage(); // Removed, called on navigate
 //loadBoardPage();
@@ -67,6 +85,8 @@ function initNav() {
       navigateTo(hash, false);
     }
   });
+
+  updateNavVisibility();
 }
 
 // Change de page et met à jour l'URL (pushState par défaut)
@@ -102,6 +122,9 @@ export function navigateTo(page: string, push = true) {
 // Démarrage de l'app
 window.addEventListener('DOMContentLoaded', () => {
   initNav();
+
+  // Écouter les changements d'état d'authentification
+  window.addEventListener('authStateChanged', updateNavVisibility);
 
   // Page initiale selon le hash ou home
   const hash = window.location.hash.substring(1);

@@ -112,6 +112,7 @@ async function deleteAccount(): Promise<boolean> {
     if (response.ok) {
       showMessage('Compte supprimé avec succès', false);
       localStorage.removeItem('authToken');
+      window.dispatchEvent(new Event('authStateChanged'));
       setTimeout(() => {
         window.location.hash = '#home';
       }, 2000);
@@ -142,6 +143,7 @@ async function logout() {
     
     // Supprimer le token côté client
     localStorage.removeItem('authToken');
+    window.dispatchEvent(new Event('authStateChanged'));
     
     showMessage('Déconnexion réussie', false);
     
