@@ -1,3 +1,5 @@
+import { TournamentPlayer } from './PlayerManager.js'
+
 export interface authResponse {
 	successful: boolean;
 	user?: {
@@ -9,19 +11,12 @@ export interface authResponse {
 	}
 }
 
-// Delete ?
-export interface userStats {
-	wins: number;
-	lose: number;
-	matchs: number;
-}
-
 export class userApiService {
 	// route API User
 	private userURL = `http://localhost:3003/api/`;
 
 	// Function qui send la demande cote backend pour get un USER en fonction de son username + password
-	async getUser(username:string, password: string): Promise<authResponse | null> {
+	public async getUser(username: string, password: string): Promise<authResponse | null> {
 		try {
 			const loginUser = {
 				username: username,
@@ -64,7 +59,7 @@ export class userApiService {
 	}
 
 	// Function qui send la demande cote backend pour voir le joueur actuellement connecte sur le compte (Instance local prioritaire)
-	async getConnectedPly(): Promise<authResponse | null> {
+	public async getConnectedPly(): Promise<authResponse | null> {
 		try {
 			const token = localStorage.getItem('authToken');
 			if (!token)
@@ -107,45 +102,79 @@ export class userApiService {
 
 	// A modifie peut-etre concernant la Promise, peut-etre faire une itnerface pour le match.id return ?
 	// Function qui send la demande cote backend pour ajouter un victoire/defaite aux joueurs 1-2.
-	async addMatchHistory(player1_id: number, player2_id: number, winner_id: number, score_player1: number, score_player2: number, game_type: string = 'pong'): Promise <true | null> {
+	public async saveUserVSUser(userPlayer1: TournamentPlayer, userPlayer2: TournamentPlayer,
+		winnerID: TournamentPlayer, gameType: string) {
 		try {
-			const matchData = {
-				player1_id,
-				player2_id,
-				winner_id,
-				score_player1,
-				score_player2,
-				game_type
-			}
-			const token = localStorage.getItem('authToken');
-			if (!token)
-				return (null);
-			const response = await fetch(this.userURL + `user/match`, {
-				method: `POST`,
+			const response = await fetch(this.userURL + `/user/match`, {
+				method: 'POST',
 				headers: {
-					'Authorization': `Bearer ${token}`,
-					'Content-Type': 'application/json',
-					'Accept': 'application/json'
+					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify(matchData)
+				body: JSON.stringify({
+					player1_id: userPlayer1.userId,     // ID de la DB
+					player2_id: userPlayer2.userId,     // ID de la DB
+					winner_id: winnerID.userId,       // ID du gagnant
+					score_player1: userPlayer1.tournamentStats.score,
+					score_player2: userPlayer2.tournamentStats.score,
+					game_type: gameType
+				})
 			});
-			if (response.ok) {
-				console.log(`Ok HTTP`);
-				return (true);
-			}
-			else if (response.status === 401) {
-				localStorage.removeItem(`authToken`);
-				return (null);
-			}
-			else {
-				console.log(`Error HTTP: `, response.status);
-				return (null);
-			}
 
+			const result = await response.json();
+			console.log(gameType + ' match saved:', result);
+			// result.stored_in === 'match_history'
 		}
 		catch (error) {
-			console.log(error.message);
-			return (null);
+			console.error('Failed to save ' + gameType + ' match:', error);
+		}
+	}
+	
+	public async saveUserVSGuest(userPlayer: TournamentPlayer, guestPlayer: TournamentPlayer, winnerID: TournamentPlayer, gameType: string) {
+		try {
+			const response = await fetch(this.userURL + `/user/match`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					player1_id: userPlayer.userId,      // ID de la DB pour le user
+					player1_name: userPlayer.displayName,
+					player2_id: null,                   // Pas d'ID pour le guest
+					player2_name: guestPlayer.displayName,
+					winner_player: winnerID.userId === userPlayer.userId ? 1 : 2, // 1 ou 2
+					score_player1: userPlayer.tournamentStats.score,
+					score_player2: guestPlayer.tournamentStats.score,
+					game_type: gameType
+				})
+			});
+
+			const result = await response.json();
+			console.log(gameType + ' match saved:', result);
+			// result.stored_in === 'game_sessions'
+		}
+		catch (error) {
+			console.error('Failed to save ' + gameType + ' match:', error);
+		}
+	}
+
+	public async getUserCompleteHistory(userId: number) {
+		try {
+			const token = localStorage.getItem('authToken');
+			
+			const response = await fetch(this.userURL + `user/${userId}/game-sessions`, {
+				headers: {
+					'Authorization': `Bearer ${token}`
+				}
+			});
+
+			const result = await response.json();
+			if (result.success) {
+				console.log('Complete history:', result.sessions);
+				return result.sessions;
+			}
+		}
+		catch (error) {
+			console.error('Failed to get history:', error);
 		}
 	}
 }
