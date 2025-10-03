@@ -53,11 +53,9 @@ menu:
 	@echo "$(CYAN)$(BOLD) ╠════════════════════════════════════════════════════════════╣$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)1.$(RESET) $(GREEN)Lancer l'application$(RESET)                                   $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)2.$(RESET) $(YELLOW)Installer les dépendances$(RESET)                              $(CYAN)║$(RESET)"
-	@echo "$(CYAN) ║$(WHITE)  $(BOLD)3.$(RESET) $(RED)Arrêter les services$(RESET)                                   $(CYAN)║$(RESET)"
+	@echo "$(CYAN) ║$(WHITE)  $(BOLD)3.$(RESET) $(RED)Arrêter les services et nettoyer les ports$(RESET)             $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)4.$(RESET) $(RED)Nettoyer le projet$(RESET)                                     $(CYAN)║$(RESET)"
-	@echo "$(CYAN) ║$(WHITE)  $(BOLD)5.$(RESET) $(MAGENTA)Nettoyer les ports$(RESET)                                     $(CYAN)║$(RESET)"
-	@echo "$(CYAN) ║$(WHITE)  $(BOLD)6.$(RESET) $(BLUE)Vérifier les ports$(RESET)                                     $(CYAN)║$(RESET)"
-	@echo "$(CYAN) ║$(WHITE)  $(BOLD)7.$(RESET) $(MAGENTA)Démarrer en mode dev (avec HMR)$(RESET)                        $(CYAN)║$(RESET)"
+	@echo "$(CYAN) ║$(WHITE)  $(BOLD)5.$(RESET) $(MAGENTA)Démarrer en mode dev (avec HMR)$(RESET)                        $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)0.$(RESET) $(DIM)Quitter$(RESET)                                                $(CYAN)║$(RESET)"
 	@echo "$(CYAN)$(BOLD) ╠════════════════════════════════════════════════════════════╣$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(DIM)Auth: http://localhost:3004$(RESET)                               $(CYAN)║$(RESET)"
@@ -72,13 +70,11 @@ menu:
 		case $$choice in \
 			1) echo ""; make run; break ;; \
 			2) echo ""; make install; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
-			3) echo ""; make stop-services; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
+			3) echo ""; make stop-services; make clean-ports; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
 			4) echo ""; make clean; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
-			5) echo ""; make clean-ports; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
-			6) echo ""; make check-ports; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
-			7) echo ""; make dev; break ;; \
+			5) echo ""; make dev; break ;; \
 			0) echo "$(GREEN)$(BOLD)Au revoir ! 👋$(RESET)"; break ;; \
-			*) echo "$(RED)❌ Choix invalide ! Veuillez choisir entre 0-7.$(RESET)"; echo "" ;; \
+			*) echo "$(RED)❌ Choix invalide ! Veuillez choisir entre 0-5.$(RESET)"; echo "" ;; \
 		esac \
 	done
 
@@ -151,7 +147,9 @@ dev:
 	@echo "✅ Services démarrés en arrière-plan"
 	@echo "🌐 Vite démarré sur http://localhost:5174 avec rechargement à chaud"
 	@echo "⚠️  Utilisez 'make stop-services' pour arrêter les services"
-	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/frontend && npm run dev
+	@echo "⚠️  Ou appuyez Ctrl+C pour arrêter tout automatiquement"
+	@(trap 'echo ""; echo "🛑 Arrêt automatique des services..."; make stop-services; exit 0' INT; \
+	  cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/frontend && npm run dev)
 
 install:
 	@echo ""
@@ -186,22 +184,19 @@ install:
 
 start-services:
 	@echo ""
-	@echo "$(BLUE)$(BOLD) 📡 Démarrage des services...$(RESET)"
+	@echo "$(BLUE)$(BOLD) 📡 Démarrage des services backend...$(RESET)"
 ifeq ($(OS),Windows_NT)
 	@powershell -Command "Start-Process -NoNewWindow -FilePath 'node' -ArgumentList 'srcs/server.js' -WorkingDirectory 'srcs\requierements\services\auth-service'"
 	@powershell -Command "Start-Process -NoNewWindow -FilePath 'node' -ArgumentList 'srcs/server.js' -WorkingDirectory 'srcs\requierements\services\chat-service'"
 	@powershell -Command "Start-Process -NoNewWindow -FilePath 'node' -ArgumentList 'srcs/server.js' -WorkingDirectory 'srcs\requierements\services\game-service'"
 	@powershell -Command "Start-Process -NoNewWindow -FilePath 'node' -ArgumentList 'srcs/server.js' -WorkingDirectory 'srcs\requierements\services\user-service'"
-	@powershell -Command "Start-Process -NoNewWindow -FilePath 'npm' -ArgumentList 'run dev' -WorkingDirectory 'srcs\requierements\frontend'"
 else
 	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/auth-service && nohup node srcs/server.js > /dev/null 2>&1 &
 	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/chat-service && nohup node srcs/server.js > /dev/null 2>&1 &
 	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/game-service && nohup node srcs/server.js > /dev/null 2>&1 &
 	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/user-service && nohup node srcs/server.js > /dev/null 2>&1 &
-	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/frontend && nohup npm run dev > /tmp/vite.log 2>&1 &
 endif
-	@echo "$(GREEN)$(BOLD) ✅ Services démarrés$(RESET)"
-	@echo "$(CYAN)$(BOLD) 🌐 Accédez à http://localhost:5174$(RESET)"
+	@echo "$(GREEN)$(BOLD) ✅ Services backend démarrés$(RESET)"
 
 stop-services:
 	@echo ""
