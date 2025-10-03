@@ -60,5 +60,11 @@ export function initLiveChat() {
         console.log('❌ General button not found');
     }
 
+    // Initialize DM list (for now, empty)
+    const dmList = document.getElementById('dm-list');
+    if (dmList) {
+        dmList.innerHTML = '<div class="text-muted text-xs">No active DMs</div>';
+    }
+
     console.log('✅ Live chat initialized');
 }

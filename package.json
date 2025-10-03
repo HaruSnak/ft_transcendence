@@ -1,5 +1,8 @@
 {
   "devDependencies": {
     "tailwindcss": "^4.1.12"
+  },
+  "dependencies": {
+    "socket.io": "^4.8.1"
   }
 }

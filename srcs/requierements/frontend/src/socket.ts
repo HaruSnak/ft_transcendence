@@ -1,108 +1,50 @@
 // src/socket.ts
 console.log('🔌 Loading socket.ts...');
 
-// Use native WebSocket instead of Socket.IO
-let socket: WebSocket | null = null;
-let reconnectAttempts = 0;
-const maxReconnectAttempts = 5;
+import { io, Socket } from 'socket.io-client';
+
+let socket: Socket | null = null;
+let currentChat: 'general' | { type: 'dm', user: string } = 'general';
+let myUsername = '';
+let myDisplayName = '';
 
 export function initSocket() {
-    console.log('🔌 Initializing WebSocket connection...');
-    connectWebSocket();
-}
+    console.log('🔌 Initializing Socket.IO connection...');
+    const token = sessionStorage.getItem('authToken');
+    const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+    myUsername = user.username || 'Anonymous';
+    myDisplayName = user.display_name || user.username || 'Anonymous';
 
-function connectWebSocket() {
-    console.log(`🔌 Attempting to connect to WebSocket (attempt ${reconnectAttempts + 1})...`);
-    try {
-        socket = new WebSocket('ws://localhost:3001/ws');
+    socket = io('http://localhost:3001', {
+        transports: ['websocket', 'polling']
+    });
 
-        socket.onopen = (event) => {
-            console.log('✅ WebSocket connected successfully');
-            reconnectAttempts = 0;
-        };
+    socket.on('connect', () => {
+        console.log('✅ Socket.IO connected');
+        socket?.emit('register', { username: myUsername, display_name: myDisplayName });
+    });
 
-        socket.onmessage = (event) => {
-            console.log('📨 WebSocket message received:', event.data);
-            try {
-                const data = JSON.parse(event.data);
-                handleMessage(data);
-            } catch (error) {
-                console.error('❌ Error parsing WebSocket message:', error);
-            }
-        };
+    socket.on('disconnect', () => {
+        console.log('❌ Socket.IO disconnected');
+    });
 
-        socket.onclose = (event) => {
-            console.log(`❌ WebSocket disconnected (code: ${event.code}, reason: ${event.reason})`);
-            attemptReconnect();
-        };
+    socket.on('welcome', (data) => {
+        console.log('👋 Welcome:', data.message);
+    });
 
-        socket.onerror = (error) => {
-            console.error('❌ WebSocket error:', error);
-            attemptReconnect();
-        };
+    socket.on('message', (data) => {
+        console.log('💬 Message received:', data);
+        displayMessage(data);
+    });
 
-    } catch (error) {
-        console.error('❌ Failed to create WebSocket connection:', error);
-        attemptReconnect();
-    }
-}
+    socket.on('user_list', (data) => {
+        console.log('👥 User list:', data.users);
+        updateUserList(data.users);
+    });
 
-function attemptReconnect() {
-    if (reconnectAttempts < maxReconnectAttempts) {
-        reconnectAttempts++;
-        console.log(`Attempting to reconnect (${reconnectAttempts}/${maxReconnectAttempts})...`);
-        setTimeout(() => {
-            connectWebSocket();
-        }, 2000 * reconnectAttempts); // Exponential backoff
-    } else {
-        console.error('Max reconnection attempts reached');
-    }
-}
-
-function handleMessage(data: any) {
-    console.log('📨 Handling message:', data);
-
-    switch (data.type) {
-        case 'welcome':
-            console.log('👋 Welcome message received:', data.message);
-            // Register with a username (you might want to get this from user auth)
-            registerUser('Anonymous' + Math.floor(Math.random() * 1000));
-            break;
-
-        case 'message':
-            console.log('💬 Chat message received:', data);
-            displayMessage({
-                username: data.from,
-                content: data.text,
-                timestamp: data.timestamp
-            });
-            break;
-
-        case 'user_list':
-            console.log('👥 User list received:', data.users);
-            updateUserList(data.users);
-            break;
-
-        case 'ack':
-            console.log('✅ Message acknowledged:', data);
-            break;
-
-        default:
-            console.log('❓ Unknown message type:', data.type);
-    }
-}
-
-function registerUser(username: string) {
-    console.log(`👤 Registering user: ${username}`);
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
-            type: 'register',
-            username: username
-        }));
-        console.log('✅ Registration message sent');
-    } else {
-        console.log('❌ Cannot register: WebSocket not connected');
-    }
+    socket.on('ack', (data) => {
+        console.log('✅ Ack:', data);
+    });
 }
 
 function displayMessage(data: any) {
@@ -110,9 +52,13 @@ function displayMessage(data: any) {
     const messagesDiv = document.getElementById('chat_messages');
     if (messagesDiv) {
         const messageDiv = document.createElement('div');
-        messageDiv.className = 'mb-2';
+        messageDiv.className = 'chat-message';
+
+        const isOwn = data.from === myUsername;
+        messageDiv.classList.add(isOwn ? 'own' : 'other');
+
         const timestamp = new Date(data.timestamp).toLocaleTimeString();
-        messageDiv.innerHTML = `<strong>${data.username}:</strong> ${data.content} <small class="text-muted">(${timestamp})</small>`;
+        messageDiv.innerHTML = `<strong>${data.from_display_name || data.from}:</strong> ${data.text} <small>(${timestamp})</small>`;
         messagesDiv.appendChild(messageDiv);
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
         console.log('✅ Message displayed in chat');
@@ -121,19 +67,18 @@ function displayMessage(data: any) {
     }
 }
 
-function updateUserList(users: string[]) {
+function updateUserList(users: any[]) {
     console.log('👥 Updating user list:', users);
     const userListDiv = document.getElementById('user-list');
     if (userListDiv) {
         userListDiv.innerHTML = '';
         users.forEach(user => {
-            if (user && user !== 'undefined') { // Filter out invalid entries
+            if (user.username !== myUsername) {
                 const userDiv = document.createElement('div');
-                userDiv.className = 'bg-gray-600 px-3 py-2 rounded cursor-pointer hover:bg-gray-500';
-                userDiv.textContent = user;
+                userDiv.className = 'text-sm py-1 px-2 rounded cursor-pointer hover:bg-gray-600';
+                userDiv.textContent = user.display_name || user.username;
                 userDiv.addEventListener('click', () => {
-                    console.log(`👆 Starting DM with: ${user}`);
-                    startDM(user);
+                    startDM(user.username, user.display_name || user.username);
                 });
                 userListDiv.appendChild(userDiv);
             }
@@ -144,35 +89,67 @@ function updateUserList(users: string[]) {
     }
 }
 
-function startDM(targetUser: string) {
-    console.log(`💬 Starting DM with: ${targetUser}`);
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
-            type: 'message',
-            to: targetUser,
-            text: 'Hello! Let\'s chat privately.'
-        }));
-        console.log('✅ DM message sent');
-    } else {
-        console.log('❌ Cannot send DM: WebSocket not connected');
+function startDM(username: string, displayName: string) {
+    console.log(`💬 Starting DM with: ${username}`);
+    currentChat = { type: 'dm', user: username };
+    updateChatHeader(`DM with ${displayName}`);
+    // Clear messages or show DM history (for now, clear)
+    const messagesDiv = document.getElementById('chat_messages');
+    if (messagesDiv) messagesDiv.innerHTML = '';
+    // Show block button
+    const blockBtn = document.getElementById('block-btn');
+    if (blockBtn) blockBtn.classList.remove('hidden');
+    const inviteBtn = document.getElementById('invite-btn');
+    if (inviteBtn) inviteBtn.classList.remove('hidden');
+    // Add to DM list
+    addToDMList(username, displayName);
+}
+
+function addToDMList(username: string, displayName: string) {
+    const dmList = document.getElementById('dm-list');
+    if (dmList) {
+        // Check if already exists
+        const existing = dmList.querySelector(`[data-user="${username}"]`);
+        if (!existing) {
+            const dmDiv = document.createElement('div');
+            dmDiv.className = 'text-sm py-1 px-2 rounded cursor-pointer hover:bg-gray-600';
+            dmDiv.textContent = displayName;
+            dmDiv.setAttribute('data-user', username);
+            dmDiv.addEventListener('click', () => {
+                startDM(username, displayName);
+            });
+            dmList.appendChild(dmDiv);
+        }
     }
 }
 
-export function sendMessage(message: string, toUser?: string) {
-    console.log(`📤 Sending message: "${message}" ${toUser ? `to ${toUser}` : '(general)'}`);
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
-            type: 'message',
-            to: toUser || '',
+function updateChatHeader(title: string) {
+    const header = document.getElementById('chat-title');
+    if (header) header.textContent = title;
+}
+
+export function sendMessage(message: string) {
+    console.log(`📤 Sending message: "${message}"`);
+    if (socket) {
+        socket.emit('message', {
+            to: currentChat === 'general' ? '' : currentChat.user,
             text: message
-        }));
-        console.log('✅ Message sent via WebSocket');
+        });
+        console.log('✅ Message sent via Socket.IO');
     } else {
-        console.error('❌ Cannot send message: WebSocket not connected');
+        console.error('❌ Cannot send message: Socket not connected');
     }
 }
 
 export function joinGeneral() {
-    // Since we're always connected to general chat, this is a no-op
-    console.log('Already in general chat');
+    currentChat = 'general';
+    updateChatHeader('# General');
+    // Hide buttons
+    const blockBtn = document.getElementById('block-btn');
+    if (blockBtn) blockBtn.classList.add('hidden');
+    const inviteBtn = document.getElementById('invite-btn');
+    if (inviteBtn) inviteBtn.classList.add('hidden');
+    // Clear messages
+    const messagesDiv = document.getElementById('chat_messages');
+    if (messagesDiv) messagesDiv.innerHTML = '';
 }
