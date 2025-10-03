@@ -134,7 +134,10 @@ install:
 	@echo "$(GREEN)$(BOLD) ✅ Game-service installé$(RESET)"
 	@echo "$(BLUE)$(BOLD) 👤 Installation user-service...$(RESET)"
 	@bash -c "sudo apt-get update && sudo apt-get install -y build-essential python3 make g++" >/dev/null 2>&1
-	@cd srcs/requierements/services/user-service && npm install >/dev/null 2>&1 && npm rebuild bcrypt >/dev/null 2>&1 && npm rebuild sqlite3 >/dev/null 2>&1
+	@echo -n "$(YELLOW)Installation des dépendances Node.js en cours$(RESET)"
+	@(cd srcs/requierements/services/user-service && npm install >/dev/null 2>&1 && npm rebuild bcrypt >/dev/null 2>&1 && npm rebuild sqlite3 >/dev/null 2>&1) & pid=$$!; \
+	 while kill -0 $$pid 2>/dev/null; do echo -n "."; sleep 1; done; wait $$pid 2>/dev/null
+	@echo ""
 	@echo "$(GREEN)$(BOLD) ✅ User-service installé$(RESET)"
 	@echo "$(BLUE)$(BOLD) 🌐 Installation frontend...$(RESET)"
 	@cd srcs/requierements/frontend && npm install >nul 2>&1
@@ -231,7 +234,7 @@ clean:
 	@cd srcs/requierements/services/game-service && $(RM) node_modules dist 2>/dev/null || true
 	@echo "$(CYAN)  - Nettoyage user-service (node_modules, dist, data)$(RESET)"
 	@cd srcs/requierements/services/user-service && $(RM) node_modules dist data 2>/dev/null || true
-	@echo "$(CYAN)  - Nettoyage frontend (node_modules, dist, .vite, fichiers générés)$(RESET)"
+	@echo "$(CYAN)  - Nettoyage frontend (node_modules, dist, .vite, css)$(RESET)"
 	@cd srcs/requierements/frontend && $(RM) node_modules dist .vite 2>/dev/null || true && rm -f public/css/index.css 2>/dev/null || true
 	@echo "$(GREEN)$(BOLD) ╔══════════════════════════════════════════════════════════════╗$(RESET)"
 	@echo "$(GREEN)$(BOLD) ║                 🧹 NETTOYAGE VIOLENT TERMINÉ 🧹              ║$(RESET)"
