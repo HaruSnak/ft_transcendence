@@ -48,7 +48,7 @@ class UserService {
 	async authenticateUser(username, password) {
 		try {
 			const user = await database.get(
-				'SELECT id, username, email, password_hash, display_name, avatar_url FROM users WHERE username = ? OR email = ?',
+				'SELECT id, username, email, password_hash, display_name, avatar_url, has_seen_welcome FROM users WHERE username = ? OR email = ?',
 				[username, username]
 			);
 
@@ -82,7 +82,8 @@ class UserService {
 					username: user.username,
 					email: user.email,
 					display_name: user.display_name,
-					avatar_url: user.avatar_url
+					avatar_url: user.avatar_url,
+					has_seen_welcome: user.has_seen_welcome
 				}
 			};
 		} catch (error) {
@@ -94,7 +95,7 @@ class UserService {
 	async getUserById(userId) {
 		try {
 			const user = await database.get(
-				`SELECT u.id, u.username, u.email, u.display_name, u.avatar_url, u.is_online, u.created_at,
+				`SELECT u.id, u.username, u.email, u.display_name, u.avatar_url, u.is_online, u.has_seen_welcome, u.created_at,
 						s.wins, s.losses, s.games_played
 				 FROM users u
 				 LEFT JOIN user_stats s ON u.id = s.user_id
@@ -115,15 +116,16 @@ class UserService {
 	// Mettre à jour le profil utilisateur
 	async updateUser(userId, updates) {
 		try {
-			const { display_name, avatar_url } = updates;
+			const { display_name, avatar_url, has_seen_welcome } = updates;
 			
 			const result = await database.run(
 				`UPDATE users SET 
 				 display_name = COALESCE(?, display_name),
 				 avatar_url = COALESCE(?, avatar_url),
+				 has_seen_welcome = COALESCE(?, has_seen_welcome),
 				 updated_at = CURRENT_TIMESTAMP
 				 WHERE id = ?`,
-				[display_name, avatar_url, userId]
+				[display_name, avatar_url, has_seen_welcome, userId]
 			);
 
 			if (result.changes === 0) {

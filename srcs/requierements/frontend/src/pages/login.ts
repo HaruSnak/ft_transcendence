@@ -58,10 +58,31 @@ export function initLogin() {
                     const loginLink = document.querySelector('[data-page="login"]') as HTMLElement;
                     if (loginLink) loginLink.style.display = 'none';
                     showMsg('Login successful!', true);
-                    setTimeout(() => {
-                        window.location.hash = 'profile';
-                        location.reload();
-                    }, 600);
+                    // Check if first login and show welcome modal
+                    if (!data.user.has_seen_welcome) {
+                        const modal = document.getElementById('edit-profile-modal');
+                        modal?.classList.add('show');
+                        modal?.classList.remove('hidden');
+                        // Mark as seen
+                        fetch('/api/user/profile', {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${data.token}`
+                            },
+                            body: JSON.stringify({ has_seen_welcome: true })
+                        }).catch(err => console.error('Failed to update welcome status:', err));
+                        // Delay redirect to allow modal interaction
+                        setTimeout(() => {
+                            window.location.hash = 'profile';
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        setTimeout(() => {
+                            window.location.hash = 'profile';
+                            location.reload();
+                        }, 600);
+                    }
                 } else {
                     let errorMsg = 'Unknown error';
                     try {
@@ -83,6 +104,36 @@ export function initLogin() {
     if (signupBtn) {
         signupBtn.addEventListener('click', () => {
             window.location.hash = 'signup';
+        });
+    }
+
+    // Modal event listeners
+    const modal = document.getElementById('edit-profile-modal');
+    const editBtn = document.getElementById('edit-profile-btn');
+    const skipBtn = document.getElementById('skip-edit-btn');
+
+    if (modal) {
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('show');
+                modal.classList.add('hidden');
+            }
+        });
+    }
+
+    if (editBtn) {
+        editBtn.addEventListener('click', () => {
+            modal?.classList.remove('show');
+            modal?.classList.add('hidden');
+            window.location.hash = 'profile';
+        });
+    }
+
+    if (skipBtn) {
+        skipBtn.addEventListener('click', () => {
+            modal?.classList.remove('show');
+            modal?.classList.add('hidden');
         });
     }
 }

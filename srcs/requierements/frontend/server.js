@@ -73,8 +73,8 @@ const server = http.createServer((req, res) => {
   });
 });
 
-server.listen(8081, () => {
-  console.log('🎉 Server running at http://localhost:8081/');
+server.listen(5174, () => {
+  console.log('🎉 Server running at http://localhost:5174/');
   console.log('📋 Available routes:');
   console.log('   - / : index.html');
   console.log('   - /public/* : static files');
