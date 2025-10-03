@@ -51,6 +51,11 @@ async function loadProfile() {
             console.log('Profile: loaded user data:', data);
             populateFields(data.user);
             showState('main');
+            // Check if should show edit form
+            if (sessionStorage.getItem('showEditForm')) {
+                sessionStorage.removeItem('showEditForm');
+                showEditForm();
+            }
         } else {
             let errorMsg = 'Unknown error';
             try {

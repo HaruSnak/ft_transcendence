@@ -72,11 +72,7 @@ export function initLogin() {
                             },
                             body: JSON.stringify({ has_seen_welcome: true })
                         }).catch(err => console.error('Failed to update welcome status:', err));
-                        // Delay redirect to allow modal interaction
-                        setTimeout(() => {
-                            window.location.hash = 'profile';
-                            location.reload();
-                        }, 2000);
+                        // No auto-redirect; wait for user to click buttons
                     } else {
                         setTimeout(() => {
                             window.location.hash = 'profile';
@@ -126,7 +122,9 @@ export function initLogin() {
         editBtn.addEventListener('click', () => {
             modal?.classList.remove('show');
             modal?.classList.add('hidden');
+            sessionStorage.setItem('showEditForm', 'true');
             window.location.hash = 'profile';
+            location.reload();
         });
     }
 
@@ -134,6 +132,8 @@ export function initLogin() {
         skipBtn.addEventListener('click', () => {
             modal?.classList.remove('show');
             modal?.classList.add('hidden');
+            window.location.hash = 'profile';
+            location.reload();
         });
     }
 }
