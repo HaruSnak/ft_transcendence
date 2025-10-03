@@ -4,6 +4,29 @@ export function initSignup() {
     const signupForm = document.getElementById('signup_form') as HTMLFormElement;
     const cancelBtn = document.getElementById('button-cancel-signup');
 
+    // Ajout d'un conteneur de message si absent
+    let messageDiv = document.getElementById('signup-message');
+    if (!messageDiv) {
+        messageDiv = document.createElement('div');
+        messageDiv.id = 'signup-message';
+        messageDiv.style.marginTop = '1em';
+        if (signupForm && signupForm.parentNode) {
+            signupForm.parentNode.insertBefore(messageDiv, signupForm.nextSibling);
+        }
+    }
+
+    function showMessage(msg: string, type: 'success' | 'error') {
+        if (!messageDiv) return;
+        messageDiv.textContent = msg;
+        messageDiv.style.color = type === 'success' ? '#22c55e' : '#ef4444';
+        messageDiv.style.background = type === 'success' ? '#dcfce7' : '#fee2e2';
+        messageDiv.style.border = '1px solid ' + (type === 'success' ? '#22c55e' : '#ef4444');
+        messageDiv.style.padding = '0.75em 1em';
+        messageDiv.style.borderRadius = '0.5em';
+        messageDiv.style.textAlign = 'center';
+        messageDiv.style.fontWeight = 'bold';
+    }
+
     if (signupForm) {
         signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -13,7 +36,7 @@ export function initSignup() {
             const password = formData.get('password') as string;
 
             if (!username || !email || !password) {
-                alert('Please fill in all fields: username, email, and password');
+                showMessage('Please fill in all fields: username, email, and password', 'error');
                 return;
             }
 
@@ -27,17 +50,18 @@ export function initSignup() {
                 });
 
                 if (response.ok) {
-                    const data = await response.json();
-                    // Registration successful, redirect to login
-                    alert('Registration successful! Please log in.');
-                    window.location.hash = 'login';
+                    // const data = await response.json();
+                    showMessage('Registration successful! Please log in.', 'success');
+                    setTimeout(() => {
+                        window.location.hash = 'login';
+                    }, 1200);
                 } else {
                     const errorData = await response.json();
-                    alert(`Registration failed: ${errorData.error || 'Unknown error'}`);
+                    showMessage(`Registration failed: ${errorData.error || 'Unknown error'}`, 'error');
                 }
             } catch (error) {
                 console.error('Registration error:', error);
-                alert('Registration failed');
+                showMessage('Registration failed', 'error');
             }
         });
     }
