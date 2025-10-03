@@ -51,7 +51,6 @@ menu:
 	@echo "$(CYAN)$(BOLD) ╔════════════════════════════════════════════════════════════╗$(RESET)"
 	@echo "$(CYAN)$(BOLD) ║                    🚀 TRANSCENDANCE                        ║$(RESET)"
 	@echo "$(CYAN)$(BOLD) ╠════════════════════════════════════════════════════════════╣$(RESET)"
-	@echo "$(CYAN)$(BOLD) ║                                                            ║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)1.$(RESET) $(GREEN)Lancer l'application$(RESET)                                   $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)2.$(RESET) $(YELLOW)Installer les dépendances$(RESET)                              $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)3.$(RESET) $(RED)Arrêter les services$(RESET)                                   $(CYAN)║$(RESET)"
@@ -59,7 +58,6 @@ menu:
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)5.$(RESET) $(MAGENTA)Nettoyer les ports$(RESET)                                     $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)6.$(RESET) $(BLUE)Vérifier les ports$(RESET)                                     $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)0.$(RESET) $(DIM)Quitter$(RESET)                                                $(CYAN)║$(RESET)"
-	@echo "$(CYAN)$(BOLD) ║                                                            ║$(RESET)"
 	@echo "$(CYAN)$(BOLD) ╠════════════════════════════════════════════════════════════╣$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(DIM)Auth: http://localhost:3004$(RESET)                               $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(DIM)Chat: http://localhost:3001$(RESET)                               $(CYAN)║$(RESET)"
@@ -118,7 +116,6 @@ run:
 	@echo "✅ Services démarrés en arrière-plan"
 	@echo "🌐 Accédez à http://localhost:5174"
 	@echo "⚠️  Utilisez 'make stop-services' pour arrêter"
-	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/frontend && npm run dev
 
 install:
 	@echo ""
@@ -225,7 +222,6 @@ clean:
 	@echo "$(CYAN)  - Arrêt des processus sur port 5174 (frontend)$(RESET)"
 	@$(KILL_5174) 2>/dev/null
 	@echo "$(CYAN)  - Arrêt de tous les processus Node.js restants$(RESET)"
-	@$(KILL_NODE) 2>/dev/null
 	@echo "$(YELLOW) 🗑️  Suppression des fichiers...$(RESET)"
 	@echo "$(CYAN)  - Nettoyage auth-service (node_modules, dist)$(RESET)"
 	@cd srcs/requierements/services/auth-service && $(RM) node_modules dist 2>/dev/null || true
@@ -235,19 +231,17 @@ clean:
 	@cd srcs/requierements/services/game-service && $(RM) node_modules dist 2>/dev/null || true
 	@echo "$(CYAN)  - Nettoyage user-service (node_modules, dist, data)$(RESET)"
 	@cd srcs/requierements/services/user-service && $(RM) node_modules dist data 2>/dev/null || true
-	@echo "$(CYAN)  - Nettoyage frontend (node_modules, dist, public)$(RESET)"
-	@cd srcs/requierements/frontend && $(RM) node_modules dist public 2>/dev/null || true
+	@echo "$(CYAN)  - Nettoyage frontend (node_modules, dist, .vite, fichiers générés)$(RESET)"
+	@cd srcs/requierements/frontend && $(RM) node_modules dist .vite 2>/dev/null || true && rm -f public/css/index.css 2>/dev/null || true
 	@echo "$(GREEN)$(BOLD) ╔══════════════════════════════════════════════════════════════╗$(RESET)"
-	@echo "$(GREEN)$(BOLD) ║                        🧹 NETTOYAGE VIOLENT TERMINÉ 🧹               ║$(RESET)"
+	@echo "$(GREEN)$(BOLD) ║                 🧹 NETTOYAGE VIOLENT TERMINÉ 🧹              ║$(RESET)"
 	@echo "$(GREEN)$(BOLD) ╠══════════════════════════════════════════════════════════════╣$(RESET)"
-	@echo "$(GREEN)$(BOLD) ║                                                              ║$(RESET)"
-	@echo "$(GREEN)$(BOLD) ║$(RESET)  $(GREEN)$(BOLD)✅ Tous les ports libérés (3001-3004, 5174)$(RESET)             $(GREEN)$(BOLD)║$(RESET)"
-	@echo "$(GREEN)$(BOLD) ║$(RESET)  $(GREEN)$(BOLD)✅ Tous les processus Node.js tués$(RESET)                      $(GREEN)$(BOLD)║$(RESET)"
-	@echo "$(GREEN)$(BOLD) ║$(RESET)  $(GREEN)$(BOLD)✅ node_modules supprimés$(RESET)                                 $(GREEN)$(BOLD)║$(RESET)"
-	@echo "$(GREEN)$(BOLD) ║$(RESET)  $(GREEN)$(BOLD)✅ Fichiers build supprimés$(RESET)                               $(GREEN)$(BOLD)║$(RESET)"
+	@echo "$(GREEN)$(BOLD) ║$(RESET)  $(GREEN)$(BOLD)✅ Tous les ports libérés (3001-3004, 5174)$(RESET)                 $(GREEN)$(BOLD)║$(RESET)"
+	@echo "$(GREEN)$(BOLD) ║$(RESET)  $(GREEN)$(BOLD)✅ Tous les processus Node.js tués$(RESET)                          $(GREEN)$(BOLD)║$(RESET)"
+	@echo "$(GREEN)$(BOLD) ║$(RESET)  $(GREEN)$(BOLD)✅ node_modules supprimés$(RESET)                                   $(GREEN)$(BOLD)║$(RESET)"
+	@echo "$(GREEN)$(BOLD) ║$(RESET)  $(GREEN)$(BOLD)✅ Fichiers build et cache supprimés$(RESET)                        $(GREEN)$(BOLD)║$(RESET)"
 	@echo "$(GREEN)$(BOLD) ║                                                              ║$(RESET)"
 	@echo "$(GREEN)$(BOLD) ║$(RESET)  $(WHITE)$(BOLD)⚡ Tapez make pour relancer le menu$(RESET)                         $(GREEN)$(BOLD)║$(RESET)"
-	@echo "$(GREEN)$(BOLD) ║                                                              ║$(RESET)"
 	@echo "$(GREEN)$(BOLD) ╚══════════════════════════════════════════════════════════════╝$(RESET)"
 	@echo ""
 
