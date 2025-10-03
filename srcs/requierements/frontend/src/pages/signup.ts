@@ -9,22 +9,18 @@ export function initSignup() {
     if (!messageDiv) {
         messageDiv = document.createElement('div');
         messageDiv.id = 'signup-message';
-        messageDiv.style.marginTop = '1em';
-        if (signupForm && signupForm.parentNode) {
-            signupForm.parentNode.insertBefore(messageDiv, signupForm.nextSibling);
+        messageDiv.style.marginBottom = '1rem';
+        if (signupForm && signupForm.parentElement) {
+            signupForm.parentElement.insertBefore(messageDiv, signupForm);
         }
     }
 
     function showMessage(msg: string, type: 'success' | 'error') {
         if (!messageDiv) return;
         messageDiv.textContent = msg;
-        messageDiv.style.color = type === 'success' ? '#22c55e' : '#ef4444';
-        messageDiv.style.background = type === 'success' ? '#dcfce7' : '#fee2e2';
-        messageDiv.style.border = '1px solid ' + (type === 'success' ? '#22c55e' : '#ef4444');
-        messageDiv.style.padding = '0.75em 1em';
-        messageDiv.style.borderRadius = '0.5em';
-        messageDiv.style.textAlign = 'center';
+        messageDiv.style.color = type === 'success' ? 'var(--success, #22c55e)' : 'var(--danger, #ef4444)';
         messageDiv.style.fontWeight = 'bold';
+        messageDiv.style.textAlign = 'center';
     }
 
     if (signupForm) {
