@@ -128,5 +128,13 @@ document.addEventListener('DOMContentLoaded', () => {
     initProfile();
     console.log('💬 Initializing live chat...');
     initLiveChat();
+
+    // Check login state and hide login tab if authenticated
+    const authToken = sessionStorage.getItem('authToken');
+    const loginLink = document.querySelector('[data-page="login"]');
+    if (authToken && loginLink) {
+        (loginLink as HTMLElement).style.display = 'none';
+    }
+
     console.log('🎉 All initializations complete!');
 });
