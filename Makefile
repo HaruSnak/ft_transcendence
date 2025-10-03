@@ -57,6 +57,7 @@ menu:
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)4.$(RESET) $(RED)Nettoyer le projet$(RESET)                                     $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)5.$(RESET) $(MAGENTA)Nettoyer les ports$(RESET)                                     $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)6.$(RESET) $(BLUE)Vérifier les ports$(RESET)                                     $(CYAN)║$(RESET)"
+	@echo "$(CYAN) ║$(WHITE)  $(BOLD)7.$(RESET) $(MAGENTA)Démarrer en mode dev (avec HMR)$(RESET)                        $(CYAN)║$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(BOLD)0.$(RESET) $(DIM)Quitter$(RESET)                                                $(CYAN)║$(RESET)"
 	@echo "$(CYAN)$(BOLD) ╠════════════════════════════════════════════════════════════╣$(RESET)"
 	@echo "$(CYAN) ║$(WHITE)  $(DIM)Auth: http://localhost:3004$(RESET)                               $(CYAN)║$(RESET)"
@@ -75,6 +76,7 @@ menu:
 			4) echo ""; make clean; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
 			5) echo ""; make clean-ports; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
 			6) echo ""; make check-ports; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
+			7) echo ""; make dev; break ;; \
 			0) echo "$(GREEN)$(BOLD)Au revoir ! 👋$(RESET)"; break ;; \
 			*) echo "$(RED)❌ Choix invalide ! Veuillez choisir entre 0-7.$(RESET)"; echo "" ;; \
 		esac \
@@ -116,6 +118,40 @@ run:
 	@echo "✅ Services démarrés en arrière-plan"
 	@echo "🌐 Accédez à http://localhost:5174"
 	@echo "⚠️  Utilisez 'make stop-services' pour arrêter"
+
+dev:
+	@echo ""
+	@echo "$(YELLOW)🔍 Vérification de Node.js...$(RESET)"
+	@node_version=$$(node --version | sed 's/v//' | awk -F. '{print $$1}'); \
+	if [ "$$node_version" -lt 20 ]; then \
+		echo "$(YELLOW)⬆️  Upgrading Node.js to version 20... Please wait...$(RESET)"; \
+		make upgrade-node > /dev/null 2>&1; \
+		echo "$(GREEN)✅ Node.js upgraded to $$(node --version)!$(RESET)"; \
+	fi
+	@echo "$(GREEN)✅ Node.js OK$(RESET)"
+	@echo "$(YELLOW)🔍 Vérification des dépendances...$(RESET)"
+	@if [ ! -d "srcs/requierements/services/user-service/node_modules" ]; then \
+		echo "$(YELLOW)📦 Installation des dépendances manquantes...$(RESET)"; \
+		make install > /dev/null 2>&1; \
+	fi
+	@if [ ! -d "srcs/requierements/frontend/node_modules" ]; then \
+		echo "$(YELLOW)📦 Installation des dépendances frontend manquantes...$(RESET)"; \
+		cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/frontend && npm install > /dev/null 2>&1; \
+	fi
+	@echo "$(BLUE) Construction du CSS...$(RESET)"
+	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/frontend && npm run build-css > /dev/null 2>&1
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════╗"
+	@echo "║                 🚀 MODE DÉVELOPPEMENT ! 🚀                   ║"
+	@echo "╚══════════════════════════════════════════════════════════════╝"
+	@echo ""
+	@make start-services
+	@sleep 3
+	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/user-service && bash create-user.sh powlar powlar@example.com password 'Powlar' 2>/dev/null || true
+	@echo "✅ Services démarrés en arrière-plan"
+	@echo "🌐 Vite démarré sur http://localhost:5174 avec rechargement à chaud"
+	@echo "⚠️  Utilisez 'make stop-services' pour arrêter les services"
+	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/frontend && npm run dev
 
 install:
 	@echo ""
