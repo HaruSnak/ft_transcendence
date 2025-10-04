@@ -30,6 +30,12 @@ function showPage(pageId: string) {
     if (page) {
         console.log(`✅ Showing page: ${pageId}`);
         page.classList.remove('hidden');
+        
+        // Initialize page-specific functionality
+        if (pageId === 'profile') {
+            console.log('👤 Re-initializing profile page...');
+            initProfile();
+        }
     } else {
         console.log(`❌ Page not found: ${pageId}`);
     }
@@ -64,9 +70,20 @@ function initNavigation() {
 
     // Handle initial page based on hash
     const hash = window.location.hash.substring(1);
-    if (hash && document.getElementById(hash)) {
-        console.log(`🔗 Initial page from hash: ${hash}`);
-        showPage(hash);
+    if (hash) {
+        if (hash.startsWith('profile-')) {
+            // Special case for profile with username
+            const username = hash.substring(8); // Remove 'profile-'
+            // Set a temporary URL param for the profile page BEFORE showing the page
+            sessionStorage.setItem('profileUsername', username);
+            showPage('profile');
+        } else if (document.getElementById(hash)) {
+            console.log(`🔗 Initial page from hash: ${hash}`);
+            showPage(hash);
+        } else {
+            console.log('🏠 Showing default page: home');
+            showPage('home');
+        }
     } else {
         console.log('🏠 Showing default page: home');
         showPage('home');
@@ -75,9 +92,17 @@ function initNavigation() {
     // Handle hash changes
     window.addEventListener('hashchange', () => {
         const hash = window.location.hash.substring(1);
-        if (hash && document.getElementById(hash)) {
-            console.log(`🔄 Hash changed to: ${hash}`);
-            showPage(hash);
+        if (hash) {
+            if (hash.startsWith('profile-')) {
+                // Special case for profile with username
+                const username = hash.substring(8); // Remove 'profile-'
+                // Set a temporary URL param for the profile page BEFORE showing the page
+                sessionStorage.setItem('profileUsername', username);
+                showPage('profile');
+            } else if (document.getElementById(hash)) {
+                console.log(`🔄 Hash changed to: ${hash}`);
+                showPage(hash);
+            }
         }
     });
     console.log('✅ Navigation initialized');

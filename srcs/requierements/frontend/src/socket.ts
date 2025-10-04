@@ -156,11 +156,41 @@ function updateUserList(users: any[]) {
         users.forEach(user => {
             if (user.username !== myUsername) {
                 const userDiv = document.createElement('div');
-                userDiv.className = 'text-sm py-1 px-2 rounded cursor-pointer hover:bg-gray-600';
-                userDiv.textContent = user.display_name || user.username;
-                userDiv.addEventListener('click', () => {
+                userDiv.className = 'flex items-center justify-between py-1 px-2 rounded hover:bg-gray-600';
+                
+                // Nom d'utilisateur
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'text-sm';
+                nameSpan.textContent = user.display_name || user.username;
+                userDiv.appendChild(nameSpan);
+                
+                // Conteneur pour les boutons
+                const buttonsDiv = document.createElement('div');
+                buttonsDiv.className = 'flex gap-1';
+                
+                // Bouton profil
+                const profileBtn = document.createElement('button');
+                profileBtn.className = 'text-xs px-1 py-0.5 rounded hover:bg-gray-500';
+                profileBtn.textContent = '👤';
+                profileBtn.title = 'Voir le profil';
+                profileBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    window.location.hash = 'profile-' + user.username;
+                });
+                buttonsDiv.appendChild(profileBtn);
+                
+                // Bouton DM
+                const dmBtn = document.createElement('button');
+                dmBtn.className = 'text-xs px-1 py-0.5 rounded hover:bg-gray-500';
+                dmBtn.textContent = '💬';
+                dmBtn.title = 'Envoyer un message';
+                dmBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     startDM(user.username, user.display_name || user.username);
                 });
+                buttonsDiv.appendChild(dmBtn);
+                
+                userDiv.appendChild(buttonsDiv);
                 userListDiv.appendChild(userDiv);
             }
         });

@@ -39,22 +39,51 @@ async function loadProfile() {
 
     showState('loading');
 
+    // Check if viewing another user's profile
+    const profileUsername = sessionStorage.getItem('profileUsername');
+    // Clear it immediately to avoid issues
+    sessionStorage.removeItem('profileUsername');
+
     try {
-        const response = await fetch('/api/user/profile', {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
-        });
-        console.log('Profile: /api/user/profile response status:', response.status);
+        let response;
+        if (profileUsername) {
+            // Load another user's profile
+            response = await fetch(`/api/user/by-username/${profileUsername}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+        } else {
+            // Load own profile
+            response = await fetch('/api/user/profile', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+        }
+
+        console.log('Profile: response status:', response.status);
         if (response.ok) {
             const data = await response.json();
             console.log('Profile: loaded user data:', data);
-            populateFields(data.user);
+            populateFields(data.user, !!profileUsername);
             showState('main');
-            // Check if should show edit form
-            if (sessionStorage.getItem('showEditForm')) {
-                sessionStorage.removeItem('showEditForm');
-                showEditForm();
+            
+            // Hide edit button for other users' profiles
+            if (profileUsername) {
+                const editBtn = document.querySelector('[data-action="edit"]');
+                if (editBtn) (editBtn as HTMLElement).style.display = 'none';
+                
+                // Also hide logout button for other users' profiles
+                const logoutBtn = document.querySelector('[data-action="logout"]');
+                if (logoutBtn) (logoutBtn as HTMLElement).style.display = 'none';
+            } else {
+                // Show buttons for own profile
+                const editBtn = document.querySelector('[data-action="edit"]');
+                if (editBtn) (editBtn as HTMLElement).style.display = '';
+                
+                const logoutBtn = document.querySelector('[data-action="logout"]');
+                if (logoutBtn) (logoutBtn as HTMLElement).style.display = '';
             }
         } else {
             let errorMsg = 'Unknown error';
@@ -73,14 +102,20 @@ async function loadProfile() {
     }
 }
 
-function populateFields(user: any) {
+function populateFields(user: any, isOtherUser: boolean = false) {
     // Update profile fields
     const nameField = document.querySelector('[data-field="name"]') as HTMLElement;
     const infoField = document.querySelector('[data-field="info"]') as HTMLElement;
     const avatarField = document.querySelector('[data-field="avatar"]') as HTMLImageElement;
 
     if (nameField) nameField.textContent = user.display_name || user.username;
-    if (infoField) infoField.textContent = `Login: ${user.username} | Email: ${user.email}`;
+    if (infoField) {
+        if (isOtherUser) {
+            infoField.textContent = `Utilisateur: ${user.username}`;
+        } else {
+            infoField.textContent = `Login: ${user.username} | Email: ${user.email}`;
+        }
+    }
     if (avatarField) {
         let avatar = user.avatar_url;
         if (!avatar || avatar === '' || avatar === 'null') {
@@ -89,14 +124,16 @@ function populateFields(user: any) {
         avatarField.src = avatar;
     }
 
-    // Update edit form fields
-    const editName = document.querySelector('[data-field="edit-name"]') as HTMLInputElement;
-    const editEmail = document.querySelector('[data-field="edit-email"]') as HTMLInputElement;
-    const editLogin = document.querySelector('[data-field="edit-login"]') as HTMLInputElement;
+    // Update edit form fields only for own profile
+    if (!isOtherUser) {
+        const editName = document.querySelector('[data-field="edit-name"]') as HTMLInputElement;
+        const editEmail = document.querySelector('[data-field="edit-email"]') as HTMLInputElement;
+        const editLogin = document.querySelector('[data-field="edit-login"]') as HTMLInputElement;
 
-    if (editName) editName.value = user.display_name || user.username || '';
-    if (editEmail) editEmail.value = user.email || '';
-    if (editLogin) editLogin.value = user.username || '';
+        if (editName) editName.value = user.display_name || user.username || '';
+        if (editEmail) editEmail.value = user.email || '';
+        if (editLogin) editLogin.value = user.username || '';
+    }
 }
 
 function showState(state: string) {
