@@ -3,11 +3,11 @@ console.log('🔄 Loading index.ts...');
 
 import './style.css';
 import { initGame, cleanUpGame } from './game/game.js';
-import { initSocket } from './socket.js';
+import { socketService } from './services/socket';
 import { initLogin } from './pages/login.js';
 import { initSignup } from './pages/signup.js';
 import { initProfile } from './pages/profile.js';
-import { initLiveChat } from './pages/livechat.js';
+import { initLiveChat } from './pages/livechat/index.js';
 
 console.log('✅ All imports loaded');
 
@@ -143,9 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('📋 DOM Content Loaded - Starting initialization...');
     initNavigation();
     initGameSection();
-    console.log('🔌 Initializing socket...');
-    initSocket();
-    console.log('🔐 Initializing login...');
+    console.log(' Initializing login...');
     initLogin();
     console.log('📝 Initializing signup...');
     initSignup();

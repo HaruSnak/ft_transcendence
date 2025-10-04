@@ -1,5 +1,7 @@
 // src/pages/profile.ts
 
+import { User, ProfileUpdateData } from '../utils/data_types';
+
 export function initProfile() {
     loadProfile();
 
@@ -69,6 +71,13 @@ async function loadProfile() {
             populateFields(data.user, !!profileUsername);
             showState('main');
             
+            // Check if we should show edit form (from first login)
+            const shouldShowEdit = sessionStorage.getItem('firstLoginEdit') === 'true';
+            if (shouldShowEdit) {
+                sessionStorage.removeItem('firstLoginEdit');
+                showEditForm();
+            }
+            
             // Hide edit button for other users' profiles
             if (profileUsername) {
                 const editBtn = document.querySelector('[data-action="edit"]');
@@ -102,7 +111,7 @@ async function loadProfile() {
     }
 }
 
-function populateFields(user: any, isOtherUser: boolean = false) {
+function populateFields(user: User, isOtherUser: boolean = false) {
     // Update profile fields
     const nameField = document.querySelector('[data-field="name"]') as HTMLElement;
     const infoField = document.querySelector('[data-field="info"]') as HTMLElement;
@@ -111,8 +120,10 @@ function populateFields(user: any, isOtherUser: boolean = false) {
     if (nameField) nameField.textContent = user.display_name || user.username;
     if (infoField) {
         if (isOtherUser) {
-            infoField.textContent = `Utilisateur: ${user.username}`;
+            // Hide sensitive information for other users' profiles
+            infoField.style.display = 'none';
         } else {
+            infoField.style.display = ''; // Show for own profile
             infoField.textContent = `Login: ${user.username} | Email: ${user.email}`;
         }
     }
@@ -179,11 +190,11 @@ async function updateProfile() {
     const form = document.querySelector('[data-state="edit"]') as HTMLFormElement;
     const formData = new FormData(form);
 
-    const updateData: any = {};
-    if (formData.get('name')) updateData.display_name = formData.get('name');
-    if (formData.get('email')) updateData.email = formData.get('email');
-    if (formData.get('login')) updateData.username = formData.get('login');
-    if (formData.get('password')) updateData.password = formData.get('password');
+    const updateData: ProfileUpdateData = {};
+    if (formData.get('name')) updateData.display_name = formData.get('name') as string;
+    if (formData.get('email')) updateData.email = formData.get('email') as string;
+    if (formData.get('login')) updateData.username = formData.get('login') as string;
+    if (formData.get('password')) updateData.password = formData.get('password') as string;
 
     try {
         const response = await fetch('/api/user/profile', {
@@ -203,8 +214,8 @@ async function updateProfile() {
             // Update sessionStorage with new user data
             sessionStorage.setItem('user', JSON.stringify(data.user));
             // Update socket with new profile
-            import('../socket.js').then(({ updateMyProfile }) => {
-                updateMyProfile(data.user);
+            import('../services/socket').then(({ socketService }) => {
+                socketService.updateUserProfile(data.user);
             });
         } else {
             showProfileMsg('Profile update failed', false);

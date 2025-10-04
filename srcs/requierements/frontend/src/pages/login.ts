@@ -122,7 +122,8 @@ export function initLogin() {
         editBtn.addEventListener('click', () => {
             modal?.classList.remove('show');
             modal?.classList.add('hidden');
-            sessionStorage.setItem('showEditForm', 'true');
+            // Set flag to show edit form after profile loads
+            sessionStorage.setItem('firstLoginEdit', 'true');
             window.location.hash = 'profile';
             location.reload();
         });
