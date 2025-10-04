@@ -20,6 +20,7 @@ const fastify = Fastify({
 const clients = new Map();
 const clientUsernames = new Map();
 const clientDisplayNames = new Map();
+const socketToUsername = new Map();
 
 // Route for testing health
 fastify.get('/health', async (request, reply) => {
@@ -68,12 +69,12 @@ io.on('connection', (socket) => {
     // Gérez les événements
     socket.on('disconnect', () => {
         console.log('❌ Client déconnecté:', clientId);
-        clients.delete(clientId);
-        const username = clientUsernames.get(clientId);
+        const username = socketToUsername.get(clientId);
         if (username) {
             clients.delete(username);
-            clientUsernames.delete(clientId);
-            clientDisplayNames.delete(clientId);
+            clientUsernames.delete(username);
+            clientDisplayNames.delete(username);
+            socketToUsername.delete(clientId);
         }
         broadcastUserList();
     });
@@ -84,8 +85,9 @@ io.on('connection', (socket) => {
         const username = msg.username;
         const display_name = msg.display_name || username;
         if (username) {
-            clientUsernames.set(clientId, username);
-            clientDisplayNames.set(clientId, display_name);
+            socketToUsername.set(clientId, username);
+            clientUsernames.set(username, username);
+            clientDisplayNames.set(username, display_name);
             clients.set(username, socket);
             clients.delete(clientId);
             console.log('✅ Client enregistré:', username, display_name);
@@ -96,8 +98,8 @@ io.on('connection', (socket) => {
     socket.on('message', (msg) => {
         console.log('← message reçu de', clientId, ':', msg);
         // Créer le message à diffuser
-        const fromUsername = clientUsernames.get(clientId) || clientId;
-        const fromDisplayName = clientDisplayNames.get(clientId) || fromUsername;
+        const fromUsername = socketToUsername.get(clientId) || clientId;
+        const fromDisplayName = clientDisplayNames.get(fromUsername) || fromUsername;
         const broadcastMessage = {
             type: 'message',
             from: fromUsername,
@@ -139,13 +141,11 @@ function broadcastUserList() {
     }
     
     const userList = [];
-    for (const [clientId, socket] of clients) {
-        if (clientUsernames.has(clientId)) {
-            userList.push({
-                username: clientUsernames.get(clientId),
-                display_name: clientDisplayNames.get(clientId)
-            });
-        }
+    for (const username of clientUsernames.keys()) {
+        userList.push({
+            username: username,
+            display_name: clientDisplayNames.get(username)
+        });
     }
     
     io.emit('user_list', {
