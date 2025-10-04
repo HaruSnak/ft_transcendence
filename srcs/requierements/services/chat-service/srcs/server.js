@@ -139,12 +139,11 @@ function broadcastUserList() {
     }
     
     const userList = [];
-    for (const [key, socket] of clients) {
-        const username = clientUsernames.get(socket.id);
-        if (username) {
+    for (const [clientId, socket] of clients) {
+        if (clientUsernames.has(clientId)) {
             userList.push({
-                username: username,
-                display_name: clientDisplayNames.get(socket.id)
+                username: clientUsernames.get(clientId),
+                display_name: clientDisplayNames.get(clientId)
             });
         }
     }

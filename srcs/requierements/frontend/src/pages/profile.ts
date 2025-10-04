@@ -51,8 +51,6 @@ async function loadProfile() {
             console.log('Profile: loaded user data:', data);
             populateFields(data.user);
             showState('main');
-            // Update sessionStorage with the latest user data
-            sessionStorage.setItem('user', JSON.stringify(data.user));
             // Check if should show edit form
             if (sessionStorage.getItem('showEditForm')) {
                 sessionStorage.removeItem('showEditForm');

@@ -149,3 +149,17 @@ export function updateMyProfile(newUser: any) {
         console.log('✅ Profile updated on socket:', myUsername, myDisplayName);
     }
 }
+
+export function joinGeneral() {
+    console.log('💬 Joining general chat');
+    currentChat = 'general';
+    updateChatHeader('General Chat');
+    // Clear messages or show general history (for now, clear)
+    const messagesDiv = document.getElementById('chat_messages');
+    if (messagesDiv) messagesDiv.innerHTML = '';
+    // Hide block and invite buttons
+    const blockBtn = document.getElementById('block-btn');
+    if (blockBtn) blockBtn.classList.add('hidden');
+    const inviteBtn = document.getElementById('invite-btn');
+    if (inviteBtn) inviteBtn.classList.add('hidden');
+}
