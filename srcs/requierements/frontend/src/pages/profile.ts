@@ -73,7 +73,9 @@ async function loadProfile() {
             
             // Check if we should show edit form (from first login)
             const shouldShowEdit = sessionStorage.getItem('firstLoginEdit') === 'true';
+            console.log(`🔍 firstLoginEdit flag: ${shouldShowEdit}`);
             if (shouldShowEdit) {
+                console.log('🎯 Opening edit form for first login');
                 sessionStorage.removeItem('firstLoginEdit');
                 showEditForm();
             }
@@ -148,23 +150,30 @@ function populateFields(user: User, isOtherUser: boolean = false) {
 }
 
 function showState(state: string) {
+    console.log(`🔄 Changing state to: ${state}`);
     // Hide all states
     document.querySelectorAll('[data-state]').forEach(el => {
         el.classList.add('hidden');
+        console.log(`🔄 Hidden state: ${(el as HTMLElement).getAttribute('data-state')}`);
     });
 
     // Show selected state
     const stateEl = document.querySelector(`[data-state="${state}"]`);
     if (stateEl) {
         stateEl.classList.remove('hidden');
+        console.log(`🔄 Shown state: ${state}`);
+    } else {
+        console.log(`❌ State element not found: ${state}`);
     }
 }
 
 function showEditForm() {
+    console.log('🔧 Opening edit form');
     showState('edit');
 }
 
 function hideEditForm() {
+    console.log('🔧 Closing edit form');
     showState('main');
 }
 
