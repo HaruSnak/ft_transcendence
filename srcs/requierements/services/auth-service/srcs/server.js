@@ -29,6 +29,7 @@ const sessions = new Map();
 users.push({
 	id: 1,
 	username: 'testuser',
+	display_name: 'Test User',
 	email: 'test@example.com',
 	password: 'password',
 	createdAt: new Date().toISOString()
@@ -65,11 +66,11 @@ fastify.get('/api/login', async (request, reply) => {
 
 // POST /api/auth/register - User registration
 fastify.post('/api/auth/register', async (request, reply) => {
-	const { username, email, password } = request.body;
+	const { username, display_name, email, password } = request.body;
 
 	// Basic validation
-	if (!username || !email || !password) {
-		return reply.code(400).send({ error: 'Username, email, and password are required' });
+	if (!username || !display_name || !email || !password) {
+		return reply.code(400).send({ error: 'Username, display name, email, and password are required' });
 	}
 
 	// Check if user already exists
@@ -82,6 +83,7 @@ fastify.post('/api/auth/register', async (request, reply) => {
 	const user = {
 		id: users.length + 1,
 		username,
+		display_name,
 		email,
 		password, // In production: hash this!
 		createdAt: new Date().toISOString()
@@ -93,7 +95,7 @@ fastify.post('/api/auth/register', async (request, reply) => {
 
 	return reply.code(201).send({
 		message: 'User registered successfully',
-		user: { id: user.id, username: user.username, email: user.email },
+		user: { id: user.id, username: user.username, display_name: user.display_name, email: user.email },
 		token: `fake-jwt-token-${user.id}` // In production: generate real JWT
 	});
 });
@@ -121,7 +123,7 @@ fastify.post('/api/auth/login', async (request, reply) => {
 
 	return reply.send({
 		message: 'Login successful',
-		user: { id: user.id, username: user.username, email: user.email },
+		user: { id: user.id, username: user.username, display_name: user.display_name, email: user.email },
 		token
 	});
 });

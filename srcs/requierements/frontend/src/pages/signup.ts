@@ -28,11 +28,12 @@ export function initSignup() {
             e.preventDefault();
             const formData = new FormData(signupForm);
             const username = formData.get('username') as string;
+            const display_name = formData.get('display_name') as string;
             const email = formData.get('email') as string;
             const password = formData.get('password') as string;
 
-            if (!username || !email || !password) {
-                showMessage('Please fill in all fields: username, email, and password', 'error');
+            if (!username || !display_name || !email || !password) {
+                showMessage('Please fill in all fields: username, display name, email, and password', 'error');
                 return;
             }
 
@@ -42,7 +43,7 @@ export function initSignup() {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ username, email, password }),
+                    body: JSON.stringify({ username, display_name, email, password }),
                 });
 
                 if (response.ok) {
