@@ -8,6 +8,7 @@ let currentChat: { type: 'dm', user: string } | null = null;
 let myUsername = '';
 let myDisplayName = '';
 let messageHistory: Map<string, any[]> = new Map();
+let blockedUsers: Set<string> = new Set();
 
 export function initSocket() {
     console.log('🔌 Initializing Socket.IO connection...');
@@ -15,6 +16,9 @@ export function initSocket() {
     const user = JSON.parse(sessionStorage.getItem('user') || '{}');
     myUsername = user.username || 'Anonymous';
     myDisplayName = user.display_name || user.username || 'Anonymous';
+
+    // Charger la liste des utilisateurs bloqués
+    loadBlockedUsers();
 
     socket = io('http://localhost:3001', {
         transports: ['websocket', 'polling']
@@ -50,6 +54,14 @@ export function initSocket() {
 
 function displayMessage(data: any) {
     console.log('📝 Displaying message:', data);
+    
+    // Vérifier si l'expéditeur est bloqué
+    if (isUserBlocked(data.from)) {
+        console.log(`🚫 Message de ${data.from} ignoré (utilisateur bloqué)`);
+        // Ajouter quand même à l'historique pour quand on le débloquera
+        addMessageToHistory(data);
+        return;
+    }
     
     // Si c'est un DM destiné à nous
     if (data.to === myUsername) {
@@ -169,13 +181,26 @@ function startDM(username: string, displayName: string) {
         messagesDiv.innerHTML = '';
         const history = messageHistory.get(username) || [];
         history.forEach(message => {
-            showMessageInChat(message);
+            // Ne pas afficher les messages des utilisateurs bloqués
+            if (!isUserBlocked(message.from)) {
+                showMessageInChat(message);
+            }
         });
     }
     
     // Show block button
     const blockBtn = document.getElementById('block-btn');
-    if (blockBtn) blockBtn.classList.remove('hidden');
+    if (blockBtn) {
+        blockBtn.classList.remove('hidden');
+        // Mettre à jour le texte selon l'état de blocage
+        if (isUserBlocked(username)) {
+            blockBtn.textContent = 'Unblock User';
+            blockBtn.className = 'btn btn-danger btn-sm';
+        } else {
+            blockBtn.textContent = 'Block User';
+            blockBtn.className = 'btn btn-ghost btn-sm';
+        }
+    }
     const inviteBtn = document.getElementById('invite-btn');
     if (inviteBtn) inviteBtn.classList.remove('hidden');
     // Enable chat input
@@ -246,4 +271,151 @@ export function updateMyProfile(newUser: any) {
 
 export function getCurrentChat() {
     return currentChat;
+}
+
+function loadBlockedUsers() {
+    const token = sessionStorage.getItem('authToken');
+    if (!token) return;
+
+    fetch('/api/user/blocked', {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            blockedUsers = new Set(data.blocked_users.map((user: any) => user.username));
+            console.log('✅ Blocked users loaded:', blockedUsers);
+        } else {
+            console.error('❌ Failed to load blocked users:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('❌ Error loading blocked users:', error);
+    });
+}
+
+export function isUserBlocked(username: string): boolean {
+    return blockedUsers.has(username);
+}
+
+export function blockUser(username: string) {
+    const token = sessionStorage.getItem('authToken');
+    if (!token) {
+        console.error('❌ No auth token available');
+        return;
+    }
+
+    // D'abord, obtenir l'ID de l'utilisateur à bloquer
+    fetch(`/api/user/by-username/${username}`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const blockedUserId = data.user.id;
+            
+            // Maintenant, bloquer l'utilisateur
+            return fetch('/api/user/block', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ blocked_user_id: blockedUserId }),
+            });
+        } else {
+            throw new Error('User not found');
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            blockedUsers.add(username);
+            console.log(`🚫 Utilisateur ${username} bloqué`);
+            
+            // Masquer les messages existants de cet utilisateur
+            hideMessagesFromUser(username);
+        } else {
+            console.error('❌ Failed to block user:', data.error);
+            alert('Failed to block user: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('❌ Error blocking user:', error);
+        alert('Error blocking user');
+    });
+}
+
+export function unblockUser(username: string) {
+    const token = sessionStorage.getItem('authToken');
+    if (!token) {
+        console.error('❌ No auth token available');
+        return;
+    }
+
+    // D'abord, obtenir l'ID de l'utilisateur à débloquer
+    fetch(`/api/user/by-username/${username}`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const blockedUserId = data.user.id;
+            
+            // Maintenant, débloquer l'utilisateur
+            return fetch(`/api/user/unblock/${blockedUserId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+        } else {
+            throw new Error('User not found');
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            blockedUsers.delete(username);
+            console.log(`✅ Utilisateur ${username} débloqué`);
+            
+            // Réafficher les messages de cet utilisateur si on est dans sa conversation
+            if (currentChat && currentChat.user === username) {
+                showMessagesFromUser(username);
+            }
+        } else {
+            console.error('❌ Failed to unblock user:', data.error);
+            alert('Failed to unblock user: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('❌ Error unblocking user:', error);
+        alert('Error unblocking user');
+    });
+}
+
+function hideMessagesFromUser(username: string) {
+    const messagesDiv = document.getElementById('chat_messages');
+    if (messagesDiv) {
+        const messageElements = messagesDiv.querySelectorAll('.chat-message');
+        messageElements.forEach(element => {
+            const messageText = element.textContent || '';
+            // Vérifier si le message vient de l'utilisateur bloqué
+            if (messageText.startsWith(`${username}:`) || messageText.includes(`<strong>${username}`)) {
+                (element as HTMLElement).style.display = 'none';
+            }
+        });
+    }
+}
+
+function showMessagesFromUser(username: string) {
+    const messagesDiv = document.getElementById('chat_messages');
+    if (messagesDiv) {
+        const messageElements = messagesDiv.querySelectorAll('.chat-message');
+        messageElements.forEach(element => {
+            const messageText = element.textContent || '';
+            // Réafficher les messages de l'utilisateur
+            if (messageText.startsWith(`${username}:`) || messageText.includes(`<strong>${username}`)) {
+                (element as HTMLElement).style.display = 'block';
+            }
+        });
+    }
 }

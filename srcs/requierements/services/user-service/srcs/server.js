@@ -135,6 +135,24 @@ fastify.get('/api/user/profile/:id', async (request, reply) => {
 	}
 });
 
+// Obtenir le profil d'un utilisateur par username
+fastify.get('/api/user/by-username/:username', async (request, reply) => {
+	try {
+		const user = await userService.getUserByUsername(request.params.username);
+		// Ne pas exposer l'email pour les autres utilisateurs
+		delete user.email;
+		reply.send({
+			success: true,
+			user
+		});
+	} catch (error) {
+		reply.code(404).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
 // Mettre à jour le profil
 fastify.put('/api/user/profile', {
 	preHandler: authenticateToken

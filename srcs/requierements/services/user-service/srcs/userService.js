@@ -113,6 +113,28 @@ class UserService {
 		}
 	}
 
+	// Obtenir un utilisateur par username
+	async getUserByUsername(username) {
+		try {
+			const user = await database.get(
+				`SELECT u.id, u.username, u.display_name, u.avatar_url, u.is_online, u.has_seen_welcome, u.created_at,
+						s.wins, s.losses, s.games_played
+				 FROM users u
+				 LEFT JOIN user_stats s ON u.id = s.user_id
+				 WHERE u.username = ?`,
+				[username]
+			);
+
+			if (!user) {
+				throw new Error('User not found');
+			}
+
+			return user;
+		} catch (error) {
+			throw error;
+		}
+	}
+
 	// Mettre à jour le profil utilisateur
 	async updateUser(userId, updates) {
 		try {

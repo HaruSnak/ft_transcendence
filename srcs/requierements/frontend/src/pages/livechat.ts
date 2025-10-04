@@ -61,6 +61,29 @@ export function initLiveChat() {
         chatSendBtn.disabled = true;
     }
 
+    // Initialize block button
+    const blockBtn = document.getElementById('block-btn');
+    if (blockBtn) {
+        blockBtn.addEventListener('click', () => {
+            import('../socket.js').then(({ getCurrentChat, blockUser, unblockUser, isUserBlocked }) => {
+                const current = getCurrentChat();
+                if (current) {
+                    if (isUserBlocked(current.user)) {
+                        // Débloquer
+                        unblockUser(current.user);
+                        blockBtn.textContent = 'Block User';
+                        blockBtn.className = 'btn btn-ghost btn-sm';
+                    } else {
+                        // Bloquer
+                        blockUser(current.user);
+                        blockBtn.textContent = 'Unblock User';
+                        blockBtn.className = 'btn btn-danger btn-sm';
+                    }
+                }
+            });
+        });
+    }
+
     // Initialize DM list (for now, empty)
     const dmList = document.getElementById('dm-list');
     if (dmList) {
