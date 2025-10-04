@@ -122,10 +122,11 @@ export function initLogin() {
         editBtn.addEventListener('click', () => {
             modal?.classList.remove('show');
             modal?.classList.add('hidden');
-            // Set flag to show edit form after profile loads
-            sessionStorage.setItem('firstLoginEdit', 'true');
             window.location.hash = 'profile';
-            location.reload();
+            setTimeout(() => {
+                const evt = new CustomEvent('openProfileEdit');
+                window.dispatchEvent(evt);
+            }, 100);
         });
     }
 
@@ -134,7 +135,6 @@ export function initLogin() {
             modal?.classList.remove('show');
             modal?.classList.add('hidden');
             window.location.hash = 'profile';
-            location.reload();
         });
     }
 }

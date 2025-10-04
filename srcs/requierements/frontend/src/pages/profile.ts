@@ -5,6 +5,10 @@ import { User, ProfileUpdateData } from '../utils/data_types';
 export function initProfile() {
     loadProfile();
 
+    window.addEventListener('openProfileEdit', () => {
+        showEditForm();
+    });
+
     // Handle profile actions
     document.addEventListener('click', (e) => {
         const target = e.target as HTMLElement;
@@ -70,21 +74,11 @@ async function loadProfile() {
             console.log('Profile: loaded user data:', data);
             populateFields(data.user, !!profileUsername);
             showState('main');
-            
-            // Check if we should show edit form (from first login)
-            const shouldShowEdit = sessionStorage.getItem('firstLoginEdit') === 'true';
-            console.log(`🔍 firstLoginEdit flag: ${shouldShowEdit}`);
-            if (shouldShowEdit) {
-                console.log('🎯 Opening edit form for first login');
-                sessionStorage.removeItem('firstLoginEdit');
-                showEditForm();
-            }
-            
+            // No auto edit form logic here!
             // Hide edit button for other users' profiles
             if (profileUsername) {
                 const editBtn = document.querySelector('[data-action="edit"]');
                 if (editBtn) (editBtn as HTMLElement).style.display = 'none';
-                
                 // Also hide logout button for other users' profiles
                 const logoutBtn = document.querySelector('[data-action="logout"]');
                 if (logoutBtn) (logoutBtn as HTMLElement).style.display = 'none';
@@ -92,7 +86,6 @@ async function loadProfile() {
                 // Show buttons for own profile
                 const editBtn = document.querySelector('[data-action="edit"]');
                 if (editBtn) (editBtn as HTMLElement).style.display = '';
-                
                 const logoutBtn = document.querySelector('[data-action="logout"]');
                 if (logoutBtn) (logoutBtn as HTMLElement).style.display = '';
             }
