@@ -163,6 +163,12 @@ async function updateProfile() {
             populateFields(data.user);
             hideEditForm();
             showProfileMsg('Profile updated successfully!', true);
+            // Update sessionStorage with new user data
+            sessionStorage.setItem('user', JSON.stringify(data.user));
+            // Update socket with new profile
+            import('../socket.js').then(({ updateMyProfile }) => {
+                updateMyProfile(data.user);
+            });
         } else {
             showProfileMsg('Profile update failed', false);
         }

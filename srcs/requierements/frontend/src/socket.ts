@@ -141,15 +141,11 @@ export function sendMessage(message: string) {
     }
 }
 
-export function joinGeneral() {
-    currentChat = 'general';
-    updateChatHeader('# General');
-    // Hide buttons
-    const blockBtn = document.getElementById('block-btn');
-    if (blockBtn) blockBtn.classList.add('hidden');
-    const inviteBtn = document.getElementById('invite-btn');
-    if (inviteBtn) inviteBtn.classList.add('hidden');
-    // Clear messages
-    const messagesDiv = document.getElementById('chat_messages');
-    if (messagesDiv) messagesDiv.innerHTML = '';
+export function updateMyProfile(newUser: any) {
+    myUsername = newUser.username || myUsername;
+    myDisplayName = newUser.display_name || myDisplayName;
+    if (socket) {
+        socket.emit('register', { username: myUsername, display_name: myDisplayName });
+        console.log('✅ Profile updated on socket:', myUsername, myDisplayName);
+    }
 }
