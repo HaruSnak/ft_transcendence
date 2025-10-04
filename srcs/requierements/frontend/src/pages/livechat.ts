@@ -24,7 +24,7 @@ export function initLiveChat() {
     // Initialize chat form
     const chatForm = document.getElementById('chat_form') as HTMLFormElement;
     const chatInput = document.getElementById('chat_input') as HTMLInputElement;
-    const generalBtn = document.getElementById('btn-general');
+    const chatSendBtn = document.getElementById('chat_send_btn') as HTMLButtonElement;
 
     if (chatForm) {
         console.log('💬 Chat form found, attaching submit handler');
@@ -32,12 +32,17 @@ export function initLiveChat() {
             e.preventDefault();
             const message = chatInput.value.trim();
             if (message) {
-                console.log(`💬 Sending message: "${message}"`);
-                // Import sendMessage dynamically to avoid circular dependency
-                import('../socket.js').then(({ sendMessage }) => {
-                    sendMessage(message);
-                    chatInput.value = '';
-                    console.log('💬 Message sent and input cleared');
+                // Import and check if a chat is selected
+                import('../socket.js').then(({ sendMessage, getCurrentChat }) => {
+                    if (getCurrentChat()) {
+                        console.log(`💬 Sending message: "${message}"`);
+                        sendMessage(message);
+                        chatInput.value = '';
+                        console.log('💬 Message sent and input cleared');
+                    } else {
+                        console.log('❌ No chat selected, cannot send message');
+                        alert('Please select a user to start chatting first.');
+                    }
                 });
             } else {
                 console.log('💬 Empty message, not sending');
@@ -47,23 +52,19 @@ export function initLiveChat() {
         console.log('❌ Chat form not found');
     }
 
-    if (generalBtn) {
-        console.log('💬 General button found, attaching click handler');
-        generalBtn.addEventListener('click', () => {
-            console.log('💬 General button clicked');
-            // Import joinGeneral dynamically
-            import('../socket.js').then(({ joinGeneral }) => {
-                joinGeneral();
-            });
-        });
-    } else {
-        console.log('❌ General button not found');
+    // Initially disable chat input since no DM is selected
+    if (chatInput) {
+        chatInput.disabled = true;
+        chatInput.placeholder = 'Select a user to start chatting';
+    }
+    if (chatSendBtn) {
+        chatSendBtn.disabled = true;
     }
 
     // Initialize DM list (for now, empty)
     const dmList = document.getElementById('dm-list');
     if (dmList) {
-        dmList.innerHTML = '<div class="text-muted text-xs">No active DMs</div>';
+        dmList.innerHTML = '<div class="text-muted text-xs">Click on a user to start a DM</div>';
     }
 
     console.log('✅ Live chat initialized');

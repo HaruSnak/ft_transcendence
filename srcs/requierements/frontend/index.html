@@ -84,7 +84,6 @@
                     <div class="chat-container">
                         <!-- Colonne de gauche : général chan + private message -->
                         <div class="chat-sidebar">
-                            <button id="btn-general" class="btn btn-primary btn-sm mb-md">General</button>
                             <div>
                                 <h3 class="text-sm font-medium text-secondary mb-sm">Direct Messages</h3>
                                 <div id="dm-list" class="flex flex-col gap-sm"></div>
@@ -95,7 +94,7 @@
                         <div class="chat-main">
                             <!-- header du chat -->
                             <div id="chat-header" class="flex justify-between items-center mb-lg">
-                                <span id="chat-title" class="text-lg font-medium"># General</span>
+                                <span id="chat-title" class="text-lg font-medium">Select a user to start chatting</span>
                                 <div class="flex gap-sm">
                                     <button id="invite-btn" class="btn btn-ghost btn-sm hidden">Play Together</button>
                                     <button id="block-btn" class="btn btn-ghost btn-sm hidden">Block User</button>
@@ -108,7 +107,7 @@
                             <!-- send boutton -->
                             <form id="chat_form" class="chat-form">
                                 <input id="chat_input" type="text" placeholder="Type your message..." class="form-input chat-input" />
-                                <button type="submit" class="btn btn-primary">Send</button>
+                                <button id="chat_send_btn" type="submit" class="btn btn-primary">Send</button>
                             </form>
                         </div>
 

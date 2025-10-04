@@ -104,28 +104,22 @@ io.on('connection', (socket) => {
             type: 'message',
             from: fromUsername,
             from_display_name: fromDisplayName,
-            to: msg.to || '', // '' = général, sinon DM
+            to: msg.to,
             text: msg.text,
             timestamp: Date.now()
         };
         
-        if (msg.to && msg.to !== '') {
-            // MESSAGE PRIVÉ : envoyer seulement au destinataire
-            const targetSocket = clients.get(msg.to);
-            if (targetSocket) {
-                targetSocket.emit('message', broadcastMessage);
-                console.log('✅ Message privé envoyé de', fromUsername, 'vers', msg.to);
-            } else {
-                console.log('⚠️ Destinataire introuvable:', msg.to);
-            }
-            
-            // Envoyer aussi à l'expéditeur pour qu'il voie son message
-            socket.emit('message', broadcastMessage);
+        // MESSAGE PRIVÉ : envoyer seulement au destinataire
+        const targetSocket = clients.get(msg.to);
+        if (targetSocket) {
+            targetSocket.emit('message', broadcastMessage);
+            console.log('✅ Message privé envoyé de', fromUsername, 'vers', msg.to);
         } else {
-            // MESSAGE GÉNÉRAL : diffuser à tous les clients
-            io.emit('message', broadcastMessage);
-            console.log('✅ Message général diffusé à tous les clients');
+            console.log('⚠️ Destinataire introuvable:', msg.to);
         }
+        
+        // Envoyer aussi à l'expéditeur pour qu'il voie son message
+        socket.emit('message', broadcastMessage);
     });
 
     // Broadcast immédiat

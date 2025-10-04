@@ -4,9 +4,10 @@ console.log('🔌 Loading socket.ts...');
 import { io, Socket } from 'socket.io-client';
 
 let socket: Socket | null = null;
-let currentChat: 'general' | { type: 'dm', user: string } = 'general';
+let currentChat: { type: 'dm', user: string } | null = null;
 let myUsername = '';
 let myDisplayName = '';
+let messageHistory: Map<string, any[]> = new Map();
 
 export function initSocket() {
     console.log('🔌 Initializing Socket.IO connection...');
@@ -49,6 +50,36 @@ export function initSocket() {
 
 function displayMessage(data: any) {
     console.log('📝 Displaying message:', data);
+    
+    // Si c'est un DM destiné à nous
+    if (data.to === myUsername) {
+        // Créer le channel si nécessaire
+        addToDMList(data.from, data.from_display_name || data.from);
+        
+        // Marquer comme ayant un nouveau message si on n'est pas dans ce DM
+        if (!currentChat || currentChat.user !== data.from) {
+            markDMAsUnread(data.from);
+        }
+        
+        // Afficher le message seulement si on est dans ce DM
+        if (currentChat && currentChat.user === data.from) {
+            showMessageInChat(data);
+        }
+        
+        // Ajouter à l'historique
+        addMessageToHistory(data);
+    } else if (data.from === myUsername) {
+        // C'est notre propre message envoyé, l'afficher si on est dans le bon DM
+        if (currentChat && currentChat.user === data.to) {
+            showMessageInChat(data);
+        }
+        
+        // Ajouter à l'historique
+        addMessageToHistory(data);
+    }
+}
+
+function showMessageInChat(data: any) {
     const messagesDiv = document.getElementById('chat_messages');
     if (messagesDiv) {
         const messageDiv = document.createElement('div');
@@ -64,6 +95,44 @@ function displayMessage(data: any) {
         console.log('✅ Message displayed in chat');
     } else {
         console.log('❌ Chat messages container not found');
+    }
+}
+
+function addMessageToHistory(data: any) {
+    const conversationKey = data.from === myUsername ? data.to : data.from;
+    if (!messageHistory.has(conversationKey)) {
+        messageHistory.set(conversationKey, []);
+    }
+    messageHistory.get(conversationKey)!.push(data);
+}
+
+function markDMAsUnread(username: string) {
+    const dmList = document.getElementById('dm-list');
+    if (dmList) {
+        const dmDiv = dmList.querySelector(`[data-user="${username}"]`) as HTMLElement;
+        if (dmDiv) {
+            dmDiv.classList.add('font-bold', 'text-primary');
+            // Ajouter un indicateur visuel (par exemple un point rouge)
+            if (!dmDiv.querySelector('.unread-indicator')) {
+                const indicator = document.createElement('span');
+                indicator.className = 'unread-indicator ml-1 w-2 h-2 bg-red-500 rounded-full inline-block';
+                dmDiv.appendChild(indicator);
+            }
+        }
+    }
+}
+
+function markDMAsRead(username: string) {
+    const dmList = document.getElementById('dm-list');
+    if (dmList) {
+        const dmDiv = dmList.querySelector(`[data-user="${username}"]`) as HTMLElement;
+        if (dmDiv) {
+            dmDiv.classList.remove('font-bold', 'text-primary');
+            const indicator = dmDiv.querySelector('.unread-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
     }
 }
 
@@ -93,16 +162,36 @@ function startDM(username: string, displayName: string) {
     console.log(`💬 Starting DM with: ${username}`);
     currentChat = { type: 'dm', user: username };
     updateChatHeader(`DM with ${displayName}`);
-    // Clear messages or show DM history (for now, clear)
+    
+    // Charger l'historique des messages
     const messagesDiv = document.getElementById('chat_messages');
-    if (messagesDiv) messagesDiv.innerHTML = '';
+    if (messagesDiv) {
+        messagesDiv.innerHTML = '';
+        const history = messageHistory.get(username) || [];
+        history.forEach(message => {
+            showMessageInChat(message);
+        });
+    }
+    
     // Show block button
     const blockBtn = document.getElementById('block-btn');
     if (blockBtn) blockBtn.classList.remove('hidden');
     const inviteBtn = document.getElementById('invite-btn');
     if (inviteBtn) inviteBtn.classList.remove('hidden');
+    // Enable chat input
+    const chatInput = document.getElementById('chat_input') as HTMLInputElement;
+    if (chatInput) {
+        chatInput.disabled = false;
+        chatInput.placeholder = 'Type your message...';
+    }
+    const chatSendBtn = document.getElementById('chat_send_btn') as HTMLButtonElement;
+    if (chatSendBtn) {
+        chatSendBtn.disabled = false;
+    }
     // Add to DM list
     addToDMList(username, displayName);
+    // Mark as read
+    markDMAsRead(username);
 }
 
 function addToDMList(username: string, displayName: string) {
@@ -130,9 +219,14 @@ function updateChatHeader(title: string) {
 
 export function sendMessage(message: string) {
     console.log(`📤 Sending message: "${message}"`);
+    if (!currentChat) {
+        console.error('❌ Cannot send message: No chat selected');
+        alert('Please select a user to start chatting first.');
+        return;
+    }
     if (socket) {
         socket.emit('message', {
-            to: currentChat === 'general' ? '' : currentChat.user,
+            to: currentChat.user,
             text: message
         });
         console.log('✅ Message sent via Socket.IO');
@@ -150,16 +244,6 @@ export function updateMyProfile(newUser: any) {
     }
 }
 
-export function joinGeneral() {
-    console.log('💬 Joining general chat');
-    currentChat = 'general';
-    updateChatHeader('General Chat');
-    // Clear messages or show general history (for now, clear)
-    const messagesDiv = document.getElementById('chat_messages');
-    if (messagesDiv) messagesDiv.innerHTML = '';
-    // Hide block and invite buttons
-    const blockBtn = document.getElementById('block-btn');
-    if (blockBtn) blockBtn.classList.add('hidden');
-    const inviteBtn = document.getElementById('invite-btn');
-    if (inviteBtn) inviteBtn.classList.add('hidden');
+export function getCurrentChat() {
+    return currentChat;
 }
