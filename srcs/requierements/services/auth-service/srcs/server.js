@@ -1,5 +1,8 @@
 import Fastify from 'fastify'
+import jwt from 'jsonwebtoken'
 import client from 'prom-client'
+
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-for-dev';
 
 /*					____METRICS Prometheus____						*/
 
@@ -96,7 +99,7 @@ fastify.post('/api/auth/register', async (request, reply) => {
 	return reply.code(201).send({
 		message: 'User registered successfully',
 		user: { id: user.id, username: user.username, display_name: user.display_name, email: user.email },
-		token: `fake-jwt-token-${user.id}` // In production: generate real JWT
+		token: jwt.sign({ userId: user.id, username: user.username }, JWT_SECRET, { expiresIn: '24h' })
 	});
 });
 
@@ -118,7 +121,7 @@ fastify.post('/api/auth/login', async (request, reply) => {
 	loginAttempts.inc({status: 'success'});
 	activeSessions.inc();
 
-	const token = `fake-jwt-token-${user.id}`;
+	const token = jwt.sign({ userId: user.id, username: user.username }, JWT_SECRET, { expiresIn: '24h' });
 	sessions.set(token, user);
 
 	return reply.send({
