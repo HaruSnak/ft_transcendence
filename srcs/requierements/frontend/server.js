@@ -19,7 +19,12 @@ app.use('/api/game', createProxyMiddleware({ target: 'http://localhost:3002', ch
 app.use('/api/user', createProxyMiddleware({ target: 'http://localhost:3003', changeOrigin: true }));
 
 // Serve static files
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Serve index.html for root
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 app.listen(port, () => {
   console.log(`🎉 Server running at http://localhost:${port}/`);

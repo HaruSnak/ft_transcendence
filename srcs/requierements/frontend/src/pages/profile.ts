@@ -29,6 +29,14 @@ export function initProfile() {
         }
     });
 
+    // Handle avatar upload
+    document.addEventListener('change', (e) => {
+        const target = e.target as HTMLInputElement;
+        if (target.matches('[data-field="edit-avatar"]')) {
+            uploadAvatar(target.files[0]);
+        }
+    });
+
     // Handle edit form submission
     const editForm = document.querySelector('[data-state="edit"]') as HTMLFormElement;
     if (editForm) {
@@ -306,5 +314,38 @@ async function deleteUser() {
         showProfileMsg('Erreur réseau lors de la suppression.', false);
     } finally {
         isDeletingUser = false;
+    }
+}
+
+async function uploadAvatar(file: File) {
+    const token = sessionStorage.getItem('authToken');
+    if (!token || !file) return;
+
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    try {
+        const response = await fetch('/api/user/avatar', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+            body: formData,
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            // Update the avatar display
+            const avatarField = document.querySelector('[data-field="avatar"]') as HTMLImageElement;
+            if (avatarField) {
+                avatarField.src = data.avatar_url;
+            }
+            showProfileMsg('Avatar uploaded successfully!', true);
+        } else {
+            showProfileMsg('Avatar upload failed', false);
+        }
+    } catch (error) {
+        console.error('Avatar upload error:', error);
+        showProfileMsg('Avatar upload failed', false);
     }
 }

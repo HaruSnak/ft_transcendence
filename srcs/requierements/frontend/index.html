@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transcendance</title>
     <meta name="description" content="Modern Pong Game with Live Chat">
-    <link href="/public/css/index.css" rel="stylesheet">
+    <link rel="icon" href="data:,">
+    <link href="/css/index.css" rel="stylesheet">
 </head>
 <body>
 
@@ -189,7 +190,7 @@
                         <button type="button" data-action="cancel" class="btn btn-sm btn-ghost"> ✕ Close </button>
                     </div>
                     
-                    <div class="grid grid-2 gap-lg">
+                    <div class="grid grid-1 gap-lg">
                         <div class="form-group">
                             <label class="form-label">Username</label>
                             <input type="text" name="name" data-field="edit-name" placeholder="Your username" class="form-input" />
@@ -205,6 +206,10 @@
                         <div class="form-group">
                             <label class="form-label">New password</label>
                             <input type="password" name="password" placeholder="Leave blank to keep current" class="form-input" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Avatar</label>
+                            <input type="file" name="avatar" data-field="edit-avatar" accept="image/*" class="form-input" />
                         </div>
                     </div>
                     
@@ -298,6 +303,6 @@
         </div>
     </div>
 
-    <script type="module" src="/public/js/index.js"></script>
+    <script type="module" src="/js/index.js"></script>
 </body>
 </html>

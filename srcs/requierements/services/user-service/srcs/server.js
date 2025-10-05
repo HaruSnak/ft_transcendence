@@ -2,7 +2,8 @@ import Fastify from 'fastify'
 import client from 'prom-client'
 import userService from './userService.js'
 import { authenticateToken, validateUserData } from './middleware.js'
-//import { request } from 'http'
+import fs from 'fs'
+import path from 'path'
 
 /*					____SERVER Fastify____						*/
 
@@ -17,6 +18,9 @@ await fastify.register(import('@fastify/cors'), {
 
 // Enregistrer le support pour les formulaires
 await fastify.register(import('@fastify/formbody'))
+
+// Enregistrer le support pour les fichiers multipart
+await fastify.register(import('@fastify/multipart'))
 
 // Route for testing health
 fastify.get('/health', async (request, reply) => {
@@ -185,6 +189,72 @@ fastify.delete('/api/user/profile', {
 		});
 	} catch (error) {
 		reply.code(400).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
+// Upload avatar
+fastify.post('/api/user/avatar', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		const data = await request.file();
+		if (!data) {
+			return reply.code(400).send({ success: false, error: 'No file uploaded' });
+		}
+
+		const userId = request.user.userId;
+		const avatarsDir = path.join(process.cwd(), 'avatars');
+		if (!fs.existsSync(avatarsDir)) {
+			fs.mkdirSync(avatarsDir);
+		}
+
+		const ext = path.extname(data.filename) || '.png';
+		const filename = `${userId}${ext}`;
+		const filepath = path.join(avatarsDir, filename);
+
+		// Save file
+		const buffer = await data.toBuffer();
+		fs.writeFileSync(filepath, buffer);
+
+		// Update user avatar_url
+		const avatarUrl = `/api/user/avatar/${userId}`;
+		await userService.updateUser(userId, { avatar_url: avatarUrl });
+
+		reply.send({
+			success: true,
+			message: 'Avatar uploaded successfully',
+			avatar_url: avatarUrl
+		});
+	} catch (error) {
+		reply.code(500).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
+// Get avatar
+fastify.get('/api/user/avatar/:id', async (request, reply) => {
+	try {
+		const userId = request.params.id;
+		const avatarsDir = path.join(process.cwd(), 'avatars');
+		if (!fs.existsSync(avatarsDir)) {
+			return reply.code(404).send({ success: false, error: 'Avatar not found' });
+		}
+		const files = fs.readdirSync(avatarsDir);
+		const file = files.find(f => f.startsWith(userId + '.'));
+		if (!file) {
+			return reply.code(404).send({ success: false, error: 'Avatar not found' });
+		}
+		const filepath = path.join(avatarsDir, file);
+		const stream = fs.createReadStream(filepath);
+		reply.type('image/png'); // or detect mime
+		reply.send(stream);
+	} catch (error) {
+		reply.code(500).send({
 			success: false,
 			error: error.message
 		});
