@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcendance</title>
+    <meta name="description" content="Modern Pong Game with Live Chat">
+    <link href="/css/index.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- ================================== NAVBAR ================================== -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="#home" class="nav-logo" data-page="home">Transcendance</a>
+            <ul class="nav-links">
+                <li><a href="#home" class="nav-link" data-page="home">Home</a></li>
+                <li><a href="#game-modes" class="nav-link" data-page="game-modes">Game</a></li>
+                <li><a href="#live-chat" class="nav-link" data-page="live-chat">Chat</a></li>
+                <li><a href="#profile" class="nav-link" data-page="profile">Profile</a></li>
+                <li><a href="#login" class="nav-link" data-page="login">Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="mt-16">
+        
+<!-- ================================== HOME ================================== -->
+        <section id="home" class="page">
+            <div class="container">
+                <div class="text-center" style="padding: 4rem 0;">
+                    <h1 class="text-4xl font-bold mb-lg">Welcome to Transcendance</h1>
+                    <div class="flex justify-center gap-lg">
+                        <a href="#" class="btn btn-primary btn-lg" data-page="live-chat">Start Chatting</a>
+                        <a href="#" class="btn btn-secondary btn-lg" data-page="game-modes">Play Game</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+<!-- ================================== GAME ================================== -->
+        <!-- Game Mode selector -->
+        <section id="game-modes" class="page hidden">
+            <div class="container">
+                <div class="card" style="max-width: 500px; margin: 0 auto;">
+                    <div class="card-header text-center">
+                        <h1 class="card-title">Choose Game Mode</h1>
+                        <p class="card-description">Select how you want to play</p>
+                    </div>
+                    <div class="flex flex-col gap-md">
+                        <button id="solo-mode" class="btn btn-primary btn-lg">Single Player</button>
+                        <button id="vs-local-mode" class="btn btn-secondary btn-lg">1 vs 1 (Local)</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Game -->
+        <section id="game" class="page hidden">
+            <div class="container">
+                <div class="text-center" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 70vh;">
+                    <h1 class="text-3xl font-semibold mb-lg">Pong Game</h1>
+                    <div class="mb-lg" style="display: flex; flex-direction: column; align-items: center;">
+                        <canvas id="pongCanvas" class="game-canvas" width="800" height="600" style="max-width: 100%; height: auto; display: block; margin: 0 auto;" ></canvas>
+                        <div id="gameMessageWinOrLose" class="mt-md text-xl font-medium hidden"></div>
+                    </div>
+                    <div class="flex justify-center gap-md">
+                        <button id="startGameButton" class="btn btn-primary">Start Game</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+<!-- ================================== LIVE CHAT ================================== -->
+        <section id="live-chat" class="page hidden">
+            <div class="container">
+                <div class="card">
+                    <div class="card-header">
+                        <h1 class="card-title">Live Chat</h1>
+                        <p class="card-description">Connect with other players</p>
+                    </div>
+                    
+                    <div class="chat-container">
+                        <!-- Colonne de gauche : général chan + private message -->
+                        <div class="chat-sidebar">
+                            <div>
+                                <h3 class="text-sm font-medium text-secondary mb-sm">Direct Messages</h3>
+                                <div id="dm-list" class="flex flex-col gap-sm"></div>
+                            </div>
+                        </div>
+
+                        <!-- Colonne centrale : zone de chat -->
+                        <div class="chat-main">
+                            <!-- header du chat -->
+                            <div id="chat-header" class="flex justify-between items-center mb-lg">
+                                <span id="chat-title" class="text-lg font-medium">Select a user to start chatting</span>
+                                <div class="flex gap-sm">
+                                    <button id="invite-btn" class="btn btn-ghost btn-sm hidden">Play Together</button>
+                                    <button id="block-btn" class="btn btn-ghost btn-sm hidden">Block User</button>
+                                </div>
+                            </div>
+
+                            <!-- Zone des messages -->
+                            <div id="chat_messages" class="chat-messages"></div>
+
+                            <!-- send boutton -->
+                            <form id="chat_form" class="chat-form">
+                                <input id="chat_input" type="text" placeholder="Type your message..." class="form-input chat-input" />
+                                <button id="chat_send_btn" type="submit" class="btn btn-primary">Send</button>
+                            </form>
+                        </div>
+
+                        <!-- Colonne de droite : Utilisateurs en ligne -->
+                        <div class="chat-sidebar">
+                            <h3 class="text-sm font-medium text-secondary mb-md">Online Users</h3>
+                            <div id="user-list" class="flex flex-col gap-sm"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+<!-- ================================== PROFIL PAGE ================================== -->
+        <section id="profile" class="page hidden">
+            <div class="container">
+                <!-- Loading state -->
+                <div data-state="loading" class="card text-center hidden" style="max-width: 400px; margin: 0 auto;">
+                    <div class="text-xl">⏳ Loading...</div>
+                </div>
+
+                <!-- Access denied state -->
+                <div data-state="denied" class="card text-center hidden" style="max-width: 400px; margin: 0 auto;">
+                    <div class="text-xl mb-lg">🔒 Access denied</div>
+                    <button data-action="login" class="btn btn-primary">Login</button>
+                </div>
+
+                <!-- Main profile -->
+                <div data-state="main" class="card hidden" style="margin: 0 auto;">
+                    <!-- Header with avatar and main buttons -->
+                    <div class="flex items-start justify-between mb-xl">
+                        <div class="flex items-center gap-lg">
+                            <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 2px solid var(--border-primary);">
+                                <img data-field="avatar" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;"/>
+                            </div>
+                            <div>
+                                <h1 data-field="name" class="text-3xl font-bold"></h1>
+                            </div>
+                        </div>
+                        <!-- Logout button at top right -->
+                        <button data-action="logout" class="btn btn-danger btn-xs" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">🚪 Logout</button>
+                    </div>
+                    <!-- Edit button, login and email below avatar -->
+                    <div class="mb-lg">
+                        <button data-action="edit" class="btn btn-secondary btn-sm mb-sm"> ⚙️ Edit </button>
+                        <div data-field="info" class="text-muted text-sm"></div>
+                    </div>
+
+                    <!-- Statistics -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-lg">📊 Statistics</h3>
+                        <div class="grid grid-2 gap-md">
+                            <div class="card p-lg text-center">
+                                <div class="text-2xl font-bold mb-sm">0</div>
+                                <div class="text-muted text-xs">Wins</div>
+                            </div>
+                            <div class="card p-lg text-center">
+                                <div class="text-2xl font-bold mb-sm">0</div>
+                                <div class="text-muted text-xs">Losses</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Match history at the bottom -->
+                    <div class="mt-xl pt-xl" style="border-top: 1px solid var(--border-primary);">
+                        <h3 class="text-lg font-semibold mb-lg">🏆 Recent Matches</h3>
+                        <div class="card text-center p-xl text-muted profile-history-scroll">
+                            <div class="text-4xl mb-md">🎮</div>
+                            <p class="mb-md">No matches played yet</p>
+                            <a href="#game-modes" class="text-primary" style="text-decoration: underline;">Start playing</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Edit form -->
+                <form data-state="edit" class="card hidden" style="max-width: 600px; margin: 0 auto;">
+                    <div class="flex items-center justify-between mb-lg">
+                        <h4 class="text-xl font-semibold">⚙️ Edit Profile</h4>
+                        <button type="button" data-action="cancel" class="btn btn-sm btn-ghost"> ✕ Close </button>
+                    </div>
+                    
+                    <div class="grid grid-2 gap-lg">
+                        <div class="form-group">
+                            <label class="form-label">Username</label>
+                            <input type="text" name="name" data-field="edit-name" placeholder="Your username" class="form-input" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" data-field="edit-email" placeholder="your@email.com" class="form-input" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Login</label>
+                            <input type="text" name="login" data-field="edit-login" placeholder="Login" class="form-input" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">New password</label>
+                            <input type="password" name="password" placeholder="Leave blank to keep current" class="form-input" />
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-md mt-xl">
+                        <button type="submit" class="btn btn-primary" style="flex: 1;"> ✅ Save </button>
+                        <button type="button" data-action="delete" class="btn btn-danger"> 🗑️ Delete account </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+<!-- ================================== LOGIN ================================== -->
+        <section id="login" class="page hidden">
+            <div class="container">
+                <div class="card" style="max-width: 400px; margin: 0 auto;">
+                    <div class="card-header text-center">
+                        <h1 class="card-title">Sign In</h1>
+                        <p class="card-description">Welcome back! Please sign in to your account</p>
+                    </div>
+                    
+                    <form id="login_form">
+                        <div class="form-group">
+                            <label class="form-label" for="username">Username</label>
+                            <input id="username" name="identifier" type="text" class="form-input" required placeholder="Enter your username" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="password">Password</label>
+                            <input id="password" name="password" type="password" class="form-input" required placeholder="Enter your password" />
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">Sign In</button>
+                    </form>
+                    
+                    <div class="text-center mt-lg">
+                        <button id="button-signup" class="btn btn-ghost">Don't have an account? Create one</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+<!-- ================================== SIGN UP ================================== -->
+        <section id="signup" class="page hidden">
+            <div class="container">
+                <div class="card" style="max-width: 400px; margin: 0 auto;">
+                    <div class="card-header text-center">
+                        <h1 class="card-title">Create Account</h1>
+                        <p class="card-description">Join the community and start playing</p>
+                    </div>
+                    
+                    <form id="signup_form">
+                        <div class="form-group">
+                            <label class="form-label" for="su_username">Username</label>
+                            <input id="su_username" name="username" type="text" class="form-input" required placeholder="Choose a username" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="su_display_name">Display Name</label>
+                            <input id="su_display_name" name="display_name" type="text" class="form-input" required placeholder="Choose a display name" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="su_email">Email</label>
+                            <input id="su_email" name="email" type="email" class="form-input" required placeholder="Enter your email" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="su_password">Password</label>
+                            <input id="su_password" name="password" type="password" class="form-input" required placeholder="Create a password" />
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">Create Account</button>
+                    </form>
+                    
+                    <div class="text-center mt-lg">
+                        <button id="button-cancel-signup" class="btn btn-ghost">Already have an account? Sign in</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+<!-- ==================================================================== -->
+    </main>
+
+    <!-- Profile Edit Prompt Modal -->
+    <div id="edit-profile-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">🎉 Welcome to Transcendance!</h2>
+            </div>
+            <div class="modal-body">
+                <p class="modal-text">Complete your profile to personalize your experience.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="edit-profile-btn" class="btn btn-primary">Edit Profile</button>
+                <button id="skip-edit-btn" class="btn btn-ghost">Skip for Now</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/public/js/index.js"></script>
+</body>
+</html>

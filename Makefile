@@ -1,5 +1,8 @@
 # ═══════════════════════════════════════════════════════════════════════════════
-#                           🚀 TRANSCENDANCE MAKEFILE 🚀
+#                           🚀 TRANSCENDANCE MAKE	@if [ ! -d "srcs/requierements/frontend/node_modules" ]; then \
+		echo "$(YELLOW)📦 Installation des dépendances manquantes...$(RESET)"; \
+		cd srcs/requierements/frontend && npm install > /dev/null 2>&1; \
+	fi 🚀
 # ═══════════════════════════════════════════════════════════════════════════════
 
 MAKEFLAGS += --no-print-directory
@@ -97,12 +100,12 @@ run:
 		echo "$(YELLOW)📦 Installation des dépendances manquantes...$(RESET)"; \
 		make install > /dev/null 2>&1; \
 	fi
-	@if [ ! -d "srcs/requierements/frontend/node_modules" ]; then \
+	@if [ ! -d "frontend/node_modules" ]; then \
 		echo "$(YELLOW)📦 Installation des dépendances frontend manquantes...$(RESET)"; \
-		cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/frontend && npm install > /dev/null 2>&1; \
+		cd frontend && npm install > /dev/null 2>&1; \
 	fi
 	@echo "$(BLUE) Construction du frontend...$(RESET)"
-	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/frontend && npm run build-css > /dev/null 2>&1 && npm run build > /dev/null 2>&1
+	@cd srcs/requierements/frontend && npm run build-css > /dev/null 2>&1 && npm run build > /dev/null 2>&1
 	@echo ""
 	@echo "╔══════════════════════════════════════════════════════════════╗"
 	@echo "║                   🎉 APPLICATION LANCÉE ! 🎉                 ║"
@@ -135,7 +138,7 @@ dev:
 		cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/frontend && npm install > /dev/null 2>&1; \
 	fi
 	@echo "$(BLUE) Construction du CSS...$(RESET)"
-	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/frontend && npm run build-css > /dev/null 2>&1
+	@cd srcs/requierements/frontend && npm run build-css > /dev/null 2>&1
 	@echo ""
 	@echo "╔══════════════════════════════════════════════════════════════╗"
 	@echo "║                 🚀 MODE DÉVELOPPEMENT ! 🚀                   ║"
@@ -145,11 +148,11 @@ dev:
 	@sleep 3
 	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/user-service && bash create-user.sh powlar powlar@example.com password 'Powlar' 2>/dev/null || true
 	@echo "✅ Services démarrés en arrière-plan"
-	@echo "🌐 Vite démarré sur http://localhost:5174 avec rechargement à chaud"
+	@echo "🌐 Serveur démarré sur http://localhost:5174 avec rechargement automatique"
 	@echo "⚠️  Utilisez 'make stop-services' pour arrêter les services"
 	@echo "⚠️  Ou appuyez Ctrl+C pour arrêter tout automatiquement"
 	@(trap 'echo ""; echo "🛑 Arrêt automatique des services..."; make stop-services; exit 0' INT; \
-	  cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/frontend && npm run dev)
+	  cd srcs/requierements/frontend && npm run dev)
 
 install:
 	@echo ""
@@ -266,7 +269,7 @@ clean:
 	@echo "$(CYAN)  - Nettoyage user-service (node_modules, dist, data)$(RESET)"
 	@cd srcs/requierements/services/user-service && $(RM) node_modules dist data 2>/dev/null || true
 	@echo "$(CYAN)  - Nettoyage frontend (node_modules, dist, .vite, css)$(RESET)"
-	@cd srcs/requierements/frontend && $(RM) node_modules dist .vite 2>/dev/null || true && rm -f public/css/index.css 2>/dev/null || true
+	@cd srcs/requierements/frontend && $(RM) node_modules dist .vite 2>/dev/null || true && rm -f public/css/index.css public/js/index.js 2>/dev/null || true
 	@echo "$(GREEN)$(BOLD) ╔══════════════════════════════════════════════════════════════╗$(RESET)"
 	@echo "$(GREEN)$(BOLD) ║                 🧹 NETTOYAGE VIOLENT TERMINÉ 🧹              ║$(RESET)"
 	@echo "$(GREEN)$(BOLD) ╠══════════════════════════════════════════════════════════════╣$(RESET)"

@@ -13,10 +13,10 @@ console.log('🚀 Starting frontend server...');
 console.log('📁 Server root directory:', __dirname);
 
 // Proxy API requests
-app.use('/api/auth', createProxyMiddleware({ target: 'http://localhost:3004', changeOrigin: true, pathRewrite: { '^/api/auth': '/auth' } }));
-app.use('/api/chat', createProxyMiddleware({ target: 'http://localhost:3001', changeOrigin: true, pathRewrite: { '^/api/chat': '/chat' } }));
-app.use('/api/game', createProxyMiddleware({ target: 'http://localhost:3002', changeOrigin: true, pathRewrite: { '^/api/game': '/game' } }));
-app.use('/api/user', createProxyMiddleware({ target: 'http://localhost:3003', changeOrigin: true, pathRewrite: { '^/api/user': '/user' } }));
+app.use('/api/auth', createProxyMiddleware({ target: 'http://localhost:3004', changeOrigin: true }));
+app.use('/api/chat', createProxyMiddleware({ target: 'http://localhost:3001', changeOrigin: true }));
+app.use('/api/game', createProxyMiddleware({ target: 'http://localhost:3002', changeOrigin: true }));
+app.use('/api/user', createProxyMiddleware({ target: 'http://localhost:3003', changeOrigin: true }));
 
 // Serve static files
 app.use(express.static(__dirname));
