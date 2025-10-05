@@ -39,7 +39,8 @@ async function loadProfile() {
     const token = sessionStorage.getItem('authToken');
     console.log('Profile: token in sessionStorage:', token);
     if (!token) {
-        showState('denied');
+        // Redirige vers la page de login si pas de token
+        window.location.hash = 'login';
         return;
     }
 
@@ -90,6 +91,12 @@ async function loadProfile() {
                 if (logoutBtn) (logoutBtn as HTMLElement).style.display = '';
             }
         } else {
+            // Si 403, on nettoie le token et on affiche un message
+            if (response.status === 403) {
+                sessionStorage.removeItem('authToken');
+                sessionStorage.removeItem('user');
+                showProfileMsg('Session expirée ou non autorisée. Merci de vous reconnecter.', false);
+            }
             let errorMsg = 'Unknown error';
             try {
                 const errorData = await response.json();

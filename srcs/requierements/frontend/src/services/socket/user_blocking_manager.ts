@@ -9,6 +9,12 @@ export class BlockingSystemService {
     constructor(private messageService: MessageService) {}
 
     public async loadBlockedUsers(): Promise<void> {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            console.log('⏭️ Skipping blocked users load: no auth token');
+            return;
+        }
+
         try {
             const blockedUsersData = await UserApiService.getBlockedUsers();
             this.blockedUsers = new Set(blockedUsersData.map(user => user.username));
