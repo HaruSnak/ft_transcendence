@@ -173,6 +173,24 @@ fastify.put('/api/user/profile', {
 	}
 });
 
+// Supprimer le compte utilisateur
+fastify.delete('/api/user/profile', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		await userService.deleteUser(request.user.userId);
+		reply.send({
+			success: true,
+			message: 'User account deleted successfully'
+		});
+	} catch (error) {
+		reply.code(400).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
 // Obtenir l'historique des matches
 fastify.get('/api/user/matches', {
 	preHandler: authenticateToken

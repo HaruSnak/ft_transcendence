@@ -2,6 +2,8 @@
 
 import { User, ProfileUpdateData } from '../utils/data_types';
 
+let isDeletingUser = false;
+
 export function initProfile() {
     loadProfile();
 
@@ -22,6 +24,8 @@ export function initProfile() {
             showEditForm();
         } else if (action === 'cancel') {
             hideEditForm();
+        } else if (action === 'delete') {
+            deleteUser();
         }
     });
 
@@ -256,4 +260,51 @@ async function logout() {
         window.location.hash = 'login';
         location.reload();
     }, 800);
+}
+
+async function deleteUser() {
+    const token = sessionStorage.getItem('authToken');
+    if (!token) return;
+
+    // Éviter les appels multiples
+    if (isDeletingUser) return;
+    isDeletingUser = true;
+
+    // Demander confirmation
+    if (!confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.')) {
+        isDeletingUser = false;
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/user/profile', {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (response.ok) {
+            showProfileMsg('Compte supprimé avec succès !', true);
+            // Nettoyer et rediriger
+            sessionStorage.removeItem('authToken');
+            sessionStorage.removeItem('user');
+            setTimeout(() => {
+                window.location.hash = 'login';
+                location.reload();
+            }, 1000);
+        } else {
+            let errorMsg = 'Erreur lors de la suppression.';
+            try {
+                const errorData = await response.json();
+                errorMsg = errorData.error || errorMsg;
+            } catch (e) {}
+            showProfileMsg(errorMsg, false);
+        }
+    } catch (error) {
+        console.error('Delete user error:', error);
+        showProfileMsg('Erreur réseau lors de la suppression.', false);
+    } finally {
+        isDeletingUser = false;
+    }
 }

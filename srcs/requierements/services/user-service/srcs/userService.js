@@ -160,6 +160,27 @@ class UserService {
 		}
 	}
 
+	// Supprimer un utilisateur
+	async deleteUser(userId) {
+		try {
+			// Supprimer d'abord les dépendances
+			await database.run('DELETE FROM blocked_users WHERE user_id = ? OR blocked_user_id = ?', [userId, userId]);
+			await database.run('DELETE FROM user_stats WHERE user_id = ?', [userId]);
+			await database.run('DELETE FROM match_history WHERE player1_id = ? OR player2_id = ?', [userId, userId]);
+			await database.run('DELETE FROM game_invitations WHERE from_user_id = ? OR to_user_id = ?', [userId, userId]);
+			await database.run('DELETE FROM blacklisted_tokens WHERE user_id = ?', [userId]);
+			
+			// Supprimer l'utilisateur
+			const result = await database.run('DELETE FROM users WHERE id = ?', [userId]);
+			
+			if (result.changes === 0) {
+				throw new Error('User not found');
+			}
+		} catch (error) {
+			throw error;
+		}
+	}
+
 	// Obtenir l'historique des matches d'un utilisateur
 	async getUserMatchHistory(userId) {
 		try {
