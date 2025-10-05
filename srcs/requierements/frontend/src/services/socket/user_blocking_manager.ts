@@ -48,7 +48,10 @@ export class BlockingSystemService {
 
         } catch (error) {
             console.error('❌ Error blocking user:', error);
-            alert('Error blocking user: ' + (error as Error).message);
+            const errorMsg = (error as Error).message.includes('Failed to fetch user by username') 
+                ? 'Utilisateur non trouvé ou inexistant.' 
+                : (error as Error).message;
+            alert('Erreur lors du blocage : ' + errorMsg);
         }
     }
 
