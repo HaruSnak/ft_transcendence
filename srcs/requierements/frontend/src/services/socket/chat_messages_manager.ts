@@ -242,23 +242,10 @@ export class MessageHandlingService {
             return;
         }
 
-        // Create and display the message immediately on the client side
-        const localMessage: ChatMessage = {
-            from: currentUser.username,
-            from_display_name: currentUser.display_name || currentUser.username,
-            to: this.currentChat.user,
-            text: messageText,
-            timestamp: new Date().toISOString()
-        };
-
         // Add conversation to DM list if not already exists (for the sender)
         this.addToDirectMessageList(this.currentChat.user, this.currentChat.displayName);
 
-        // Display the message locally
-        this.displayMessageInChat(localMessage);
-        this.addMessageToHistory(localMessage);
-
-        // Send to server
+        // Send to server (don't display locally to avoid duplicates)
         const socket = this.socketConnection.getSocket();
         if (socket) {
             socket.emit(SOCKET_EVENTS.MESSAGE, {
