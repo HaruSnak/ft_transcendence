@@ -52,6 +52,41 @@
                     <div class="flex flex-col gap-md">
                         <button id="solo-mode" class="btn btn-primary btn-lg">Single Player</button>
                         <button id="vs-local-mode" class="btn btn-secondary btn-lg">1 vs 1 (Local)</button>
+                        <button id="tournament-mode" class="btn btn-accent btn-lg">🏆 Tournament</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tournament Setup -->
+        <section id="tournament-setup" class="page hidden">
+            <div class="container">
+                <div class="card" style="max-width: 600px; margin: 0 auto;">
+                    <div class="card-header text-center">
+                        <h1 class="card-title">🏆 Tournament Setup</h1>
+                        <p class="card-description">Add players to start the tournament (2-8 players)</p>
+                    </div>
+                    
+                    <div id="tournament-players" class="mb-lg">
+                        <div class="text-sm text-muted mb-sm">Current Players: <span id="player-count">0</span></div>
+                        <div id="players-list" class="flex flex-wrap gap-sm mb-md"></div>
+                    </div>
+                    
+                    <div class="form-group mb-lg">
+                        <label class="form-label">Add Player</label>
+                        <div class="flex gap-sm">
+                            <input type="text" id="new-player-name" placeholder="Player name" class="form-input flex-1" />
+                            <select id="player-type" class="form-input" style="width: 120px;">
+                                <option value="guest">Guest</option>
+                                <option value="user">User</option>
+                            </select>
+                            <button id="add-player-btn" class="btn btn-secondary">Add</button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-md">
+                        <button id="start-tournament-btn" class="btn btn-primary btn-lg flex-1" disabled>Start Tournament</button>
+                        <button id="back-to-modes-btn" class="btn btn-ghost btn-lg">Back</button>
                     </div>
                 </div>
             </div>
@@ -65,9 +100,11 @@
                     <div class="mb-lg" style="display: flex; flex-direction: column; align-items: center;">
                         <canvas id="pongCanvas" class="game-canvas" width="800" height="600" style="max-width: 100%; height: auto; display: block; margin: 0 auto;" ></canvas>
                         <div id="gameMessageWinOrLose" class="mt-md text-xl font-medium hidden"></div>
+                        <div id="gameScore" class="mt-md text-lg font-medium" style="display: none;"><span>0 - 0</span></div>
                     </div>
                     <div class="flex justify-center gap-md">
                         <button id="startGameButton" class="btn btn-primary">Start Game</button>
+                        <button id="pauseGameButton" class="btn btn-secondary" disabled>Pause</button>
                     </div>
                 </div>
             </div>

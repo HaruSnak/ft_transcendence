@@ -2,7 +2,7 @@
 console.log('🔄 Loading index.ts...');
 
 import './style.css';
-import { initGame, cleanUpGame } from './game/game.js';
+import { initGame, cleanUpGame, pongGame } from './game/game.js';
 import { socketService } from './services/socket';
 import { initLogin } from './pages/login.js';
 import { initSignup } from './pages/signup.js';
@@ -10,6 +10,8 @@ import { initProfile } from './pages/profile.js';
 import { initLiveChat } from './pages/livechat/index.js';
 
 console.log('✅ All imports loaded');
+
+let tournamentManager: any = null;
 
 // Navigation
 function showPage(pageId: string) {
@@ -113,13 +115,14 @@ function initGameSection() {
     console.log('🎮 Initializing game section...');
     const soloModeBtn = document.getElementById('solo-mode');
     const localModeBtn = document.getElementById('vs-local-mode');
+    const tournamentModeBtn = document.getElementById('tournament-mode');
 
     if (soloModeBtn) {
         console.log('🎯 Solo mode button found');
         soloModeBtn.addEventListener('click', () => {
             console.log('🎮 Starting solo game...');
             showPage('game');
-            initGame();
+            initGame('solo');
         });
     } else {
         console.log('❌ Solo mode button not found');
@@ -130,12 +133,129 @@ function initGameSection() {
         localModeBtn.addEventListener('click', () => {
             console.log('🎮 Starting local game...');
             showPage('game');
-            initGame();
+            initGame('local');
         });
     } else {
         console.log('❌ Local mode button not found');
     }
+
+    if (tournamentModeBtn) {
+        console.log('🏆 Tournament mode button found');
+        tournamentModeBtn.addEventListener('click', () => {
+            console.log('🏆 Starting tournament setup...');
+            showPage('tournament-setup');
+            initTournamentSetup();
+        });
+    } else {
+        console.log('❌ Tournament mode button not found');
+    }
     console.log('✅ Game section initialized');
+}
+
+// Tournament setup
+function initTournamentSetup() {
+    console.log('🏆 Initializing tournament setup...');
+    
+    const addPlayerBtn = document.getElementById('add-player-btn');
+    const newPlayerNameInput = document.getElementById('new-player-name') as HTMLInputElement;
+    const playerTypeSelect = document.getElementById('player-type') as HTMLSelectElement;
+    const playersList = document.getElementById('players-list');
+    const playerCountSpan = document.getElementById('player-count');
+    const startTournamentBtn = document.getElementById('start-tournament-btn') as HTMLButtonElement;
+    const backToModesBtn = document.getElementById('back-to-modes-btn');
+    
+    let players: Array<{name: string, type: 'guest' | 'user'}> = [];
+    
+    function updatePlayersList() {
+        if (!playersList || !playerCountSpan || !startTournamentBtn) return;
+        
+        playersList.innerHTML = '';
+        playerCountSpan.textContent = players.length.toString();
+        
+        players.forEach((player, index) => {
+            const playerDiv = document.createElement('div');
+            playerDiv.className = 'badge badge-primary';
+            playerDiv.textContent = `${player.name} (${player.type})`;
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'ml-sm text-xs';
+            removeBtn.textContent = '×';
+            removeBtn.onclick = () => {
+                players.splice(index, 1);
+                updatePlayersList();
+            };
+            
+            playerDiv.appendChild(removeBtn);
+            playersList.appendChild(playerDiv);
+        });
+        
+        startTournamentBtn.disabled = players.length < 2 || players.length > 8;
+    }
+    
+    if (addPlayerBtn) {
+        addPlayerBtn.addEventListener('click', () => {
+            const name = newPlayerNameInput?.value.trim();
+            const type = playerTypeSelect?.value as 'guest' | 'user';
+            
+            if (name && !players.some(p => p.name === name)) {
+                players.push({ name, type });
+                updatePlayersList();
+                if (newPlayerNameInput) newPlayerNameInput.value = '';
+            }
+        });
+    }
+    
+    if (startTournamentBtn) {
+        startTournamentBtn.addEventListener('click', () => {
+            if (players.length >= 2 && players.length <= 8) {
+                console.log('🏆 Starting tournament with players:', players);
+                startTournament(players);
+            }
+        });
+    }
+    
+    if (backToModesBtn) {
+        backToModesBtn.addEventListener('click', () => {
+            showPage('game-modes');
+        });
+    }
+    
+    // Initialize with empty list
+    updatePlayersList();
+    console.log('✅ Tournament setup initialized');
+}
+
+function startTournament(players: Array<{name: string, type: 'guest' | 'user'}>) {
+    console.log('🏆 Starting tournament...');
+    
+    // Import tournament manager dynamically
+    import('./game/TournamentManager.js').then(({ TournamentManager }) => {
+        tournamentManager = new TournamentManager();
+        
+        // Add players to tournament
+        players.forEach(player => {
+            const success = tournamentManager.initDataPlayer(
+                player.type === 'guest' ? 'Guest' : 'User',
+                player.name
+            );
+            if (!success) {
+                console.error(`Failed to add player: ${player.name}`);
+            }
+        });
+        
+        // Create matches and start tournament
+        const matches = tournamentManager.createMatches();
+        console.log('🏆 Tournament matches:', matches);
+        
+        // Switch to game page and start tournament
+        showPage('game');
+        initGame('tournament');
+        
+        // Start the tournament
+        tournamentManager.startTournament(pongGame!, matches);
+    }).catch(error => {
+        console.error('Failed to load TournamentManager:', error);
+    });
 }
 
 // Initialize everything
