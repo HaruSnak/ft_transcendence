@@ -1,8 +1,294 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+#                           🚀 TRANSCENDANCE MAKE	@if [ ! -d "srcs/requierements/frontend/node_modules" ]; then \
+		echo "$(YELLOW)📦 Installation des dépendances manquantes...$(RESET)"; \
+		cd srcs/requierements/frontend && npm install > /dev/null 2>&1; \
+	fi 🚀
+# ═══════════════════════════════════════════════════════════════════════════════
+
+MAKEFLAGS += --no-print-directory
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │                            🎨 COULEURS & STYLES                             │
+# └─────────────────────────────────────────────────────────────────────────────┘
+BOLD = \033[1m
+DIM = \033[2m
+RESET = \033[0m
+RED = \033[31m
+GREEN = \033[32m
+YELLOW = \033[33m
+BLUE = \033[34m
+MAGENTA = \033[35m
+CYAN = \033[36m
+WHITE = \033[37m
+
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │                         ⚙️ COMMANDES CROSS-PLATFORM                        │
+# └─────────────────────────────────────────────────────────────────────────────┘
+ifeq ($(OS),Windows_NT)
+    RM = rmdir /S /Q
+    KILL_NODE = taskkill /F /IM node.exe >nul 2>&1 || true
+    KILL_3001 = taskkill /F /PID $(shell netstat -ano | findstr :3001 | findstr LISTENING | head -1 | awk '{print $$5}') >nul 2>&1 || true
+    KILL_3002 = taskkill /F /PID $(shell netstat -ano | findstr :3002 | findstr LISTENING | head -1 | awk '{print $$5}') >nul 2>&1 || true
+    KILL_3003 = taskkill /F /PID $(shell netstat -ano | findstr :3003 | findstr LISTENING | head -1 | awk '{print $$5}') >nul 2>&1 || true
+    KILL_3004 = taskkill /F /PID $(shell netstat -ano | findstr :3004 | findstr LISTENING | head -1 | awk '{print $$5}') >nul 2>&1 || true
+    KILL_5174 = taskkill /F /PID $(shell netstat -ano | findstr :5174 | findstr LISTENING | head -1 | awk '{print $$5}') >nul 2>&1 || true
+else
+    RM = rm -rf
+    KILL_NODE = pkill -f node > /dev/null 2>&1 || true
+    KILL_3001 = bash -c 'pids=$$(lsof -ti:3001 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi' 2>/dev/null
+    KILL_3002 = bash -c 'pids=$$(lsof -ti:3002 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi' 2>/dev/null
+    KILL_3003 = bash -c 'pids=$$(lsof -ti:3003 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi' 2>/dev/null
+    KILL_3004 = bash -c 'pids=$$(lsof -ti:3004 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi' 2>/dev/null
+    KILL_5174 = bash -c 'pids=$$(lsof -ti:5174 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi' 2>/dev/null
+endif
+
+.SILENT:
+.DEFAULT_GOAL := menu
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#                            🎯 MENU INTERACTIF
+# ═══════════════════════════════════════════════════════════════════════════════
+
+menu:
+	@echo ""
+	@echo "$(CYAN)$(BOLD) ╔════════════════════════════════════════════════════════════╗$(RESET)"
+	@echo "$(CYAN)$(BOLD) ║                    🚀 TRANSCENDANCE                        ║$(RESET)"
+	@echo "$(CYAN)$(BOLD) ╠════════════════════════════════════════════════════════════╣$(RESET)"
+	@echo "$(CYAN) ║$(WHITE)  $(BOLD)1.$(RESET) $(GREEN)Lancer l'application$(RESET)                                   $(CYAN)║$(RESET)"
+	@echo "$(CYAN) ║$(WHITE)  $(BOLD)2.$(RESET) $(YELLOW)Installer les dépendances$(RESET)                              $(CYAN)║$(RESET)"
+	@echo "$(CYAN) ║$(WHITE)  $(BOLD)3.$(RESET) $(RED)Arrêter les services et nettoyer les ports$(RESET)             $(CYAN)║$(RESET)"
+	@echo "$(CYAN) ║$(WHITE)  $(BOLD)4.$(RESET) $(RED)Nettoyer le projet$(RESET)                                     $(CYAN)║$(RESET)"
+	@echo "$(CYAN) ║$(WHITE)  $(BOLD)5.$(RESET) $(MAGENTA)Démarrer en mode dev (avec HMR)$(RESET)                        $(CYAN)║$(RESET)"
+	@echo "$(CYAN) ║$(WHITE)  $(BOLD)0.$(RESET) $(DIM)Quitter$(RESET)                                                $(CYAN)║$(RESET)"
+	@echo "$(CYAN)$(BOLD) ╠════════════════════════════════════════════════════════════╣$(RESET)"
+	@echo "$(CYAN) ║$(WHITE)  $(DIM)Auth: http://localhost:3004$(RESET)                               $(CYAN)║$(RESET)"
+	@echo "$(CYAN) ║$(WHITE)  $(DIM)Chat: http://localhost:3001$(RESET)                               $(CYAN)║$(RESET)"
+	@echo "$(CYAN) ║$(WHITE)  $(DIM)Game: http://localhost:3002$(RESET)                               $(CYAN)║$(RESET)"
+	@echo "$(CYAN) ║$(WHITE)  $(DIM)User: http://localhost:3003$(RESET)                               $(CYAN)║$(RESET)"
+	@echo "$(CYAN)  $(DIM)Frontend: http://localhost:5174$(RESET)                             $(CYAN)║$(RESET)"
+	@echo "$(CYAN)$(BOLD) ╚════════════════════════════════════════════════════════════╝$(RESET)"
+	@echo ""
+	@while true; do \
+		read -p "Votre choix: " choice; \
+		case $$choice in \
+			1) echo ""; make run; break ;; \
+			2) echo ""; make install; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
+			3) echo ""; make stop-services; make clean-ports; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
+			4) echo ""; make clean; echo "Appuyez sur Entrée pour revenir au menu..."; read dummy; make menu; break ;; \
+			5) echo ""; make dev; break ;; \
+			0) echo "$(GREEN)$(BOLD)Au revoir ! 👋$(RESET)"; break ;; \
+			*) echo "$(RED)❌ Choix invalide ! Veuillez choisir entre 0-5.$(RESET)"; echo "" ;; \
+		esac \
+	done
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#                            🚀 COMMANDES PRINCIPALES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+run:
+	@echo ""
+	@echo "$(YELLOW)🔍 Vérification de Node.js...$(RESET)"
+	@node_version=$$(node --version | sed 's/v//' | awk -F. '{print $$1}'); \
+	if [ "$$node_version" -lt 20 ]; then \
+		echo "$(YELLOW)⬆️  Upgrading Node.js to version 20... Please wait...$(RESET)"; \
+		make upgrade-node > /dev/null 2>&1; \
+		echo "$(GREEN)✅ Node.js upgraded to $$(node --version)!$(RESET)"; \
+	fi
+	@echo "$(GREEN)✅ Node.js OK$(RESET)"
+	@echo "$(YELLOW)🔍 Vérification des dépendances...$(RESET)"
+	@if [ ! -d "srcs/requierements/services/user-service/node_modules" ]; then \
+		echo "$(YELLOW)📦 Installation des dépendances manquantes...$(RESET)"; \
+		make install > /dev/null 2>&1; \
+	fi
+	@if [ ! -d "frontend/node_modules" ]; then \
+		echo "$(YELLOW)📦 Installation des dépendances frontend manquantes...$(RESET)"; \
+		cd frontend && npm install > /dev/null 2>&1; \
+	fi
+	@echo "$(BLUE) Construction du frontend...$(RESET)"
+	@cd srcs/requierements/frontend && npm run build-css > /dev/null 2>&1 && npm run build > /dev/null 2>&1
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════╗"
+	@echo "║                   🎉 APPLICATION LANCÉE ! 🎉                 ║"
+	@echo "╚══════════════════════════════════════════════════════════════╝"
+	@echo ""
+	@make start-services
+	@sleep 3
+	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/user-service && bash create-user.sh powlar powlar@example.com password 'Powlar' 2>/dev/null || true
+	@echo "✅ Services démarrés en arrière-plan"
+	@echo "🌐 Accédez à http://localhost:5174"
+	@echo "⚠️  Utilisez 'make stop-services' pour arrêter"
+
+dev:
+	@echo ""
+	@echo "$(YELLOW)🔍 Vérification de Node.js...$(RESET)"
+	@node_version=$$(node --version | sed 's/v//' | awk -F. '{print $$1}'); \
+	if [ "$$node_version" -lt 20 ]; then \
+		echo "$(YELLOW)⬆️  Upgrading Node.js to version 20... Please wait...$(RESET)"; \
+		make upgrade-node > /dev/null 2>&1; \
+		echo "$(GREEN)✅ Node.js upgraded to $$(node --version)!$(RESET)"; \
+	fi
+	@echo "$(GREEN)✅ Node.js OK$(RESET)"
+	@echo "$(YELLOW)🔍 Vérification des dépendances...$(RESET)"
+	@if [ ! -d "srcs/requierements/services/user-service/node_modules" ]; then \
+		echo "$(YELLOW)📦 Installation des dépendances manquantes...$(RESET)"; \
+		make install > /dev/null 2>&1; \
+	fi
+	@if [ ! -d "srcs/requierements/frontend/node_modules" ]; then \
+		echo "$(YELLOW)📦 Installation des dépendances frontend manquantes...$(RESET)"; \
+		cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/frontend && npm install > /dev/null 2>&1; \
+	fi
+	@echo "$(BLUE) Construction du CSS...$(RESET)"
+	@cd srcs/requierements/frontend && npm run build-css > /dev/null 2>&1
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════════════╗"
+	@echo "║                 🚀 MODE DÉVELOPPEMENT ! 🚀                   ║"
+	@echo "╚══════════════════════════════════════════════════════════════╝"
+	@echo ""
+	@make start-services
+	@sleep 3
+	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/user-service && bash create-user.sh powlar powlar@example.com password 'Powlar' 2>/dev/null || true
+	@echo "✅ Services démarrés en arrière-plan"
+	@echo "🌐 Serveur démarré sur http://localhost:5174 avec rechargement automatique"
+	@echo "⚠️  Utilisez 'make stop-services' pour arrêter les services"
+	@echo "⚠️  Ou appuyez Ctrl+C pour arrêter tout automatiquement"
+	@(trap 'echo ""; echo "🛑 Arrêt automatique des services..."; make stop-services; exit 0' INT; \
+	  cd srcs/requierements/frontend && npm run dev)
+
+install:
+	@echo ""
+	@echo "$(YELLOW)$(BOLD) ╔══════════════════════════════════════════════════════════════╗$(RESET)"
+	@echo "$(YELLOW)$(BOLD) ║                 📦 INSTALLATION DES DÉPENDANCES 📦           ║$(RESET)"
+	@echo "$(YELLOW)$(BOLD) ╚══════════════════════════════════════════════════════════════╝$(RESET)"
+	@echo ""
+	@echo "$(BLUE)$(BOLD) 🔧 Installation auth-service...$(RESET)"
+	@cd srcs/requierements/services/auth-service && npm install >nul 2>&1
+	@echo "$(GREEN)$(BOLD) ✅ Auth-service installé$(RESET)"
+	@echo "$(BLUE)$(BOLD) 💬 Installation chat-service...$(RESET)"
+	@cd srcs/requierements/services/chat-service && npm install >nul 2>&1
+	@echo "$(GREEN)$(BOLD) ✅ Chat-service installé$(RESET)"
+	@echo "$(BLUE)$(BOLD) 🎮 Installation game-service...$(RESET)"
+	@cd srcs/requierements/services/game-service && npm install >nul 2>&1
+	@echo "$(GREEN)$(BOLD) ✅ Game-service installé$(RESET)"
+	@echo "$(BLUE)$(BOLD) 👤 Installation user-service...$(RESET)"
+	@bash -c "sudo apt-get update && sudo apt-get install -y build-essential python3 make g++" >/dev/null 2>&1
+	@echo -n "$(YELLOW)Installation des dépendances Node.js en cours$(RESET)"
+	@(cd srcs/requierements/services/user-service && npm install >/dev/null 2>&1 && npm rebuild bcrypt >/dev/null 2>&1 && npm rebuild sqlite3 >/dev/null 2>&1) & pid=$$!; \
+	 while kill -0 $$pid 2>/dev/null; do echo -n "."; sleep 1; done; wait $$pid 2>/dev/null
+	@echo ""
+	@echo "$(GREEN)$(BOLD) ✅ User-service installé$(RESET)"
+	@echo "$(BLUE)$(BOLD) 🌐 Installation frontend...$(RESET)"
+	@cd srcs/requierements/frontend && npm install >nul 2>&1
+	@echo "$(GREEN)$(BOLD) ✅ Frontend installé$(RESET)"
+	@echo ""
+	@echo "$(GREEN)$(BOLD) ╔══════════════════════════════════════════════════════════════╗$(RESET)"
+	@echo "$(GREEN)$(BOLD) ║                   🎉 INSTALLATION TERMINÉE ! 🎉              ║$(RESET)"
+	@echo "$(GREEN)$(BOLD) ╚══════════════════════════════════════════════════════════════╝$(RESET)"
+	@echo ""
+
+start-services:
+	@echo ""
+	@echo "$(BLUE)$(BOLD) 📡 Démarrage des services backend...$(RESET)"
+ifeq ($(OS),Windows_NT)
+	@powershell -Command "Start-Process -NoNewWindow -FilePath 'node' -ArgumentList 'srcs/server.js' -WorkingDirectory 'srcs\requierements\services\auth-service'"
+	@powershell -Command "Start-Process -NoNewWindow -FilePath 'node' -ArgumentList 'srcs/server.js' -WorkingDirectory 'srcs\requierements\services\chat-service'"
+	@powershell -Command "Start-Process -NoNewWindow -FilePath 'node' -ArgumentList 'srcs/server.js' -WorkingDirectory 'srcs\requierements\services\game-service'"
+	@powershell -Command "Start-Process -NoNewWindow -FilePath 'node' -ArgumentList 'srcs/server.js' -WorkingDirectory 'srcs\requierements\services\user-service'"
+else
+	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/auth-service && nohup node srcs/server.js > /dev/null 2>&1 &
+	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/chat-service && nohup node srcs/server.js > /dev/null 2>&1 &
+	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/game-service && nohup node srcs/server.js > /dev/null 2>&1 &
+	@cd /mnt/c/Users/Powlar/Desktop/ft_transcendence/srcs/requierements/services/user-service && nohup node srcs/server.js > /dev/null 2>&1 &
+endif
+	@echo "$(GREEN)$(BOLD) ✅ Services backend démarrés$(RESET)"
+
+stop-services:
+	@echo ""
+	@echo "$(RED)$(BOLD) 🛑 Arrêt des services...$(RESET)"
+	@$(KILL_3001)
+	@$(KILL_3002)
+	@$(KILL_3003)
+	@$(KILL_3004)
+	@$(KILL_5174)
+	@$(KILL_NODE)
+	@echo "$(GREEN)$(BOLD) ✅ Services arrêtés$(RESET)"
+	@echo ""
+
+clean-ports:
+	@echo "$(RED)$(BOLD)🧹 Nettoyage des ports de service...$(RESET)"
+	@bash -c '\
+	pids=$$(lsof -ti:3001 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi;\
+	pids=$$(lsof -ti:3002 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi;\
+	pids=$$(lsof -ti:3003 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi;\
+	pids=$$(lsof -ti:3004 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi;\
+	pids=$$(lsof -ti:5174 2>/dev/null); if [ -n "$$pids" ]; then echo "$$pids" | xargs kill -9 2>/dev/null; fi;\
+	' 2>/dev/null
+	@echo "$(GREEN)$(BOLD)✅ Ports nettoyés$(RESET)"
+
+check-ports:
+	@echo "$(BLUE)$(BOLD)🔍 Vérification de l'état des ports...$(RESET)"
+	@echo ""
+	@bash -c '\
+	check_port() { \
+		local port=$$1; \
+		local service=$$2; \
+		if lsof -i :$$port >/dev/null 2>&1; then \
+			echo "❌ Port $$port ($$service) : OCCUPÉ"; \
+		else \
+			echo "✅ Port $$port ($$service) : LIBRE"; \
+		fi; \
+	}; \
+	check_port 3001 "chat-service"; \
+	check_port 3002 "game-service"; \
+	check_port 3003 "user-service"; \
+	check_port 3004 "auth-service"; \
+	check_port 5174 "frontend"; \
+	'
+	@echo ""
+
+clean:
+			 @echo "$(RED)$(BOLD) 🧹 Nettoyage violent en cours...$(RESET)"
+			 @echo "$(YELLOW) 🔫 Libération des ports...$(RESET)"
+			 @echo "$(CYAN)  - Arrêt des processus sur port 3001 (chat-service)$(RESET)"
+			 @$(KILL_3001) 2>/dev/null
+			 @echo "$(CYAN)  - Arrêt des processus sur port 3002 (game-service)$(RESET)"
+			 @$(KILL_3002) 2>/dev/null
+			 @echo "$(CYAN)  - Arrêt des processus sur port 3003 (user-service)$(RESET)"
+			 @$(KILL_3003) 2>/dev/null
+			 @echo "$(CYAN)  - Arrêt des processus sur port 3004 (auth-service)$(RESET)"
+			 @$(KILL_3004) 2>/dev/null
+			 @echo "$(CYAN)  - Arrêt des processus sur port 5174 (frontend)$(RESET)"
+			 @$(KILL_5174) 2>/dev/null
+			 @echo "$(CYAN)  - Arrêt de tous les processus Node.js restants$(RESET)"
+			 @echo "$(YELLOW) 🗑️  Suppression des fichiers...$(RESET)"
+			 @for service in auth-service chat-service game-service user-service; do \
+				 cd srcs/requierements/services/$$service && \
+				 $(RM) node_modules dist .cache .tmp build .next .turbo data *.log npm-debug.log yarn-error.log pnpm-debug.log .DS_Store package-lock.json .env .env.* 2>/dev/null || true; \
+			 done
+			 @cd srcs/requierements/frontend && \
+				 $(RM) node_modules dist .vite .cache .tmp build .next .turbo *.log npm-debug.log yarn-error.log pnpm-debug.log .DS_Store package-lock.json .env .env.* 2>/dev/null || true && \
+				 rm -f public/css/index.css public/js/index.js public/js/*.js public/js/**/*.js 2>/dev/null || true
+			@echo "$(YELLOW) 🔎 Suppression récursive des répertoires node_modules restants...$(RESET)"
+			@bash -c 'find . -type d -name "node_modules" -prune -exec rm -rf {} + 2>/dev/null || true' 2>/dev/null || true
+			@powershell -Command "Get-ChildItem -Path . -Recurse -Directory -Filter node_modules -ErrorAction SilentlyContinue | ForEach-Object { Remove-Item -LiteralPath \$_.FullName -Recurse -Force -ErrorAction SilentlyContinue }" >nul 2>&1 || true
+			 @echo "$(GREEN)$(BOLD) ╔══════════════════════════════════════════════════════════════╗$(RESET)"
+			 @echo "$(GREEN)$(BOLD) ║                 🧹 NETTOYAGE VIOLENT TERMINÉ 🧹              ║$(RESET)"
+			 @echo "$(GREEN)$(BOLD) ╠══════════════════════════════════════════════════════════════╣$(RESET)"
+			 @echo "$(GREEN)$(BOLD) ║$(RESET)  $(GREEN)$(BOLD)✅ Tous les ports libérés (3001-3004, 5174)$(RESET)                 $(GREEN)$(BOLD)║$(RESET)"
+			 @echo "$(GREEN)$(BOLD) ║$(RESET)  $(GREEN)$(BOLD)✅ Tous les processus Node.js tués$(RESET)                          $(GREEN)$(BOLD)║$(RESET)"
+			 @echo "$(GREEN)$(BOLD) ║$(RESET)  $(GREEN)$(BOLD)✅ node_modules, locks, .env, logs supprimés$(RESET)                $(GREEN)$(BOLD)║$(RESET)"
+			 @echo "$(GREEN)$(BOLD) ║$(RESET)  $(GREEN)$(BOLD)✅ Fichiers build et cache supprimés$(RESET)                        $(GREEN)$(BOLD)║$(RESET)"
+			 @echo "$(GREEN)$(BOLD) ║                                                              ║$(RESET)"
+			 @echo "$(GREEN)$(BOLD) ║$(RESET)  $(WHITE)$(BOLD)⚡ Tapez make pour relancer le menu$(RESET)                         $(GREEN)$(BOLD)║$(RESET)"
+			 @echo "$(GREEN)$(BOLD) ╚══════════════════════════════════════════════════════════════╝$(RESET)"
+			 @echo ""
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#                            🐳 DOCKER (EXISTANT)
+# ═══════════════════════════════════════════════════════════════════════════════
+
 DOCKER_COMPOSE = docker-compose
 DOCKER_COMPOSE_FILE = ./srcs/docker-compose.yml
 DATA_PATH = ./srcs/volumes
-
-.PHONY: all build up down clean fclean re logs
 
 all: build up
 
@@ -13,17 +299,18 @@ build:
 
 up:
 	@echo "Starting containers..."
-	cd ./srcs && $(DOCKER_COMPOSE) -f docker-compose.yml up -d
+	@docker network rm srcs_app_network srcs_promgraf_network srcs_elk_network > /dev/null 2>&1 || true
+	@cd ./srcs && $(DOCKER_COMPOSE) -f docker-compose.yml up -d
 
 down:
 	@echo "Stopping containers..."
 	cd ./srcs && $(DOCKER_COMPOSE) -f docker-compose.yml down
 
-clean: down
+clean-docker: down
 	@echo "Cleaning up containers and images..."
 	docker system prune -af
 
-fclean: clean
+fclean: clean-docker
 	@echo "Full cleanup including volumes..."
 	cd ./srcs && $(DOCKER_COMPOSE) -f docker-compose.yml down -v
 	docker volume rm -f srcs_es_data srcs_grafana_db srcs_prometheus_db srcs_logs_pipeline srcs_logs_config || true
@@ -36,3 +323,5 @@ logs:
 
 status:
 	cd ./srcs && $(DOCKER_COMPOSE) -f docker-compose.yml ps
+
+.PHONY: menu run install start-services stop-services clean all build up down clean-docker fclean re logs status
