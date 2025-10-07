@@ -44,6 +44,38 @@ class UserService {
 		}
 	}
 
+	// Créer un utilisateur guest temporaire
+	async createGuestUser(guestName = null) {
+		try {
+			const timestamp = Date.now();
+			const randomSuffix = Math.random().toString(36).substr(2, 5);
+			const guestUsername = guestName || `Guest_${timestamp}_${randomSuffix}`;
+			const guestEmail = `${guestUsername}@guest.local`;
+
+			// Insérer l'utilisateur guest (sans mot de passe)
+			const result = await database.run(
+				`INSERT INTO users (username, email, display_name, is_guest) 
+				 VALUES (?, ?, ?, 1)`,
+				[guestUsername, guestEmail, guestName || guestUsername]
+			);
+
+			// Créer les statistiques utilisateur
+			await database.run(
+				'INSERT INTO user_stats (user_id) VALUES (?)',
+				[result.id]
+			);
+
+			return { 
+				id: result.id, 
+				username: guestUsername, 
+				display_name: guestName || guestUsername,
+				is_guest: true 
+			};
+		} catch (error) {
+			throw error;
+		}
+	}
+
 	// Authentifier un utilisateur
 	async authenticateUser(username, password) {
 		try {
@@ -174,6 +206,97 @@ class UserService {
 			await this.updateUserStats(player2_id, winner_id === player2_id);
 
 			return result;
+		} catch (error) {
+			throw error;
+		}
+	}
+
+	// 🆕 Ajouter une session de jeu (users + guests)
+	async addGameSession(gameData) {
+		try {
+			const {
+				player1_id, player1_name, player1_type = 'guest',
+				player2_id, player2_name, player2_type = 'guest', 
+				winner_player, // 1 ou 2
+				score_player1 = 0, score_player2 = 0,
+				game_type = 'pong', session_duration = null
+			} = gameData;
+
+			// Déterminer les types automatiquement si des IDs sont fournis
+			const finalPlayer1Type = player1_id ? 'user' : 'guest';
+			const finalPlayer2Type = player2_id ? 'user' : 'guest';
+			const winnerType = winner_player === 1 ? finalPlayer1Type : finalPlayer2Type;
+
+			const result = await database.run(
+				`INSERT INTO game_sessions 
+				 (player1_type, player1_id, player1_name, player2_type, player2_id, player2_name,
+				  winner_type, winner_player, score_player1, score_player2, game_type, session_duration)
+				 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+				[
+					finalPlayer1Type, player1_id, player1_name,
+					finalPlayer2Type, player2_id, player2_name,
+					winnerType, winner_player,
+					score_player1, score_player2, game_type, session_duration
+				]
+			);
+
+			// Mettre à jour les stats UNIQUEMENT pour les vrais utilisateurs
+			if (finalPlayer1Type === 'user') {
+				await this.updateUserStats(player1_id, winner_player === 1);
+			}
+			if (finalPlayer2Type === 'user') {
+				await this.updateUserStats(player2_id, winner_player === 2);
+			}
+
+			return result;
+		} catch (error) {
+			throw error;
+		}
+	}
+
+	// 🆕 Obtenir l'historique des sessions (incluant guests)
+	async getUserGameSessions(userId) {
+		try {
+			const sessions = await database.query(
+				`SELECT gs.*, 
+						u1.username as player1_username, u1.display_name as player1_display_name,
+						u2.username as player2_username, u2.display_name as player2_display_name
+				 FROM game_sessions gs
+				 LEFT JOIN users u1 ON gs.player1_id = u1.id AND gs.player1_type = 'user'
+				 LEFT JOIN users u2 ON gs.player2_id = u2.id AND gs.player2_type = 'user'
+				 WHERE (gs.player1_id = ? AND gs.player1_type = 'user') 
+				    OR (gs.player2_id = ? AND gs.player2_type = 'user')
+				 ORDER BY gs.game_date DESC
+				 LIMIT 50`,
+				[userId, userId]
+			);
+
+			// Formater les résultats pour être plus lisibles
+			return sessions.map(session => ({
+				id: session.id,
+				player1: {
+					type: session.player1_type,
+					name: session.player1_type === 'user' 
+						? (session.player1_display_name || session.player1_username)
+						: session.player1_name,
+					id: session.player1_id
+				},
+				player2: {
+					type: session.player2_type,
+					name: session.player2_type === 'user'
+						? (session.player2_display_name || session.player2_username)
+						: session.player2_name,
+					id: session.player2_id
+				},
+				winner: session.winner_player,
+				scores: {
+					player1: session.score_player1,
+					player2: session.score_player2
+				},
+				game_type: session.game_type,
+				game_date: session.game_date,
+				duration: session.session_duration
+			}));
 		} catch (error) {
 			throw error;
 		}

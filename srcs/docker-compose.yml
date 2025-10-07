@@ -2,33 +2,36 @@ services:
     chat-service:
         container_name: chat-service
         build: ./requierements/services/chat-service
+        env_file: .env
         ports:
-        - "3001:3001"
+            - "3001:3001"
         networks:
-        - app_network
-        - promgraf_network
+            - app_network
+            - promgraf_network
         restart: unless-stopped
 
     game-service:
         container_name: game-service
         build: ./requierements/services/game-service
+        env_file: .env
         ports:
-        - "3002:3002"
+            - "3002:3002"
         networks:
-        - app_network
-        - promgraf_network
+            - app_network
+            - promgraf_network
         restart: unless-stopped
 
     user-service:
         container_name: user-service
         build: ./requierements/services/user-service
+        env_file: .env
         ports:
-        - "3003:3003"
+            - "3003:3003"
         networks:
-        - app_network
-        - promgraf_network
+            - app_network
+            - promgraf_network
         restart: unless-stopped
-        healthcheck:  # 🔥 Ajouter un health check
+        healthcheck:
             test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
             interval: 30s
             timeout: 10s
@@ -38,11 +41,12 @@ services:
     auth-service:
         container_name: auth-service
         build: ./requierements/services/auth-service
+        env_file: .env
         ports:
-        - "3004:3004"
+            - "3004:3004"
         networks:
-        - app_network
-        - promgraf_network
+            - app_network
+            - promgraf_network
         restart: unless-stopped
 
     #frontend:
@@ -59,28 +63,27 @@ services:
     nginx:
         container_name: nginx
         build:
-          context: ./requierements
-          dockerfile: nginx/Dockerfile
+            context: ./requierements
+            dockerfile: nginx/Dockerfile
         volumes:
-        - ./requierements/frontend:/usr/share/nginx/html
+            - ./requierements/frontend:/usr/share/nginx/html
         ports:
-        - "8080:80"
+            - "8080:80"
         depends_on:
-        - chat-service
-        - game-service
-        - user-service
-        - auth-service
-        #- frontend
+            - chat-service
+            - game-service
+            - user-service
+            - auth-service
         networks:
-        - app_network
+            - app_network
         restart: unless-stopped
 
     elasticsearch:
         build: ./requierements/elk/elasticsearch
         container_name: elasticsearch
         environment:
-        - ELASTIC_PASSWORD=elasticpassword
-        ulimits: # delete ? useless ?
+            - ELASTIC_PASSWORD=elasticpassword
+        ulimits:
             memlock:
                 soft: -1
                 hard: -1
@@ -88,72 +91,72 @@ services:
                 soft: 65536
                 hard: 65536
         volumes:
-        - es_data:/usr/share/elasticsearch/data
+            - es_data:/usr/share/elasticsearch/data
         ports:
-        - "9200:9200"
-        - "9300:9300"
+            - "9200:9200"
+            - "9300:9300"
         networks:
-        - elk_network
+            - elk_network
         restart: unless-stopped
 
     logstash:
         build: ./requierements/elk/logstash
         container_name: logstash
         volumes:
-        - logs_pipeline:/usr/share/logstash/pipeline
-        - logs_config:/usr/share/logstash/config
+            - logs_pipeline:/usr/share/logstash/pipeline
+            - logs_config:/usr/share/logstash/config
         ports:
             - "5044:5044"
         environment:
-        - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-        - elasticsearch.username=logstash
-        - elasticsearch.password=logstashpassword
-        - xpack.monitoring.enabled=false
+            - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+            - elasticsearch.username=logstash
+            - elasticsearch.password=logstashpassword
+            - xpack.monitoring.enabled=false
         networks:
-        - elk_network
+            - elk_network
         depends_on:
-        - elasticsearch
+            - elasticsearch
         restart: unless-stopped
 
     kibana:
         image: docker.elastic.co/kibana/kibana:8.15.0
         container_name: kibana
         environment:
-        - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-        - elasticsearch.username=kibana
-        - elasticsearch.password=kibanapassword
+            - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+            - elasticsearch.username=kibana
+            - elasticsearch.password=kibanapassword
         ports:
-        - "5601:5601"
+            - "5601:5601"
         networks:
-        - elk_network
+            - elk_network
         depends_on:
-        - elasticsearch
+            - elasticsearch
         restart: unless-stopped
 
     prometheus:
-        image: bitnami/prometheus:latest
+        image: prom/prometheus:latest
         container_name: prometheus
         ports:
-        - "9090:9090"
+            - "9090:9090"
         volumes:
-        - prometheus_db:/prometheus
+            - prometheus_db:/prometheus
         networks:
-        - promgraf_network
+            - promgraf_network
         restart: unless-stopped
 
     grafana:
         image: grafana/grafana:latest
         container_name: grafana
         env_file:
-        - .env
+            - .env
         environment:
-        - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+            - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
         ports:
-        - "3010:3000" #modif ports final vis-a-vis des micros serv
+            - "3010:3000"
         volumes:
-        - grafana_db:/var/lib/grafana
+            - grafana_db:/var/lib/grafana
         networks:
-        - promgraf_network
+            - promgraf_network
         restart: unless-stopped
 
 volumes:

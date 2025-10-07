@@ -189,41 +189,124 @@ fastify.get('/api/user/matches/:id', async (request, reply) => {
 	}
 });
 
-// Ajouter un match (pour les autres services)
-fastify.post('/api/user/match', async (request, reply) => {
-	try {
-		const { player1_id, player2_id, winner_id, score_player1, score_player2, game_type } = request.body;
-		
-		if (!player1_id || !player2_id || winner_id === undefined) {
-			return reply.code(400).send({
+	// Ajouter un match (pour les autres services)
+	fastify.post('/api/user/match', async (request, reply) => {
+		try {
+			const { player1_id, player2_id, winner_id, score_player1, score_player2, game_type, 
+					player1_name, player2_name } = request.body;
+			
+			if (!player1_id && !player1_name) {
+				return reply.code(400).send({
+					success: false,
+					error: 'Missing player1_id or player1_name'
+				});
+			}
+			
+			if (!player2_id && !player2_name) {
+				return reply.code(400).send({
+					success: false,
+					error: 'Missing player2_id or player2_name'
+				});
+			}
+			
+			if (winner_id === undefined && !request.body.winner_player) {
+				return reply.code(400).send({
+					success: false,
+					error: 'Missing winner_id or winner_player (1 or 2)'
+				});
+			}
+			
+			// 🎯 LOGIQUE INTELLIGENTE : Choisir la bonne table selon les joueurs
+			const hasGuests = !player1_id || !player2_id;
+			
+			if (hasGuests) {
+				// ✅ Au moins un guest → game_sessions (pas de contraintes FK)
+				const winner_player = request.body.winner_player || 
+									  (winner_id === player1_id ? 1 : 2);
+				
+				const result = await userService.addGameSession({
+					player1_id: player1_id || null,
+					player1_name: player1_name || `Player1_${Date.now()}`,
+					player2_id: player2_id || null, 
+					player2_name: player2_name || `Player2_${Date.now()}`,
+					winner_player,
+					score_player1: score_player1 || 0,
+					score_player2: score_player2 || 0,
+					game_type: game_type || 'pong'
+				});
+				
+				reply.code(201).send({
+					success: true,
+					message: 'Game session recorded successfully (includes guests)',
+					session_id: result.id,
+					stored_in: 'game_sessions'
+				});
+			}
+			else {
+				// ✅ Tous des users → match_history (logique classique avec FK)
+				// Vérifier que les users existent
+				try {
+					await userService.getUserById(player1_id);
+					await userService.getUserById(player2_id);
+				} catch (error) {
+					return reply.code(404).send({
+						success: false,
+						error: `One of the players not found in database`
+					});
+				}
+				
+				const result = await userService.addMatch(
+					player1_id, 
+					player2_id, 
+					winner_id, 
+					score_player1 || 0, 
+					score_player2 || 0, 
+					game_type
+				);
+				
+				reply.code(201).send({
+					success: true,
+					message: 'Match added successfully (users only)',
+					match_id: result.id,
+					stored_in: 'match_history'
+				});
+			}
+		} catch (error) {
+			reply.code(500).send({
 				success: false,
-				error: 'Missing required fields: player1_id, player2_id, winner_id'
+				error: error.message
 			});
 		}
-		
-		const result = await userService.addMatch(
-			player1_id, 
-			player2_id, 
-			winner_id, 
-			score_player1 || 0, 
-			score_player2 || 0, 
-			game_type
-		);
-		
-		reply.code(201).send({
-			success: true,
-			message: 'Match added successfully',
-			match_id: result.id
-		});
-	} catch (error) {
-		reply.code(500).send({
-			success: false,
-			error: error.message
-		});
-	}
-});
+	});
 
-// All interfaces IPV4 (host : '0.0.0.0'), 
+	// 🆕 Nouveau endpoint pour l'historique incluant les guests
+	fastify.get('/api/user/:userId/game-sessions', {
+		preHandler: authenticateToken
+	}, async (request, reply) => {
+		try {
+			const { userId } = request.params;
+			
+			// Vérifier que l'utilisateur demande ses propres données ou est admin
+			if (request.user.userId !== parseInt(userId)) {
+				return reply.code(403).send({
+					success: false,
+					error: 'Access denied'
+				});
+			}
+			
+			const sessions = await userService.getUserGameSessions(userId);
+			
+			reply.send({
+				success: true,
+				sessions
+			});
+		} catch (error) {
+			reply.code(500).send({
+				success: false,
+				error: error.message
+			});
+		}
+	});// All interfaces IPV4 (host : '0.0.0.0'), 
 fastify.listen({ port : 3003, host : '0.0.0.0'}, function (err, address) {
 	if (err) {
 		fastify.log.error(err);
