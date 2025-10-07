@@ -270,6 +270,10 @@ clean:
 			@echo "$(YELLOW) 🔎 Suppression récursive des répertoires node_modules restants...$(RESET)"
 			@bash -c 'find . -type d -name "node_modules" -prune -exec rm -rf {} + 2>/dev/null || true' 2>/dev/null || true
 			@powershell -Command "Get-ChildItem -Path . -Recurse -Directory -Filter node_modules -ErrorAction SilentlyContinue | ForEach-Object { Remove-Item -LiteralPath \$_.FullName -Recurse -Force -ErrorAction SilentlyContinue }" >nul 2>&1 || true
+			@echo "$(YELLOW) 🔎 Suppression des fichiers nuls / placeholders nommés 'nul'...$(RESET)"
+			@bash -c 'find . -type f -name "nul" -exec rm -f {} + 2>/dev/null || true' 2>/dev/null || true
+			@powershell -Command "Get-ChildItem -Path . -Recurse -Filter nul -File -ErrorAction SilentlyContinue | ForEach-Object { Remove-Item -LiteralPath \$_.FullName -Force -ErrorAction SilentlyContinue }" >nul 2>&1 || true
+			@echo "$(DIM)Note: ces fichiers 'nul' semblent être des fichiers placeholder produits par des runs npm (sorties capturées). Ils sont sans danger à supprimer.$(RESET)"
 			 @echo "$(GREEN)$(BOLD) ╔══════════════════════════════════════════════════════════════╗$(RESET)"
 			 @echo "$(GREEN)$(BOLD) ║                 🧹 NETTOYAGE VIOLENT TERMINÉ 🧹              ║$(RESET)"
 			 @echo "$(GREEN)$(BOLD) ╠══════════════════════════════════════════════════════════════╣$(RESET)"
