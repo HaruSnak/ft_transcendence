@@ -2,6 +2,7 @@
 
 import { SocketUser, SocketConnection } from '../../utils/data_types';
 import { UI_ELEMENTS } from '../../utils/app_constants';
+import { friendsManager } from '../../utils/friends_manager';
 
 export class UserManagementService {
     private onlineUsers: SocketUser[] = [];
@@ -15,6 +16,12 @@ export class UserManagementService {
         console.log('👥 Updating online users list:', users);
         this.onlineUsers = users;
         this.renderUserList();
+        
+        // Dispatch event for other components (like online friends widget)
+        const event = new CustomEvent('onlineUsersUpdated', {
+            detail: { users: this.onlineUsers }
+        });
+        document.dispatchEvent(event);
     }
 
     private renderUserList(): void {
@@ -49,6 +56,10 @@ export class UserManagementService {
         const buttonsContainer = document.createElement('div');
         buttonsContainer.className = 'flex gap-1';
 
+        // Add friend button
+        const addFriendButton = this.createAddFriendButton(user);
+        buttonsContainer.appendChild(addFriendButton);
+
         // Profile button
         const profileButton = this.createProfileButton(user);
         buttonsContainer.appendChild(profileButton);
@@ -70,6 +81,34 @@ export class UserManagementService {
             event.stopPropagation();
             window.location.hash = `profile-${user.username}`;
         });
+        return button;
+    }
+
+    private createAddFriendButton(user: SocketUser): HTMLButtonElement {
+        const button = document.createElement('button');
+        button.className = 'text-xs px-1 py-0.5 rounded hover:bg-green-600';
+        const isFriend = friendsManager.isFriend(user.username);
+        button.textContent = isFriend ? '✓' : '+';
+        button.title = isFriend ? 'Remove from friends' : 'Add to friends';
+        
+        button.addEventListener('click', (event) => {
+            event.stopPropagation();
+            if (friendsManager.isFriend(user.username)) {
+                friendsManager.removeFriend(user.username);
+                button.textContent = '+';
+                button.title = 'Add to friends';
+            } else {
+                friendsManager.addFriend(user.username);
+                button.textContent = '✓';
+                button.title = 'Remove from friends';
+                button.className = 'text-xs px-1 py-0.5 rounded hover:bg-red-600';
+            }
+        });
+        
+        if (isFriend) {
+            button.className = 'text-xs px-1 py-0.5 rounded hover:bg-red-600';
+        }
+        
         return button;
     }
 

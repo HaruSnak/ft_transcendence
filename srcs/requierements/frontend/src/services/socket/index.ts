@@ -62,6 +62,10 @@ export class SocketServiceManager {
         return this.blockingSystemService.isUserBlocked(username);
     }
 
+    public getOnlineUsers(): any[] {
+        return this.userManagementService.getOnlineUsers();
+    }
+
     public disconnect(): void {
         this.connectionService.disconnect();
     }

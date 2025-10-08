@@ -173,50 +173,59 @@
                     <button data-action="login" class="btn btn-primary">Login</button>
                 </div>
 
-                <!-- Main profile -->
-                <div data-state="main" class="card hidden" style="margin: 0 auto;">
-                    <!-- Header with avatar and main buttons -->
-                    <div class="flex items-start justify-between mb-xl">
-                        <div class="flex items-center gap-lg">
-                            <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 2px solid var(--border-primary);">
-                                <img data-field="avatar" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;"/>
+                <!-- Main profile with sidebar -->
+                <div data-state="main" class="hidden" style="display: flex; gap: 1.5rem; max-width: 1200px; margin: 0 auto;">
+                    <!-- Main profile card -->
+                    <div class="card" style="flex: 1;">
+                        <!-- Header with avatar and main buttons -->
+                        <div class="flex items-start justify-between mb-xl">
+                            <div class="flex items-center gap-lg">
+                                <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 2px solid var(--border-primary);">
+                                    <img data-field="avatar" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;"/>
+                                </div>
+                                <div>
+                                    <h1 data-field="name" class="text-3xl font-bold"></h1>
+                                </div>
                             </div>
-                            <div>
-                                <h1 data-field="name" class="text-3xl font-bold"></h1>
+                            <!-- Logout button at top right -->
+                            <button data-action="logout" class="btn btn-danger btn-xs" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">🚪 Logout</button>
+                        </div>
+                        <!-- Edit button, login and email below avatar -->
+                        <div class="mb-lg">
+                            <button data-action="edit" class="btn btn-secondary btn-sm mb-sm"> ⚙️ Edit </button>
+                            <div data-field="info" class="text-muted text-sm"></div>
+                        </div>
+
+                        <!-- Statistics -->
+                        <div>
+                            <h3 class="text-lg font-semibold mb-lg">📊 Statistics</h3>
+                            <div class="grid grid-2 gap-md">
+                                <div class="card p-lg text-center">
+                                    <div class="text-2xl font-bold mb-sm">0</div>
+                                    <div class="text-muted text-xs">Wins</div>
+                                </div>
+                                <div class="card p-lg text-center">
+                                    <div class="text-2xl font-bold mb-sm">0</div>
+                                    <div class="text-muted text-xs">Losses</div>
+                                </div>
                             </div>
                         </div>
-                        <!-- Logout button at top right -->
-                        <button data-action="logout" class="btn btn-danger btn-xs" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">🚪 Logout</button>
-                    </div>
-                    <!-- Edit button, login and email below avatar -->
-                    <div class="mb-lg">
-                        <button data-action="edit" class="btn btn-secondary btn-sm mb-sm"> ⚙️ Edit </button>
-                        <div data-field="info" class="text-muted text-sm"></div>
+
+                        <!-- Match history at the bottom -->
+                        <div class="mt-xl pt-xl" style="border-top: 1px solid var(--border-primary);">
+                            <h3 class="text-lg font-semibold mb-lg">🏆 Recent Matches</h3>
+                            <div class="card text-center p-xl text-muted profile-history-scroll">
+                                <div class="text-4xl mb-md">🎮</div>
+                                <p class="mb-md">No matches played yet</p>
+                                <a href="#game-modes" class="text-primary" style="text-decoration: underline;">Start playing</a>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Statistics -->
-                    <div>
-                        <h3 class="text-lg font-semibold mb-lg">📊 Statistics</h3>
-                        <div class="grid grid-2 gap-md">
-                            <div class="card p-lg text-center">
-                                <div class="text-2xl font-bold mb-sm">0</div>
-                                <div class="text-muted text-xs">Wins</div>
-                            </div>
-                            <div class="card p-lg text-center">
-                                <div class="text-2xl font-bold mb-sm">0</div>
-                                <div class="text-muted text-xs">Losses</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Match history at the bottom -->
-                    <div class="mt-xl pt-xl" style="border-top: 1px solid var(--border-primary);">
-                        <h3 class="text-lg font-semibold mb-lg">🏆 Recent Matches</h3>
-                        <div class="card text-center p-xl text-muted profile-history-scroll">
-                            <div class="text-4xl mb-md">🎮</div>
-                            <p class="mb-md">No matches played yet</p>
-                            <a href="#game-modes" class="text-primary" style="text-decoration: underline;">Start playing</a>
-                        </div>
+                    <!-- Online Friends Sidebar -->
+                    <div class="chat-sidebar" style="min-width: 220px; max-width: 250px;">
+                        <h3 class="text-sm font-medium text-secondary mb-md">Online Friends</h3>
+                        <div id="profile-online-friends" class="flex flex-col gap-sm"></div>
                     </div>
                 </div>
 

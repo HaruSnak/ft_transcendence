@@ -3,11 +3,29 @@
 import { User, ProfileUpdateData } from '../utils/data_types';
 import { UserApiService } from '../services/api/user_api_service';
 import { SecurityUtils } from '../utils/SecurityUtils';
+import { OnlineFriendsWidget } from '../components/online_friends_widget';
 
 let isDeletingUser = false;
+let onlineFriendsWidget: OnlineFriendsWidget | null = null;
 
 export function initProfile() {
     loadProfile();
+
+    // Initialize online friends widget
+    if (!onlineFriendsWidget) {
+        onlineFriendsWidget = new OnlineFriendsWidget('profile-online-friends');
+        console.log('✅ Online friends widget initialized');
+        
+        // Get online users from socket service if available
+        import('../services/socket/index.js').then(({ socketService }) => {
+            const onlineUsers = socketService.getOnlineUsers();
+            if (onlineUsers && onlineUsers.length > 0) {
+                onlineFriendsWidget?.updateOnlineUsers(onlineUsers);
+            }
+        }).catch(err => {
+            console.log('⚠️ Socket service not available yet:', err);
+        });
+    }
 
     window.addEventListener('openProfileEdit', () => {
         showEditForm();
@@ -170,13 +188,15 @@ function showState(state: string) {
     });
 
     // Show selected state
-    const stateEl = document.querySelector(`[data-state="${state}"]`);
-    if (stateEl) {
-        stateEl.classList.remove('hidden');
+    const stateEls = document.querySelectorAll(`[data-state="${state}"]`);
+    stateEls.forEach(el => {
+        el.classList.remove('hidden');
+        // For main state, ensure flex display
+        if (state === 'main' && el.getAttribute('style')?.includes('display: flex')) {
+            (el as HTMLElement).style.display = 'flex';
+        }
         console.log(`🔄 Shown state: ${state}`);
-    } else {
-        console.log(`❌ State element not found: ${state}`);
-    }
+    });
 }
 
 function showEditForm() {
