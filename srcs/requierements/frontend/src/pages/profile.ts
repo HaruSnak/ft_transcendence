@@ -175,6 +175,12 @@ function populateFields(user: User, isOtherUser: boolean = false) {
         friendsContainer.style.display = isOtherUser ? 'none' : '';
     }
 
+    // Hide or show the entire friends sidebar
+    const sidebar = document.querySelector('#profile .chat-sidebar') as HTMLElement;
+    if (sidebar) {
+        sidebar.style.display = isOtherUser ? 'none' : '';
+    }
+
     // Update edit form fields only for own profile
     if (!isOtherUser) {
         const editName = document.querySelector('[data-field="edit-name"]') as HTMLInputElement;
