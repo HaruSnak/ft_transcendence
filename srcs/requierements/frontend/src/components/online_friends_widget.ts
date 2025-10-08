@@ -48,6 +48,9 @@ export class OnlineFriendsWidget {
             return;
         }
 
+        // Try to get latest online users from socket service
+        this.updateOnlineUsersFromSocket();
+
         // Get online friends
         const onlineFriends = friendsManager.getOnlineFriends(this.onlineUsers);
 
@@ -65,6 +68,21 @@ export class OnlineFriendsWidget {
         });
 
         console.log(`✅ Rendered ${onlineFriends.length} online friends`);
+    }
+
+    /**
+     * Update online users from socket service if available
+     */
+    private updateOnlineUsersFromSocket(): void {
+        // Dynamically import socket service to avoid circular dependencies
+        import('../services/socket/index.js').then(({ socketService }) => {
+            const onlineUsers = socketService.getOnlineUsers();
+            if (onlineUsers && onlineUsers.length > 0) {
+                this.onlineUsers = onlineUsers;
+            }
+        }).catch(err => {
+            // Socket service not available yet, keep existing onlineUsers
+        });
     }
 
     /**

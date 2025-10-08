@@ -10,6 +10,14 @@ export class UserManagementService {
 
     constructor(private socketConnection: SocketConnection) {
         this.currentUsername = socketConnection.getCurrentUser()?.username || '';
+        this.setupEventListeners();
+    }
+
+    private setupEventListeners(): void {
+        // Listen for friends list updates to refresh the user list
+        document.addEventListener('friendsListUpdated', () => {
+            this.renderUserList();
+        });
     }
 
     public updateOnlineUsers(users: SocketUser[]): void {
