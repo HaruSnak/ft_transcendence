@@ -236,6 +236,20 @@ function showProfileMsg(msg: string, ok: boolean) {
     msgDiv.style.color = ok ? 'var(--success, #22c55e)' : 'var(--danger, #ef4444)';
 }
 
+function showEditMsg(msg: string, ok: boolean) {
+    const msgDiv = document.getElementById('edit-message');
+    if (msgDiv) {
+        msgDiv.textContent = msg;
+        msgDiv.style.color = ok ? 'var(--success, #22c55e)' : 'var(--danger, #ef4444)';
+        msgDiv.classList.remove('hidden');
+        
+        // Hide after 3 seconds
+        setTimeout(() => {
+            msgDiv.classList.add('hidden');
+        }, 3000);
+    }
+}
+
 async function updateProfile() {
     const token = sessionStorage.getItem('authToken');
     if (!token) return;
@@ -257,7 +271,7 @@ async function updateProfile() {
 
     // Validate display name
     if (sanitizedDisplayName && !SecurityUtils.isValidDisplayName(sanitizedDisplayName)) {
-        showProfileMsg('Display name contains invalid characters or is too long.', false);
+        showEditMsg('Display name contains invalid characters or is too long.', false);
         return;
     }
 
@@ -275,12 +289,12 @@ async function updateProfile() {
         try {
             const isAvailable = await UserApiService.checkDisplayNameAvailability(sanitizedDisplayName);
             if (!isAvailable) {
-                showProfileMsg('This display name is already taken.', false);
+                showEditMsg('This display name is already taken.', false);
                 return;
             }
         } catch (error) {
             console.error('Error checking display name availability:', error);
-            showProfileMsg('Display name is already taken.', false);
+            showEditMsg('Display name is already taken.', false);
             return;
         }
     }
@@ -309,7 +323,7 @@ async function updateProfile() {
             console.log('🔧 Update profile - Response data:', JSON.stringify(data, null, 2));
             populateFields(data.user);
             hideEditForm();
-            showProfileMsg('Profile updated successfully!', true);
+            showEditMsg('Profile updated successfully!', true);
             // Update sessionStorage with new user data
             sessionStorage.setItem('user', JSON.stringify(data.user));
             // Update socket with new profile
@@ -319,11 +333,11 @@ async function updateProfile() {
         } else {
             const errorText = await response.text();
             console.error('🔧 Update profile - Error response:', errorText);
-            showProfileMsg('Profile update failed', false);
+            showEditMsg('Profile update failed', false);
         }
     } catch (error) {
         console.error('Profile update error:', error);
-        showProfileMsg('Profile update failed', false);
+        showEditMsg('Profile update failed', false);
     }
 }
 
@@ -373,7 +387,7 @@ async function deleteUser() {
         });
 
         if (response.ok) {
-            showProfileMsg('Compte supprimé avec succès !', true);
+            showEditMsg('Compte supprimé avec succès !', true);
             // Nettoyer et rediriger
             sessionStorage.removeItem('authToken');
             sessionStorage.removeItem('user');
@@ -387,11 +401,11 @@ async function deleteUser() {
                 const errorData = await response.json();
                 errorMsg = errorData.error || errorMsg;
             } catch (e) {}
-            showProfileMsg(errorMsg, false);
+            showEditMsg(errorMsg, false);
         }
     } catch (error) {
         console.error('Delete user error:', error);
-        showProfileMsg('Erreur réseau lors de la suppression.', false);
+        showEditMsg('Erreur réseau lors de la suppression.', false);
     } finally {
         isDeletingUser = false;
     }
@@ -401,17 +415,22 @@ async function uploadAvatar(file: File) {
     const token = sessionStorage.getItem('authToken');
     if (!token || !file) return;
 
-    // Validate file size (max 5MB)
+    // Validate file
     const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
-        showProfileMsg('Avatar file is too large. Maximum size is 5MB.', false);
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    
+    if (file.size === 0) {
+        showEditMsg('Selected file is empty. Please choose a valid image file.', false);
         return;
     }
-
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    
+    if (file.size > maxSize) {
+        showEditMsg('File too large. Images must be under 5MB.', false);
+        return;
+    }
+    
     if (!allowedTypes.includes(file.type)) {
-        showProfileMsg('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.', false);
+        showEditMsg('Unsupported format. Only JPEG, PNG, GIF, and WebP images are accepted.', false);
         return;
     }
 
@@ -434,12 +453,26 @@ async function uploadAvatar(file: File) {
             if (avatarField) {
                 avatarField.src = data.avatar_url;
             }
-            showProfileMsg('Avatar uploaded successfully!', true);
+            showEditMsg('Avatar uploaded successfully!', true);
+            
+            // Update sessionStorage with new avatar
+            const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
+            currentUser.avatar_url = data.avatar_url;
+            sessionStorage.setItem('user', JSON.stringify(currentUser));
         } else {
-            showProfileMsg('Avatar upload failed', false);
+            // Try to get error message from response
+            let errorMsg = 'Upload failed';
+            try {
+                const errorData = await response.json();
+                errorMsg = errorData.error || errorMsg;
+            } catch (e) {
+                // If can't parse JSON, use status text
+                errorMsg = `Upload failed: ${response.status} ${response.statusText}`;
+            }
+            showEditMsg(errorMsg, false);
         }
     } catch (error) {
         console.error('Avatar upload error:', error);
-        showProfileMsg('Avatar upload failed', false);
+        showEditMsg('Network error during upload. Check your connection.', false);
     }
 }

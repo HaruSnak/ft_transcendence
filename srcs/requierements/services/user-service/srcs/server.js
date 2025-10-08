@@ -200,60 +200,37 @@ fastify.post('/api/user/avatar', {
 	preHandler: authenticateToken
 }, async (request, reply) => {
 	try {
+		console.log('Avatar upload: received request');
 		const data = await request.file();
 		if (!data) {
+			console.log('Avatar upload: no file');
 			return reply.code(400).send({ success: false, error: 'No file uploaded' });
 		}
 
 		const userId = request.user.userId;
-		const avatarsDir = path.join(process.cwd(), 'avatars');
-		if (!fs.existsSync(avatarsDir)) {
-			fs.mkdirSync(avatarsDir);
-		}
-
-		const ext = path.extname(data.filename) || '.png';
-		const filename = `${userId}${ext}`;
-		const filepath = path.join(avatarsDir, filename);
-
-		// Save file
+		console.log('Avatar upload: userId', userId);
+		
+		// Read file buffer
 		const buffer = await data.toBuffer();
-		fs.writeFileSync(filepath, buffer);
-
-		// Update user avatar_url
-		const avatarUrl = `/api/user/avatar/${userId}`;
-		await userService.updateUser(userId, { avatar_url: avatarUrl });
+		console.log('Avatar upload: buffer length', buffer.length);
+		
+		// Convert to base64 data URL
+		const base64 = buffer.toString('base64');
+		const mimeType = data.mimetype || 'image/png';
+		const dataUrl = `data:${mimeType};base64,${base64}`;
+		console.log('Avatar upload: dataUrl length', dataUrl.length);
+		
+		// Update user avatar_url with data URL
+		await userService.updateUser(userId, { avatar_url: dataUrl });
+		console.log('Avatar upload: updated user');
 
 		reply.send({
 			success: true,
 			message: 'Avatar uploaded successfully',
-			avatar_url: avatarUrl
+			avatar_url: dataUrl
 		});
 	} catch (error) {
-		reply.code(500).send({
-			success: false,
-			error: error.message
-		});
-	}
-});
-
-// Get avatar
-fastify.get('/api/user/avatar/:id', async (request, reply) => {
-	try {
-		const userId = request.params.id;
-		const avatarsDir = path.join(process.cwd(), 'avatars');
-		if (!fs.existsSync(avatarsDir)) {
-			return reply.code(404).send({ success: false, error: 'Avatar not found' });
-		}
-		const files = fs.readdirSync(avatarsDir);
-		const file = files.find(f => f.startsWith(userId + '.'));
-		if (!file) {
-			return reply.code(404).send({ success: false, error: 'Avatar not found' });
-		}
-		const filepath = path.join(avatarsDir, file);
-		const stream = fs.createReadStream(filepath);
-		reply.type('image/png'); // or detect mime
-		reply.send(stream);
-	} catch (error) {
+		console.error('Avatar upload error:', error);
 		reply.code(500).send({
 			success: false,
 			error: error.message
