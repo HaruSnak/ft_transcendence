@@ -168,7 +168,7 @@ export class OnlineFriendsWidget {
         button.addEventListener('click', (event) => {
             event.stopPropagation();
             sessionStorage.setItem('profileUsername', friend.username);
-            window.location.hash = 'profile';
+            window.location.hash = `profile-${friend.username}`;
         });
         return button;
     }
