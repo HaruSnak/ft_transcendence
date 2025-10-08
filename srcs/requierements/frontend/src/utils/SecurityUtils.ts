@@ -41,9 +41,9 @@ export class SecurityUtils {
         // Trim whitespace
         sanitized = sanitized.trim();
 
-        // Limit length (assuming max 100 chars)
-        if (sanitized.length > 100) {
-            sanitized = sanitized.substring(0, 100);
+        // Limit length (max 24 chars)
+        if (sanitized.length > 24) {
+            sanitized = sanitized.substring(0, 24);
         }
 
         return sanitized;
@@ -81,10 +81,21 @@ export class SecurityUtils {
      * Validate display name format
      */
     static isValidDisplayName(displayName: string): boolean {
-        if (!displayName) return false;
+        return this.validateDisplayName(displayName) === null;
+    }
 
-        // Allow letters, numbers, spaces, underscore, dash, min 1 char, max 100
-        const displayNameRegex = /^[a-zA-Z0-9 _-]{1,100}$/;
-        return displayNameRegex.test(displayName.trim());
+    /**
+     * Validate display name format and return error message if invalid
+     */
+    static validateDisplayName(displayName: string): string | null {
+        if (!displayName) return 'Display name cannot be empty';
+        
+        const trimmed = displayName.trim();
+        if (trimmed !== displayName) return 'Display name cannot have leading or trailing spaces';
+        if (trimmed.length === 0) return 'Display name cannot be empty';
+        if (trimmed.length > 24) return 'Display name too long (max 24 characters)';
+        if (!/^[a-zA-Z0-9]+$/.test(trimmed)) return 'Display name can only contain letters and numbers';
+        
+        return null;
     }
 }

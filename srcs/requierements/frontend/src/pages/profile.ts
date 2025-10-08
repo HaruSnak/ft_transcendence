@@ -264,15 +264,19 @@ async function updateProfile() {
     console.log('🔧 Update profile - Raw form data:', JSON.stringify({ displayName, email, password }, null, 2));
 
     // Sanitize inputs
-    const sanitizedDisplayName = displayName ? SecurityUtils.sanitizeDisplayName(displayName) : '';
+    let sanitizedDisplayName = displayName ? SecurityUtils.sanitizeDisplayName(displayName) : '';
     const sanitizedEmail = email ? SecurityUtils.sanitizeText(email) : '';
 
     console.log('🔧 Update profile - Sanitized data:', JSON.stringify({ sanitizedDisplayName, sanitizedEmail, password }, null, 2));
 
     // Validate display name
-    if (sanitizedDisplayName && !SecurityUtils.isValidDisplayName(sanitizedDisplayName)) {
-        showEditMsg('Display name contains invalid characters or is too long.', false);
-        return;
+    if (sanitizedDisplayName) {
+        const error = SecurityUtils.validateDisplayName(sanitizedDisplayName);
+        if (error) {
+            showEditMsg(error, false);
+            return;
+        }
+        sanitizedDisplayName = sanitizedDisplayName.trim();
     }
 
     // Get current user data to check if fields changed
@@ -289,12 +293,27 @@ async function updateProfile() {
         try {
             const isAvailable = await UserApiService.checkDisplayNameAvailability(sanitizedDisplayName);
             if (!isAvailable) {
-                showEditMsg('This display name is already taken.', false);
+                showEditMsg('Username taken', false);
                 return;
             }
         } catch (error) {
             console.error('Error checking display name availability:', error);
-            showEditMsg('Display name is already taken.', false);
+            showEditMsg('Check error', false);
+            return;
+        }
+    }
+
+    // Check email availability only if it changed
+    if (sanitizedEmail && sanitizedEmail !== currentEmail) {
+        try {
+            const isAvailable = await UserApiService.checkEmailAvailability(sanitizedEmail);
+            if (!isAvailable) {
+                showEditMsg('Email taken', false);
+                return;
+            }
+        } catch (error) {
+            console.error('Error checking email availability:', error);
+            showEditMsg('Email check error', false);
             return;
         }
     }
@@ -420,17 +439,17 @@ async function uploadAvatar(file: File) {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     
     if (file.size === 0) {
-        showEditMsg('Selected file is empty. Please choose a valid image file.', false);
+        showEditMsg('File empty', false);
         return;
     }
     
     if (file.size > maxSize) {
-        showEditMsg('File too large. Images must be under 5MB.', false);
+        showEditMsg('File too large (max 5MB)', false);
         return;
     }
     
     if (!allowedTypes.includes(file.type)) {
-        showEditMsg('Unsupported format. Only JPEG, PNG, GIF, and WebP images are accepted.', false);
+        showEditMsg('Unsupported format (JPEG, PNG, GIF, WebP only)', false);
         return;
     }
 
@@ -461,18 +480,18 @@ async function uploadAvatar(file: File) {
             sessionStorage.setItem('user', JSON.stringify(currentUser));
         } else {
             // Try to get error message from response
-            let errorMsg = 'Upload failed';
+            let errorMsg = 'Upload error';
             try {
                 const errorData = await response.json();
                 errorMsg = errorData.error || errorMsg;
             } catch (e) {
                 // If can't parse JSON, use status text
-                errorMsg = `Upload failed: ${response.status} ${response.statusText}`;
+                errorMsg = `Upload error: ${response.status}`;
             }
             showEditMsg(errorMsg, false);
         }
     } catch (error) {
         console.error('Avatar upload error:', error);
-        showEditMsg('Network error during upload. Check your connection.', false);
+        showEditMsg('Network error', false);
     }
 }

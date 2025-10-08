@@ -148,6 +148,21 @@ export class UserApiService {
         return data.available;
     }
 
+    static async checkEmailAvailability(email: string): Promise<boolean> {
+        const response = await fetch(`${API_BASE_URL}/user/check-email`, {
+            method: 'POST',
+            headers: this.getAuthHeaders(),
+            body: JSON.stringify({ email: email })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to check email availability');
+        }
+
+        const data = await response.json();
+        return data.available;
+    }
+
     static async getFriends(): Promise<User[]> {
         const response = await fetch(`${API_BASE_URL}/user/friends`, {
             headers: this.getAuthHeaders()

@@ -100,11 +100,11 @@ export class OnlineFriendsWidget {
      */
     private renderFriendItem(friend: SocketUser, container: HTMLElement): void {
         const friendItem = document.createElement('div');
-        friendItem.className = 'flex items-center justify-between py-2 px-2 rounded hover:bg-gray-700 cursor-pointer';
+        friendItem.className = 'flex items-center justify-between py-2 px-1 rounded hover:bg-gray-700 cursor-pointer';
         
         // Left side: status indicator + name
         const leftSide = document.createElement('div');
-        leftSide.className = 'flex items-center gap-2';
+        leftSide.className = 'flex items-center gap-1 overflow-hidden';
         
         // Online status indicator
         const statusDot = document.createElement('span');
@@ -113,8 +113,9 @@ export class OnlineFriendsWidget {
         
         // Friend name
         const nameSpan = document.createElement('span');
-        nameSpan.className = 'text-sm';
+        nameSpan.className = 'text-sm truncate flex-1 min-w-0 min-w-24';
         nameSpan.textContent = friend.display_name || friend.username;
+        nameSpan.title = friend.display_name || friend.username;
         
         leftSide.appendChild(statusDot);
         leftSide.appendChild(nameSpan);
@@ -145,7 +146,7 @@ export class OnlineFriendsWidget {
      */
     private createRemoveFriendButton(friend: SocketUser): HTMLButtonElement {
         const button = document.createElement('button');
-        button.className = 'text-xs px-2 py-1 rounded hover:bg-red-600';
+        button.className = 'text-xs px-1 py-0.5 rounded hover:bg-red-600';
         button.textContent = '✕';
         button.title = 'Remove from friends';
         button.addEventListener('click', (event) => {
@@ -162,7 +163,7 @@ export class OnlineFriendsWidget {
      */
     private createProfileButton(friend: SocketUser): HTMLButtonElement {
         const button = document.createElement('button');
-        button.className = 'text-xs px-2 py-1 rounded hover:bg-gray-600';
+        button.className = 'text-xs px-1 py-0.5 rounded hover:bg-gray-600';
         button.textContent = '👤';
         button.title = 'View profile';
         button.addEventListener('click', (event) => {
@@ -178,7 +179,7 @@ export class OnlineFriendsWidget {
      */
     private createMessageButton(friend: SocketUser): HTMLButtonElement {
         const button = document.createElement('button');
-        button.className = 'text-xs px-2 py-1 rounded hover:bg-gray-600';
+        button.className = 'text-xs px-1 py-0.5 rounded hover:bg-gray-600';
         button.textContent = '💬';
         button.title = 'Send message';
         button.addEventListener('click', (event) => {

@@ -123,7 +123,8 @@ export class MessageHandlingService {
         messageElement.classList.add(isOwnMessage ? 'own' : 'other');
 
         const timestamp = new Date(message.timestamp).toLocaleTimeString();
-        messageElement.innerHTML = `<strong>${message.from_display_name || message.from}:</strong> ${message.text} <small>(${timestamp})</small>`;
+        const displayName = message.from_display_name || message.from;
+        messageElement.innerHTML = `<span class="font-bold truncate inline-block max-w-48 min-w-24" title="${displayName}">${displayName}:</span> ${message.text} <small>(${timestamp})</small>`;
 
         messagesContainer.appendChild(messageElement);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -149,8 +150,9 @@ export class MessageHandlingService {
         if (existingConversation) return;
 
         const conversationElement = document.createElement('div');
-        conversationElement.className = 'text-sm py-1 px-2 rounded cursor-pointer hover:bg-gray-600';
+        conversationElement.className = 'text-sm py-1 px-1 rounded cursor-pointer hover:bg-gray-600 truncate min-w-24';
         conversationElement.textContent = displayName;
+        conversationElement.title = displayName;
         conversationElement.setAttribute('data-user', username);
         conversationElement.addEventListener('click', () => {
             this.startDirectMessage(username, displayName);

@@ -52,12 +52,13 @@ export class UserManagementService {
 
     private createUserListItem(user: SocketUser, container: HTMLElement): void {
         const userItem = document.createElement('div');
-        userItem.className = 'flex items-center justify-between py-1 px-2 rounded hover:bg-gray-600';
+        userItem.className = 'flex items-center justify-between py-1 px-1 rounded hover:bg-gray-600 overflow-hidden';
 
         // Username display
         const usernameSpan = document.createElement('span');
-        usernameSpan.className = 'text-sm';
+        usernameSpan.className = 'text-sm truncate flex-1 min-w-0 min-w-24';
         usernameSpan.textContent = user.display_name || user.username;
+        usernameSpan.title = user.display_name || user.username;
         userItem.appendChild(usernameSpan);
 
         // Action buttons container

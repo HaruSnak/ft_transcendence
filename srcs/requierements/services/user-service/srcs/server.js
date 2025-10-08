@@ -2,6 +2,7 @@ import Fastify from 'fastify'
 import client from 'prom-client'
 import userService from './userService.js'
 import { authenticateToken, validateUserData } from './middleware.js'
+import database from './database.js'
 import fs from 'fs'
 import path from 'path'
 
@@ -468,6 +469,38 @@ fastify.post('/api/user/check-display-name', {
 		const existingUser = await database.get(
 			'SELECT id FROM users WHERE display_name = ? AND id != ?',
 			[display_name, request.user.userId]
+		);
+
+		const available = !existingUser;
+		reply.send({
+			success: true,
+			available
+		});
+	} catch (error) {
+		reply.code(500).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
+// Vérifier la disponibilité de l'email
+fastify.post('/api/user/check-email', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		const { email } = request.body;
+		if (!email) {
+			return reply.code(400).send({
+				success: false,
+				error: 'email is required'
+			});
+		}
+
+		// Vérifier si l'email existe déjà (en excluant l' utilisateur actuel)
+		const existingUser = await database.get(
+			'SELECT id FROM users WHERE email = ? AND id != ?',
+			[email, request.user.userId]
 		);
 
 		const available = !existingUser;
