@@ -56,9 +56,11 @@ export class UserManagementService {
         const buttonsContainer = document.createElement('div');
         buttonsContainer.className = 'flex gap-1';
 
-        // Add friend button
-        const addFriendButton = this.createAddFriendButton(user);
-        buttonsContainer.appendChild(addFriendButton);
+        // Add friend button only if not friend
+        if (!friendsManager.isFriend(user.username)) {
+            const addFriendButton = this.createAddFriendButton(user);
+            buttonsContainer.appendChild(addFriendButton);
+        }
 
         // Profile button
         const profileButton = this.createProfileButton(user);
@@ -87,27 +89,15 @@ export class UserManagementService {
     private createAddFriendButton(user: SocketUser): HTMLButtonElement {
         const button = document.createElement('button');
         button.className = 'text-xs px-1 py-0.5 rounded hover:bg-green-600';
-        const isFriend = friendsManager.isFriend(user.username);
-        button.textContent = isFriend ? '✓' : '+';
-        button.title = isFriend ? 'Remove from friends' : 'Add to friends';
+        button.textContent = '+';
+        button.title = 'Add to friends';
         
         button.addEventListener('click', (event) => {
             event.stopPropagation();
-            if (friendsManager.isFriend(user.username)) {
-                friendsManager.removeFriend(user.username);
-                button.textContent = '+';
-                button.title = 'Add to friends';
-            } else {
-                friendsManager.addFriend(user.username);
-                button.textContent = '✓';
-                button.title = 'Remove from friends';
-                button.className = 'text-xs px-1 py-0.5 rounded hover:bg-red-600';
-            }
+            friendsManager.addFriend(user.username);
+            alert('Ami ajouté !');
+            button.style.display = 'none';
         });
-        
-        if (isFriend) {
-            button.className = 'text-xs px-1 py-0.5 rounded hover:bg-red-600';
-        }
         
         return button;
     }

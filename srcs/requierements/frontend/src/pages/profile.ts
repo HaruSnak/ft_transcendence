@@ -11,22 +11,6 @@ let onlineFriendsWidget: OnlineFriendsWidget | null = null;
 export function initProfile() {
     loadProfile();
 
-    // Initialize online friends widget
-    if (!onlineFriendsWidget) {
-        onlineFriendsWidget = new OnlineFriendsWidget('profile-online-friends');
-        console.log('✅ Online friends widget initialized');
-        
-        // Get online users from socket service if available
-        import('../services/socket/index.js').then(({ socketService }) => {
-            const onlineUsers = socketService.getOnlineUsers();
-            if (onlineUsers && onlineUsers.length > 0) {
-                onlineFriendsWidget?.updateOnlineUsers(onlineUsers);
-            }
-        }).catch(err => {
-            console.log('⚠️ Socket service not available yet:', err);
-        });
-    }
-
     window.addEventListener('openProfileEdit', () => {
         showEditForm();
     });
@@ -121,6 +105,22 @@ async function loadProfile() {
                 if (editBtn) (editBtn as HTMLElement).style.display = '';
                 const logoutBtn = document.querySelector('[data-action="logout"]');
                 if (logoutBtn) (logoutBtn as HTMLElement).style.display = '';
+                
+                // Initialize online friends widget for own profile
+                if (!onlineFriendsWidget) {
+                    onlineFriendsWidget = new OnlineFriendsWidget('profile-online-friends');
+                    console.log('✅ Online friends widget initialized');
+                    
+                    // Get online users from socket service if available
+                    import('../services/socket/index.js').then(({ socketService }) => {
+                        const onlineUsers = socketService.getOnlineUsers();
+                        if (onlineUsers && onlineUsers.length > 0) {
+                            onlineFriendsWidget?.updateOnlineUsers(onlineUsers);
+                        }
+                    }).catch(err => {
+                        console.log('⚠️ Socket service not available yet:', err);
+                    });
+                }
             }
         } else {
             // Si 403, on nettoie le token et on affiche un message
@@ -167,6 +167,12 @@ function populateFields(user: User, isOtherUser: boolean = false) {
             avatar = '/assets/default-avatar.png';
         }
         avatarField.src = avatar;
+    }
+
+    // Hide or show friends list
+    const friendsContainer = document.getElementById('profile-online-friends');
+    if (friendsContainer) {
+        friendsContainer.style.display = isOtherUser ? 'none' : '';
     }
 
     // Update edit form fields only for own profile

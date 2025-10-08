@@ -65,10 +65,6 @@ export class SocketServiceManager {
     public getOnlineUsers(): any[] {
         return this.userManagementService.getOnlineUsers();
     }
-
-    public disconnect(): void {
-        this.connectionService.disconnect();
-    }
 }
 
 // Export singleton instance
