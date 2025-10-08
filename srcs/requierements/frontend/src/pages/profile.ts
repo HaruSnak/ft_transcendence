@@ -1,6 +1,8 @@
 // src/pages/profile.ts
 
 import { User, ProfileUpdateData } from '../utils/data_types';
+import { UserApiService } from '../services/api/user_api_service';
+import { SecurityUtils } from '../utils/SecurityUtils';
 
 let isDeletingUser = false;
 
@@ -153,11 +155,9 @@ function populateFields(user: User, isOtherUser: boolean = false) {
     if (!isOtherUser) {
         const editName = document.querySelector('[data-field="edit-name"]') as HTMLInputElement;
         const editEmail = document.querySelector('[data-field="edit-email"]') as HTMLInputElement;
-        const editLogin = document.querySelector('[data-field="edit-login"]') as HTMLInputElement;
 
         if (editName) editName.value = user.display_name || user.username || '';
         if (editEmail) editEmail.value = user.email || '';
-        if (editLogin) editLogin.value = user.username || '';
     }
 }
 
@@ -211,11 +211,54 @@ async function updateProfile() {
     const form = document.querySelector('[data-state="edit"]') as HTMLFormElement;
     const formData = new FormData(form);
 
+    const displayName = formData.get('name') as string;
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    console.log('🔧 Update profile - Raw form data:', JSON.stringify({ displayName, email, password }, null, 2));
+
+    // Sanitize inputs
+    const sanitizedDisplayName = displayName ? SecurityUtils.sanitizeDisplayName(displayName) : '';
+    const sanitizedEmail = email ? SecurityUtils.sanitizeText(email) : '';
+
+    console.log('🔧 Update profile - Sanitized data:', JSON.stringify({ sanitizedDisplayName, sanitizedEmail, password }, null, 2));
+
+    // Validate display name
+    if (sanitizedDisplayName && !SecurityUtils.isValidDisplayName(sanitizedDisplayName)) {
+        showProfileMsg('Display name contains invalid characters or is too long.', false);
+        return;
+    }
+
+    // Get current user data to check if fields changed
+    const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
+    const currentDisplayName = currentUser.display_name || currentUser.username || '';
+    const currentEmail = currentUser.email || '';
+
+    console.log('🔧 Update profile - Current user:', JSON.stringify(currentUser, null, 2));
+    console.log('🔧 Update profile - Current display name:', currentDisplayName);
+    console.log('🔧 Update profile - Current email:', currentEmail);
+
+    // Check display name availability only if it changed
+    if (sanitizedDisplayName && sanitizedDisplayName !== currentDisplayName) {
+        try {
+            const isAvailable = await UserApiService.checkDisplayNameAvailability(sanitizedDisplayName);
+            if (!isAvailable) {
+                showProfileMsg('This display name is already taken.', false);
+                return;
+            }
+        } catch (error) {
+            console.error('Error checking display name availability:', error);
+            showProfileMsg('Display name is already taken.', false);
+            return;
+        }
+    }
+
     const updateData: ProfileUpdateData = {};
-    if (formData.get('name')) updateData.display_name = formData.get('name') as string;
-    if (formData.get('email')) updateData.email = formData.get('email') as string;
-    if (formData.get('login')) updateData.username = formData.get('login') as string;
-    if (formData.get('password')) updateData.password = formData.get('password') as string;
+    if (sanitizedDisplayName) updateData.display_name = sanitizedDisplayName;
+    if (sanitizedEmail !== currentEmail) updateData.email = sanitizedEmail; // Include email if changed
+    if (password) updateData.password = password;
+
+    console.log('🔧 Update profile - Data to send:', JSON.stringify(updateData, null, 2));
 
     try {
         const response = await fetch('/api/user/profile', {
@@ -227,8 +270,11 @@ async function updateProfile() {
             body: JSON.stringify(updateData),
         });
 
+        console.log('🔧 Update profile - Response status:', response.status);
+
         if (response.ok) {
             const data = await response.json();
+            console.log('🔧 Update profile - Response data:', JSON.stringify(data, null, 2));
             populateFields(data.user);
             hideEditForm();
             showProfileMsg('Profile updated successfully!', true);
@@ -239,6 +285,8 @@ async function updateProfile() {
                 socketService.updateUserProfile(data.user);
             });
         } else {
+            const errorText = await response.text();
+            console.error('🔧 Update profile - Error response:', errorText);
             showProfileMsg('Profile update failed', false);
         }
     } catch (error) {
@@ -320,6 +368,20 @@ async function deleteUser() {
 async function uploadAvatar(file: File) {
     const token = sessionStorage.getItem('authToken');
     if (!token || !file) return;
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+        showProfileMsg('Avatar file is too large. Maximum size is 5MB.', false);
+        return;
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+        showProfileMsg('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.', false);
+        return;
+    }
 
     const formData = new FormData();
     formData.append('avatar', file);

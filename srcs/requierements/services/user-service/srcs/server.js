@@ -474,6 +474,38 @@ fastify.put('/api/user/game-invitation/:id', {
 	}
 });
 
+// Vérifier la disponibilité du display name
+fastify.post('/api/user/check-display-name', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		const { display_name } = request.body;
+		if (!display_name) {
+			return reply.code(400).send({
+				success: false,
+				error: 'display_name is required'
+			});
+		}
+
+		// Vérifier si le display name existe déjà (en excluant l' utilisateur actuel)
+		const existingUser = await database.get(
+			'SELECT id FROM users WHERE display_name = ? AND id != ?',
+			[display_name, request.user.userId]
+		);
+
+		const available = !existingUser;
+		reply.send({
+			success: true,
+			available
+		});
+	} catch (error) {
+		reply.code(500).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
 // All interfaces IPV4 (host : '0.0.0.0'), 
 fastify.listen({ port : 3003, host : '0.0.0.0'}, function (err, address) {
 	if (err) {

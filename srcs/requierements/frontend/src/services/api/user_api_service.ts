@@ -132,4 +132,81 @@ export class UserApiService {
             });
         }
     }
+
+    static async checkDisplayNameAvailability(displayName: string): Promise<boolean> {
+        const response = await fetch(`${API_BASE_URL}/user/check-display-name`, {
+            method: 'POST',
+            headers: this.getAuthHeaders(),
+            body: JSON.stringify({ display_name: displayName })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to check display name availability');
+        }
+
+        const data = await response.json();
+        return data.available;
+    }
+
+    static async getFriends(): Promise<User[]> {
+        const response = await fetch(`${API_BASE_URL}/user/friends`, {
+            headers: this.getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch friends');
+        }
+
+        const data = await response.json();
+        return data.friends || [];
+    }
+
+    static async sendFriendRequest(friendId: number): Promise<void> {
+        const response = await fetch(`${API_BASE_URL}/user/friend-request`, {
+            method: 'POST',
+            headers: this.getAuthHeaders(),
+            body: JSON.stringify({ friend_id: friendId })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to send friend request');
+        }
+    }
+
+    static async acceptFriendRequest(requestId: number): Promise<void> {
+        const response = await fetch(`${API_BASE_URL}/user/friend-request/${requestId}/accept`, {
+            method: 'PUT',
+            headers: this.getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to accept friend request');
+        }
+    }
+
+    static async declineFriendRequest(requestId: number): Promise<void> {
+        const response = await fetch(`${API_BASE_URL}/user/friend-request/${requestId}/decline`, {
+            method: 'PUT',
+            headers: this.getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to decline friend request');
+        }
+    }
+
+    static async removeFriend(friendId: number): Promise<void> {
+        const response = await fetch(`${API_BASE_URL}/user/friend/${friendId}`, {
+            method: 'DELETE',
+            headers: this.getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to remove friend');
+        }
+    }
 }

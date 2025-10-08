@@ -50,3 +50,19 @@ export interface ProfileUpdateData {
     username?: string;
     password?: string;
 }
+
+export interface Friend {
+    id: number;
+    username: string;
+    display_name?: string;
+    avatar_url?: string;
+    is_online?: boolean;
+}
+
+export interface FriendRequest {
+    id: number;
+    from_user: User;
+    to_user: User;
+    status: 'pending' | 'accepted' | 'declined';
+    created_at: string;
+}

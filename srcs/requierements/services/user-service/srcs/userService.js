@@ -170,17 +170,51 @@ class UserService {
 	// Mettre à jour le profil utilisateur
 	async updateUser(userId, updates) {
 		try {
-			const { display_name, avatar_url, has_seen_welcome } = updates;
+			const { display_name, email, password, avatar_url, has_seen_welcome } = updates;
 			
-			const result = await database.run(
-				`UPDATE users SET 
-				 display_name = COALESCE(?, display_name),
-				 avatar_url = COALESCE(?, avatar_url),
-				 has_seen_welcome = COALESCE(?, has_seen_welcome),
-				 updated_at = CURRENT_TIMESTAMP
-				 WHERE id = ?`,
-				[display_name, avatar_url, has_seen_welcome, userId]
-			);
+			// Préparer les valeurs pour la requête
+			let updateFields = [];
+			let updateValues = [];
+			
+			if (display_name !== undefined) {
+				updateFields.push('display_name = ?');
+				updateValues.push(display_name);
+			}
+			
+			if (email !== undefined) {
+				updateFields.push('email = ?');
+				updateValues.push(email);
+			}
+			
+			if (password !== undefined) {
+				// Hasher le nouveau mot de passe
+				const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
+				updateFields.push('password_hash = ?');
+				updateValues.push(password_hash);
+			}
+			
+			if (avatar_url !== undefined) {
+				updateFields.push('avatar_url = ?');
+				updateValues.push(avatar_url);
+			}
+			
+			if (has_seen_welcome !== undefined) {
+				updateFields.push('has_seen_welcome = ?');
+				updateValues.push(has_seen_welcome);
+			}
+			
+			// Ajouter updated_at et WHERE clause
+			updateFields.push('updated_at = CURRENT_TIMESTAMP');
+			updateValues.push(userId);
+			
+			if (updateFields.length === 1) {
+				// Seulement updated_at, rien à mettre à jour
+				return await this.getUserById(userId);
+			}
+			
+			const sql = `UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`;
+			
+			const result = await database.run(sql, updateValues);
 
 			if (result.changes === 0) {
 				throw new Error('User not found');
