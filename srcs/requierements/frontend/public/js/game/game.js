@@ -1,46 +1,28 @@
 // src/game.ts
 import { PongGameUI } from './PongGameUI.js';
+/*
+    Instance singleton du jeu Pong
+    Garantit qu'une seule instance du jeu existe à la fois
+*/
 let gameUIInstance = null;
-// ==================== INITIALISATION and UPDATE ====================
-// Initialiser le jeu
+// ==================== INITIALISATION and CLEANUP ====================
+/*
+    Initialise le jeu Pong et crée l'interface utilisateur
+    Nettoie l'instance précédente si elle existe (évite les fuites mémoire)
+    Appelée depuis le système de navigation (index.ts) lors de l'accès à #game
+*/
 export function initGame() {
     if (gameUIInstance) {
         gameUIInstance.getCleanUpGame();
     }
     gameUIInstance = new PongGameUI();
 }
+/*
+    Nettoie complètement le jeu et libère les ressources
+    Réinitialise l'instance à null pour permettre le garbage collection
+    Appelée depuis le système de navigation lors de la sortie de #game
+*/
 export function cleanUpGame() {
     gameUIInstance?.getCleanUpGame();
     gameUIInstance = null;
 }
-/*// ==================== BOT ====================
-// Faire bouger le bot
-function moveBot() {
-    if (!gameRunning || gamePaused)
-        return;
-
-    // Position cible : centre du paddle aligné avec la balle
-    const targetVerticalPosition = ball.y - TARGET_POSITION_OFFSET;
-
-    // Simuler un délai (si le temps est écoulé, bouger)
-    if (Math.random() < 0.2 * (1000 / botDelay)) // Probabilité ajustée
-    {
-        console.log('Bot bouge, targetY:', targetVerticalPosition, 'currentY:', rightPaddle.y); // Débogage
-        if (targetVerticalPosition > rightPaddle.y && rightPaddle.y < PADDLE_MAX_Y)
-            rightPaddle.y += PADDLE_SPEED;
-        else if (targetVerticalPosition < rightPaddle.y && rightPaddle.y > 0)
-            rightPaddle.y -= PADDLE_SPEED;
-    }
-}
-
-// Ajuster la difficulté du bot par intervalles de score
-function adjustBotDifficulty() {
-    const totalScore = leftPaddle.score + rightPaddle.score;
-    if (totalScore == 1)
-        botDelay = 280; // Facile (0-4 points)
-    else if (totalScore == 2)
-        botDelay = 260; // Moyen (5-9 points, augmenté pour être moins dur)
-    else
-        botDelay = 250; // Difficile (10+ points, fixé pour éviter l'inbattabilité)
-    console.log('Nouveau délai du bot:', botDelay); // Débogage
-}*/ 

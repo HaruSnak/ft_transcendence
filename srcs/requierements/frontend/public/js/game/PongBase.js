@@ -1,4 +1,9 @@
 export class PongGame {
+    /**
+        Constructeur - Initialise le jeu Pong avec les éléments DOM
+        Configure le canvas et le contexte de rendu 2D
+        Ajoute les écouteurs d'événements clavier avec addEventListener()
+    */
     constructor(buttonStart, buttonPause, divMessageWinOrLose, divScoreInGame) {
         this.buttonStart = buttonStart;
         this.buttonPause = buttonPause;
@@ -11,11 +16,11 @@ export class PongGame {
         this.PADDLE_HEIGHT = 100; // Hauteur des paddles
         this.BALL_SIZE = 12; // Taille de la balle
         this.PADDLE_SPEED = 3; // Vitesse des paddles
-        this.BALL_SPEED = 1; // Vitesse de la balle (fixe, pas de changement) | 2.7
-        this.WINNING_SCORE = 1; // Score pour gagner la partie | 10
+        this.BALL_SPEED = 1.8; // Vitesse de la balle (fixe, pas de changement) | 2.7
+        this.WINNING_SCORE = 3; // Score pour gagner la partie | 10
         // Stocker les touches
         this.keys = new Set();
-        // ==================== État du jeu ====================
+        // ==================== Constantes de positionnement ====================
         this.INITIAL_PADDLE_Y = this.CANVAS_HEIGHT / 2 - this.PADDLE_HEIGHT / 2; // Position verticale initiale des paddles
         this.BALL_CENTER_X = this.CANVAS_WIDTH / 2; // Centre horizontal de la balle
         this.BALL_CENTER_Y = this.CANVAS_HEIGHT / 2; // Centre vertical de la balle
@@ -23,18 +28,26 @@ export class PongGame {
         this.SCORE_RIGHT_X = 3 * this.CANVAS_WIDTH / 4; // Position X du score droit
         this.PADDLE_MAX_Y = this.CANVAS_HEIGHT - this.PADDLE_HEIGHT; // Limite supérieure des paddles
         this.RIGHT_PADDLE_STARTING_X_POSITION = this.CANVAS_WIDTH - this.PADDLE_WIDTH; // Position horizontale initiale du paddle droit
-        //private readonly TARGET_POSITION_OFFSET = this.PADDLE_HEIGHT / 2;              // Décalage pour centrer la position cible du bot
+        // ==================== Zones de collision ====================
         this.LEFT_PADDLE_EDGE = this.PADDLE_WIDTH; // Bord gauche du paddle gauche
         this.RIGHT_PADDLE_EDGE = this.CANVAS_WIDTH - this.PADDLE_WIDTH; // Bord droit du paddle droit
+        // ==================== État des entités de jeu ====================
         this.leftPaddle = { x: 0, y: this.INITIAL_PADDLE_Y, score: 0 };
         this.rightPaddle = { x: this.RIGHT_PADDLE_STARTING_X_POSITION, y: this.INITIAL_PADDLE_Y, score: 0 };
         this.ball = { x: this.BALL_CENTER_X, y: this.BALL_CENTER_Y, speed_x: this.BALL_SPEED, speed_y: this.BALL_SPEED };
+        // ==================== État du jeu et modes ====================
         this.gameRunning = false; // Jeu en cours
         this.gamePaused = false; // Jeu en pause
         this.gameBotGM = false; // Gamemode Bot
         this.gameLocalGM = false; // Gamemode Local
         this.gameTournamentGM = false; // Gamemode Tournament
-        this.botDelay = 300; // Délai initial du bot en ms (0.3 seconde, facile)
+        // ==================== Module IA ====================
+        this.lastAITime = 0;
+        this.aiTargetY = this.INITIAL_PADDLE_Y; // Position cible prédite par l'IA
+        this.aiPredictedBallY = this.BALL_CENTER_Y; // Position Y prédite de la balle
+        this.aiUpdateInterval = 1000; // L'IA met à jour sa vue chaque seconde
+        this.aiReactionDelay = 0.15; // Délai de réaction pour simuler un comportement humain
+        this.aiPredictionError = 0; // Erreur de prédiction pour rendre l'IA moins parfaite
         // Initialiser canvas et contexte
         this.canvas = document.getElementById('pongCanvas');
         this.ctx = this.canvas.getContext('2d');
@@ -43,6 +56,11 @@ export class PongGame {
         window.addEventListener('keyup', (e) => this.keys.delete(e.key));
     }
     // ==================== START and PAUSE ====================
+    /**
+        Affiche le message de pré-jeu avant le début d'une partie
+        Utilise innerHTML pour créer dynamiquement le contenu HTML
+        Affiche les noms des joueurs ou valeurs par défaut ('You' vs 'Bot')
+    */
     showPreGameMessage() {
         this.divMessageWinOrLose.classList.remove('hidden');
         this.divMessageWinOrLose.style.color = 'oklch(98.7% 0.022 95.277)';
@@ -56,6 +74,11 @@ export class PongGame {
     	`;
         return;
     }
+    /**
+        Dessine les noms des joueurs en haut du canvas
+        Affiche 'You' vs 'Bot' en mode Bot, sinon les noms réels des joueurs
+        Utilise ctx.fillText() pour le rendu texte
+    */
     drawPlayerNames() {
         if (this.gameBotGM) {
             this.ctx.fillText(`You`, this.SCORE_LEFT_X, 50);
@@ -66,7 +89,12 @@ export class PongGame {
             this.ctx.fillText(this.currentMatch[1].displayName, this.SCORE_RIGHT_X, 50);
         }
     }
-    // Dessiner le jeu
+    /**
+        Dessine tous les éléments du jeu sur le canvas
+        Efface le canvas avec clearRect(), dessine les paddles, la balle et les scores
+        Utilise fillRect() pour les formes rectangulaires et fillText() pour le texte
+        Appelée à chaque frame de l'animation via requestAnimationFrame()
+    */
     draw() {
         if (!this.ctx)
             return;
@@ -84,20 +112,34 @@ export class PongGame {
         this.ctx.fillStyle = "red";
         this.ctx.fillRect(this.ball.x - this.BALL_SIZE / 2, this.ball.y - this.BALL_SIZE / 2, this.BALL_SIZE, this.BALL_SIZE);
     }
-    // Gérer les touches du joueur
+    /**
+        Gère les inputs clavier des joueurs via le Set keys
+        Joueur gauche : touches W/S, Joueur droit : flèches haut/bas
+        En mode Bot, l'IA simule les touches fléchées pour contrôler le paddle droit
+        Vérifie les limites du terrain pour empêcher les paddles de sortir
+    */
     handleInput() {
+        // Joueur gauche (touches W/S)
         if (this.keys.has('w') && this.leftPaddle.y > 0)
             this.leftPaddle.y -= this.PADDLE_SPEED;
         if (this.keys.has('s') && this.leftPaddle.y < this.PADDLE_MAX_Y)
             this.leftPaddle.y += this.PADDLE_SPEED;
-        if ((this.gameLocalGM || this.gameTournamentGM && this.currentMatch[1].displayName != 'Bot')
+        // Joueur droit (touches fléchées)
+        // En mode Bot, l'IA contrôle le paddle droit via les touches fléchées simulées
+        // En mode Local ou Tournoi (sans Bot), le joueur humain contrôle le paddle droit
+        if ((this.gameLocalGM || this.gameTournamentGM && this.currentMatch[1].displayName != 'Bot' || this.gameBotGM)
             && this.keys.has('ArrowUp') && this.rightPaddle.y > 0)
             this.rightPaddle.y -= this.PADDLE_SPEED;
-        if ((this.gameLocalGM || this.gameTournamentGM && this.currentMatch[1].displayName != 'Bot')
+        if ((this.gameLocalGM || this.gameTournamentGM && this.currentMatch[1].displayName != 'Bot' || this.gameBotGM)
             && this.keys.has('ArrowDown') && this.rightPaddle.y < this.PADDLE_MAX_Y)
             this.rightPaddle.y += this.PADDLE_SPEED;
     }
-    // Mettre à jour le jeu
+    /**
+        Boucle principale du jeu - Met à jour la physique et l'état du jeu
+        Gère le mouvement de la balle, les collisions, les scores et les inputs
+        Appelle l'IA en mode Bot avec updateAI()
+        Utilise requestAnimationFrame() pour créer la boucle d'animation
+    */
     update() {
         if (!this.gameRunning || this.gamePaused)
             return;
@@ -109,30 +151,43 @@ export class PongGame {
         // Déplacer la balle dans les deux directions
         this.ball.x += this.ball.speed_x;
         this.ball.y += this.ball.speed_y;
-        // Rebondir sur les murs
-        if (this.ball.y < 0 || this.ball.y > this.CANVAS_HEIGHT)
-            this.ball.speed_y = -this.ball.speed_y;
-        // Collisions avec les paddles
-        if (this.ball.x < this.LEFT_PADDLE_EDGE && this.ball.y > this.leftPaddle.y && this.ball.y < this.leftPaddle.y + this.PADDLE_HEIGHT) {
-            this.ball.speed_x = -this.ball.speed_x;
+        // Rebondir sur les murs haut et bas
+        if (this.ball.y <= 0) {
+            this.ball.y = 0;
+            this.ball.speed_y = Math.abs(this.ball.speed_y); // Forcer vers le bas
         }
-        if (this.ball.x > this.RIGHT_PADDLE_EDGE && this.ball.y > this.rightPaddle.y && this.ball.y < this.rightPaddle.y + this.PADDLE_HEIGHT) {
-            this.ball.speed_x = -this.ball.speed_x;
+        if (this.ball.y >= this.CANVAS_HEIGHT) {
+            this.ball.y = this.CANVAS_HEIGHT;
+            this.ball.speed_y = -Math.abs(this.ball.speed_y); // Forcer vers le haut
+        }
+        // Collision avec le paddle GAUCHE
+        if (this.ball.speed_x < 0 && this.ball.x - this.BALL_SIZE / 2 <= this.LEFT_PADDLE_EDGE &&
+            this.ball.y >= this.leftPaddle.y && this.ball.y <= this.leftPaddle.y + this.PADDLE_HEIGHT) {
+            this.ball.speed_x = Math.abs(this.ball.speed_x);
+            this.ball.x = this.LEFT_PADDLE_EDGE + this.BALL_SIZE / 2;
+        }
+        // Collision avec le paddle DROIT
+        if (this.ball.speed_x > 0 && this.ball.x + this.BALL_SIZE / 2 >= this.RIGHT_PADDLE_EDGE &&
+            this.ball.y >= this.rightPaddle.y && this.ball.y <= this.rightPaddle.y + this.PADDLE_HEIGHT) {
+            this.ball.speed_x = -Math.abs(this.ball.speed_x);
+            this.ball.x = this.RIGHT_PADDLE_EDGE - this.BALL_SIZE / 2;
         }
         // Points et reset
         if (this.ball.x < 0) {
             this.rightPaddle.score++;
-            //adjustBotDifficulty();
+            if (this.gameBotGM)
+                this.adjustAIDifficulty();
             this.resetBall();
         }
         if (this.ball.x > this.CANVAS_WIDTH) {
             this.leftPaddle.score++;
-            //this.adjustBotDifficulty();
+            if (this.gameBotGM)
+                this.adjustAIDifficulty();
             this.resetBall();
         }
         this.handleInput(); // Joueur
         if (this.gameBotGM) // Bot Gamemode
-            console.log('GameBot');
+            this.updateAI();
         if (this.gameTournamentGM)
             console.log('GameTournament');
         //this.moveBot();
@@ -140,7 +195,11 @@ export class PongGame {
         this.animationFrameId = requestAnimationFrame(() => this.update());
     }
     // ==================== START and PAUSE ====================
-    // Timer pour start le lancement du jeu
+    /**
+        Affiche un compte à rebours visuel avant le début du jeu
+        Utilise setInterval() pour compter de 3 à 0 puis affiche 'GO!'
+        Sauvegarde/restaure le contexte canvas avec save() et restore()
+    */
     startCountdown(callback) {
         let countdown = 3;
         const countdownInterval = setInterval(() => {
@@ -160,7 +219,11 @@ export class PongGame {
             }
         }, 1000);
     }
-    // Lancer le jeu
+    /**
+        Lance une nouvelle partie de jeu
+        Réinitialise l'état, affiche le compte à rebours puis démarre la boucle update()
+        Configure les boutons et définit une direction aléatoire pour la balle
+    */
     startGame() {
         if (!this.gameRunning) {
             console.log(`start jeu`);
@@ -171,12 +234,17 @@ export class PongGame {
                 this.gameRunning = true;
                 this.gamePaused = false;
                 this.divScoreInGame.style.display = 'block';
+                this.ball.speed_y = Math.random() > 0.5 ? this.BALL_SPEED : -this.BALL_SPEED;
                 this.update();
                 this.buttonPause.disabled = false;
             });
         }
     }
-    // Mettre en pause ou reprendre
+    /**
+        Met le jeu en pause ou le reprend
+        Change le texte du bouton entre 'Pause' et 'Resume'
+        Relance update() lors de la reprise
+    */
     pauseGame() {
         if (this.gameRunning) {
             if (!this.gamePaused) {
@@ -191,7 +259,11 @@ export class PongGame {
         }
     }
     // ==================== RESET, CLEAN and END ====================
-    // Réinitialiser la balle et les paddles après un goal
+    /**
+        Réinitialise la position de la balle et des paddles après un but
+        Inverse la direction horizontale de la balle
+        Génère une direction verticale aléatoire avec Math.random()
+    */
     resetBall() {
         this.ball.x = this.BALL_CENTER_X;
         this.ball.y = this.BALL_CENTER_Y;
@@ -200,22 +272,39 @@ export class PongGame {
         this.leftPaddle.y = this.INITIAL_PADDLE_Y; // Réinitialiser le paddle gauche
         this.rightPaddle.y = this.INITIAL_PADDLE_Y; // Réinitialiser le paddle droit
     }
-    // Réinitialiser l'état
+    /**
+        Réinitialise complètement l'état du jeu
+        Remet les paddles, la balle et l'IA à leurs valeurs initiales
+        Annule l'animation frame en cours avec cancelAnimationFrame()
+        Nettoie les touches simulées par l'IA
+    */
     resetGameState() {
         this.leftPaddle = { x: 0, y: this.INITIAL_PADDLE_Y, score: 0 };
         this.rightPaddle = { x: this.RIGHT_PADDLE_STARTING_X_POSITION, y: this.INITIAL_PADDLE_Y, score: 0 };
         this.ball = { x: this.BALL_CENTER_X, y: this.BALL_CENTER_Y, speed_x: this.BALL_SPEED, speed_y: this.BALL_SPEED };
         this.gameRunning = false;
-        this.botDelay = 300; // Réinitialiser le délai du bot
+        this.lastAITime = 0;
+        this.aiTargetY = this.INITIAL_PADDLE_Y;
+        this.aiPredictedBallY = this.BALL_CENTER_Y;
+        this.aiReactionDelay = 0.15;
+        this.keys.delete('ArrowUp');
+        this.keys.delete('ArrowDown');
         if (this.animationFrameId)
             cancelAnimationFrame(this.animationFrameId);
     }
-    // Réinitialiser le jeu
+    /**
+        Nettoie complètement le jeu lors d'un changement de page ou mode
+        Arrête l'animation, réinitialise l'état, supprime les event listeners
+        Remet le score à zéro dans l'interface
+    */
     cleanupGame() {
         this.gameRunning = false;
         this.gamePaused = false;
         this.whoWin = 'null';
         this.divMessageWinOrLose.classList.add('hidden');
+        // Nettoyer les touches de l'IA
+        this.keys.delete('ArrowUp');
+        this.keys.delete('ArrowDown');
         if (this.animationFrameId)
             cancelAnimationFrame(this.animationFrameId);
         this.resetGameState();
@@ -229,7 +318,12 @@ export class PongGame {
         }
         this.divScoreInGame.querySelector('span').textContent = `0 - 0`;
     }
-    // Terminer la partie et afficher le message
+    /**
+        Termine la partie et affiche le message de victoire
+        Détermine le gagnant en comparant les scores au WINNING_SCORE
+        Affiche le nom du gagnant ou valeur par défaut ('You'/'Bot')
+        Efface le canvas avec clearRect()
+    */
     endGame() {
         this.gameRunning = false;
         this.divMessageWinOrLose.classList.remove('hidden');
@@ -246,7 +340,70 @@ export class PongGame {
         }
         this.ctx.clearRect(0, 0, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
     }
+    // ==================== INTELLIGENCE ARTIFICIELLE ====================
+    updateAI() {
+        const currentTime = Date.now();
+        if (currentTime - this.lastAITime >= this.aiUpdateInterval) {
+            this.lastAITime = currentTime;
+            this.aiPredictedBallY = this.predictBallPosition();
+            this.aiPredictionError = (Math.random() - 0.5) * this.PADDLE_HEIGHT * this.aiReactionDelay;
+            this.aiTargetY = this.aiPredictedBallY + this.aiPredictionError;
+            this.aiTargetY = Math.max(0, Math.min(this.PADDLE_MAX_Y, this.aiTargetY));
+        }
+        const paddleCenter = this.rightPaddle.y + this.PADDLE_HEIGHT / 2;
+        const tolerance = 5; // Zone morte pour éviter les oscillations
+        if (paddleCenter > this.aiTargetY + tolerance) {
+            if (!this.keys.has('ArrowUp')) {
+                this.keys.add('ArrowUp');
+            }
+            this.keys.delete('ArrowDown');
+        }
+        else if (paddleCenter < this.aiTargetY - tolerance) {
+            if (!this.keys.has('ArrowDown')) {
+                this.keys.add('ArrowDown');
+            }
+            this.keys.delete('ArrowUp');
+        }
+        else {
+            this.keys.delete('ArrowUp');
+            this.keys.delete('ArrowDown');
+        }
+    }
+    // Prédit la position Y de la balle quand elle atteindra le côté droit du terrain
+    // En simulant tous les rebonds sur les murs horizontaux
+    predictBallPosition() {
+        if (this.ball.speed_x < 0) {
+            return (this.CANVAS_HEIGHT / 2);
+        }
+        let simBallX = this.ball.x;
+        let simBallY = this.ball.y;
+        let simSpeedX = this.ball.speed_x;
+        let simSpeedY = this.ball.speed_y;
+        while (simBallX < this.RIGHT_PADDLE_EDGE) {
+            simBallX += simSpeedX;
+            simBallY += simSpeedY;
+            if (simBallY <= 0 || simBallY >= this.CANVAS_HEIGHT) {
+                simSpeedY = -simSpeedY;
+                simBallY = Math.max(0, Math.min(this.CANVAS_HEIGHT, simBallY));
+            }
+        }
+        return (simBallY - this.PADDLE_HEIGHT / 2);
+    }
+    // Ajuste dynamiquement la difficulté de l'IA en fonction de sa performance
+    adjustAIDifficulty() {
+        const scoreDifference = this.rightPaddle.score - this.leftPaddle.score;
+        if (scoreDifference > 2) {
+            this.aiReactionDelay = Math.min(0.3, this.aiReactionDelay + 0.05);
+        }
+        else if (scoreDifference < -2) {
+            this.aiReactionDelay = Math.max(0.05, this.aiReactionDelay - 0.05);
+        }
+    }
     // ==================== GETTER, SETTER ====================
+    /**
+        Définit le mode de jeu actif parmi les 3 modes disponibles
+        Utilise un switch/case pour activer le bon flag
+    */
     setModeGame(gamemode) {
         this.gameBotGM = false;
         this.gameLocalGM = false;
@@ -265,15 +422,27 @@ export class PongGame {
                 break;
         }
     }
+    /**
+        Définit les deux joueurs pour le match en cours
+    */
     setMatchesPlayers(player1) {
         this.currentMatch = player1;
     }
+    /**
+        Retourne le gagnant de la partie
+    */
     getWhoWin() {
         return (this.whoWin);
     }
+    /**
+        Retourne l'état actuel du jeu (en cours ou non)
+    */
     async getStatusGame() {
         return (this.gameRunning);
     }
+    /*
+        Met à jour les scores des deux joueurs dans leurs statistiques de tournoi
+    */
     getScoreTwoPlayers(player1, player2) {
         player1.tournamentStats.score = this.leftPaddle.score;
         player2.tournamentStats.score = this.rightPaddle.score;

@@ -2,8 +2,13 @@ import { PlayerManager, TournamentPlayer } from './PlayerManager.js';
 import { PongGame } from './PongBase.js';
 
 export class TournamentManager extends PlayerManager {
-    
-    public createMatches(): Array<[TournamentPlayer, TournamentPlayer]> {
+	
+	/*
+		Crée les paires de matchs pour un tour de tournoi
+		Ajoute automatiquement un Bot si le nombre de joueurs est impair
+		Utilise un algorithme de pairage croisé (premier vs dernier, etc.)
+	*/
+	public createMatches(): Array<[TournamentPlayer, TournamentPlayer]> {
         const matches: Array<[TournamentPlayer, TournamentPlayer]> = [];
         
         // Ajouter un bot si nombre impair
@@ -25,9 +30,15 @@ export class TournamentManager extends PlayerManager {
             low++;
         }
         return (matches);
-    }
+	}
 
-    public async startTournament(pongGame: PongGame, playerMatch: Array<[TournamentPlayer, TournamentPlayer]>): Promise<void> {
+	/*
+		Lance et gère l'ensemble du tournoi à élimination directe
+		Boucle sur les tours jusqu'à ce qu'il ne reste qu'un champion
+		Enregistre l'historique des matchs et affiche le champion final
+		Utilise window.location.reload() pour retourner au menu après
+	*/
+	public async startTournament(pongGame: PongGame, playerMatch: Array<[TournamentPlayer, TournamentPlayer]>): Promise<void> {
         while (playerMatch.length > 0) {
             const nextRoundPlayers: TournamentPlayer[] = [];
             
@@ -60,6 +71,11 @@ export class TournamentManager extends PlayerManager {
         }
     }
 
+	/*
+		Gère un match unique entre deux joueurs du tournoi
+		Configure le jeu, nettoie l'état et attend le résultat via Promise
+		Affiche les logs du résultat dans la console
+	*/
     private async playSingleMatch(pongGame: PongGame, player1: TournamentPlayer, player2: TournamentPlayer): Promise<string | null> {
         try {
             pongGame.setMatchesPlayers([player1, player2]);
@@ -76,6 +92,12 @@ export class TournamentManager extends PlayerManager {
         }
     }
 
+	/*
+		Attend de manière asynchrone le résultat d'un match
+		Utilise une Promise avec vérification récursive toutes les 100ms via setTimeout()
+		Nettoie le jeu et attend 4 secondes avant de résoudre (délai pour voir le résultat)
+		Récupère les scores finaux des joueurs via getScoreTwoPlayers()
+	*/
     private async waitForMatchResult(pongGame: PongGame, player1: TournamentPlayer, player2: TournamentPlayer): Promise<string | null> {
         return new Promise((resolve) => {
             const checkWinner = () => {
@@ -96,6 +118,11 @@ export class TournamentManager extends PlayerManager {
         });
     }
 
+	/*
+		Affiche l'écran de célébration du champion du tournoi
+		Crée dynamiquement les éléments DOM avec classes Tailwind CSS (jaune pour champion)
+		Affiche un message pendant 5 secondes avant de résoudre la Promise
+	*/
     private async showChampion(championPly: TournamentPlayer): Promise<void> {
         return new Promise(resolve => {
             const MsgWinOrLose = document.getElementById('gameMessageWinOrLose');

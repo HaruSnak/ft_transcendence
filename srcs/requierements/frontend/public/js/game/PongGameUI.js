@@ -1,30 +1,39 @@
-//import { match } from 'assert';
 import { PongGame } from './PongBase.js';
 import { TournamentManager } from './TournamentManager.js';
 import { OneVsOneManager } from './LocalModeManager.js';
 import { SecurityUtils } from '../SecurityUtils.js';
 export class PongGameUI extends SecurityUtils {
+    /*
+    Constructeur - Initialise tous les composants du jeu
+    Crée l'instance du jeu Pong et les gestionnaires de modes
+    Configure les écouteurs d'événements et affiche le menu principal
+    */
     constructor() {
         super();
-        // Gameplay
+        // ==================== Éléments d'interface - Gameplay ====================
+        // Boutons de contrôle du jeu pendant la partie
         this.buttonStart = document.getElementById('buttonStartGame');
         this.buttonPause = document.getElementById('buttonPauseGame');
-        //protected buttonReset = document.getElementById('buttonResetGame') as HTMLButtonElement;
+        // Conteneurs d'affichage pendant la partie
         this.divInterfaceInGame = document.getElementById('ingame-button');
         this.divMessageWinOrLose = document.getElementById('gameMessageWinOrLose');
         this.divScoreInGame = document.getElementById('scoreInGame');
-        // Gamemode (IA/1vs1/Tournament)
+        // ==================== Éléments d'interface - Menu principal ====================
+        // Sélection du mode de jeu (Practice contre IA / Local 1v1 / Tournament)
         this.divInterfaceMainMenu = document.getElementById('main-menu-game');
-        this.buttonPractice = document.getElementById('buttonPracticeGame');
-        this.buttonPlyLocal = document.getElementById('buttonPlyLocalGame');
-        this.buttonTournament = document.getElementById('buttonTournamentGame');
-        // Add-Login system
+        this.buttonPractice = document.getElementById('buttonPracticeGame'); // Mode IA
+        this.buttonPlyLocal = document.getElementById('buttonPlyLocalGame'); // Mode 1v1
+        this.buttonTournament = document.getElementById('buttonTournamentGame'); // Mode Tournoi
+        // ==================== Éléments d'interface - Système de login ====================
+        // Formulaire d'authentification des joueurs
         this.inputLoginGM = document.getElementById('inputLoginGM');
         this.inputPasswordGM = document.getElementById('inputPasswordGM');
         this.buttonAddLogin = document.getElementById('buttonAddLogginGM');
         this.buttonLaunchGame = document.getElementById('buttonLaunchGame');
+        // Affichage des profils utilisateurs connectés
         this.divProfileUser = document.getElementById('profile-user');
         this.divInterfaceLogin = document.getElementById('menu-add-login');
+        // État actuel du mode de jeu
         this.currentMode = null;
         this.pongGame = new PongGame(this.buttonStart, this.buttonPause, this.divMessageWinOrLose, this.divScoreInGame);
         this.tournaments = new TournamentManager;
@@ -32,6 +41,10 @@ export class PongGameUI extends SecurityUtils {
         this.listenButtons();
         this.showMainMenu();
     }
+    /*
+    Affiche le menu principal et masque les autres interfaces
+    Réinitialise le mode de jeu actuel à null
+    */
     showMainMenu() {
         this.divInterfaceMainMenu.style.display = 'block';
         this.divScoreInGame.style.display = 'none';
@@ -39,11 +52,18 @@ export class PongGameUI extends SecurityUtils {
         this.divInterfaceInGame.style.display = 'none';
         this.currentMode = null;
     }
-    // 🆕 Fonction pour obtenir le manager actuel selon le mode
+    /*
+    Retourne le gestionnaire approprié selon le mode actuel
+    @returns TournamentManager si mode tournoi, sinon OneVsOneManager
+    */
     getCurrentManager() {
         return this.currentMode === 'tournament' ? this.tournaments : this.oneVsOne;
     }
-    // Fonction pour clear texte + couleur de l'UI login
+    /*
+    Réinitialise visuellement les champs du formulaire (couleurs et textes)
+    Utilise setTimeout() pour un délai de 2 secondes avant le reset
+    @param fields - Tableau des champs à réinitialiser ('username' ou 'password')
+    */
     clearStatusVisual(fields) {
         fields.forEach(fieldsType => {
             const container = this.divInterfaceLogin.querySelector(`.input-${fieldsType}-ui`);
@@ -57,7 +77,13 @@ export class PongGameUI extends SecurityUtils {
             }, 2000);
         });
     }
-    // Fonction qui gere le cas frontend des msg d'error UI
+    /*
+    Affiche visuellement le succès ou l'erreur de l'authentification
+    Change les couleurs des champs (vert pour succès, rouge pour erreur)
+    Affiche les messages d'erreur appropriés selon le contexte
+    @param isSuccess - true si l'authentification a réussi
+    @param fields - Champs concernés par le feedback visuel
+    */
     uiSuccessFullOrError(isSuccess, fields) {
         fields.forEach(fieldsType => {
             const container = this.divInterfaceLogin.querySelector(`.input-${fieldsType}-ui`);
@@ -84,6 +110,13 @@ export class PongGameUI extends SecurityUtils {
             input.value = ``;
         });
     }
+    /*
+    Valide le nom d'utilisateur selon les règles définies
+    Utilise validateUsername() de SecurityUtils (classe parente)
+    Affiche les messages d'erreur appropriés en cas d'échec
+    @param username - Le nom d'utilisateur à valider
+    @returns true si valide, false sinon
+    */
     verificationUserName(username) {
         const validationCode = this.validateUsername(username);
         if (validationCode === 0) {
@@ -101,11 +134,18 @@ export class PongGameUI extends SecurityUtils {
         }
         return (false);
     }
+    /*
+        Supprime tous les éléments de profil affichés (sauf le titre h3)
+        Utilise querySelectorAll() avec sélecteur CSS pour cibler les profils
+    */
     clearAllProfiles() {
         const profiles = this.divProfileUser.querySelectorAll('div:not(h3)');
         profiles.forEach(profile => profile.remove());
     }
-    // Une fois le systeme bien foutu, mettre en place le replace des images profiles user
+    /*
+        Crée un élément DOM représentant un joueur à partir d'un template
+        Clone le template HTML et remplit les données (username, type)
+    */
     createPlayerElement(username, type) {
         const profileTemplate = document.getElementById('profile-template');
         const profileClone = profileTemplate.content.cloneNode(true);
@@ -115,7 +155,11 @@ export class PongGameUI extends SecurityUtils {
         profileClone.querySelector('.profile-type').textContent = type;
         return (playerDiv);
     }
-    // A FAIRE
+    /*
+        Vérifie si un joueur est déjà connecté et l'affiche
+        Utilise le gestionnaire actuel pour vérifier la session active
+        Ajoute le profil à l'interface si une session est trouvée
+    */
     async isPlayerActive() {
         const currentManager = this.getCurrentManager();
         const check = await currentManager.isPlayerConnected();
@@ -124,10 +168,14 @@ export class PongGameUI extends SecurityUtils {
         else {
             const ply = this.createPlayerElement(this.inputLoginGM.value, 'User Session');
             this.divProfileUser.appendChild(ply);
-            //this.uiSuccessFullOrError(true, [`username`]);
         }
     }
-    // 🔧 Fonction modifiée pour supporter les deux modes
+    /*
+        Gère l'authentification des joueurs (Guest ou User avec mot de passe)
+        Supporte les deux modes : Tournament et Local
+        Valide les données, crée les profils et met à jour l'interface
+        Utilise le gestionnaire approprié selon currentMode
+    */
     async handleAuthentication() {
         this.divInterfaceMainMenu.style.display = 'none';
         this.divInterfaceLogin.style.display = 'block';
@@ -163,7 +211,11 @@ export class PongGameUI extends SecurityUtils {
             await this.updateLaunchButtonVisibility();
         }
     }
-    // 🆕 Fonction pour gérer la visibilité des boutons de lancement
+    /*
+        Gère l'affichage du bouton de lancement selon le mode et nombre de joueurs
+        Tournament : Affiche le bouton si 3+ joueurs sont inscrits
+        Local 1v1 : Lance automatiquement le leaderboard quand 2 joueurs sont prêts
+    */
     async updateLaunchButtonVisibility() {
         const currentManager = this.getCurrentManager();
         const playerCount = currentManager.getNbrAllUsers();
@@ -176,7 +228,12 @@ export class PongGameUI extends SecurityUtils {
             await this.leaderboard1v1();
         }
     }
-    // Interface de leaderboard apres la validation des players
+    /*
+        Affiche l'écran de leaderboard avant le tournoi avec tous les matchs
+        Crée visuellement les paires de joueurs avec image "VS"
+        Lance automatiquement le tournoi après 6 secondes (setTimeout)
+        Utilise TournamentManager.createMatches() et startTournament()
+    */
     async leaderboardTournament() {
         this.clearAllProfiles();
         const matches = this.tournaments.createMatches();
@@ -213,6 +270,12 @@ export class PongGameUI extends SecurityUtils {
             await this.tournaments.startTournament(this.pongGame, matches);
         }, 6000);
     }
+    /*
+        Affiche l'écran de match 1v1 avec les deux joueurs face à face
+        Vérifie qu'exactement 2 joueurs sont présents
+        Lance automatiquement le match après 3 secondes (setTimeout)
+        Utilise OneVsOneManager.startMatch()
+    */
     async leaderboard1v1() {
         this.clearAllProfiles();
         const players = this.oneVsOne.getPlayers();
@@ -251,11 +314,20 @@ export class PongGameUI extends SecurityUtils {
             await this.oneVsOne.startMatch(this.pongGame);
         }, 3000);
     }
+    /*
+        Bascule l'interface vers l'écran de jeu
+        Masque le menu principal et affiche le canvas + contrôles du jeu
+    */
     updateScreen() {
         this.divInterfaceMainMenu.style.display = 'none';
         this.pongGame.canvas.style.display = 'block';
         this.divInterfaceInGame.style.display = 'block';
     }
+    /*
+        Configure tous les écouteurs d'événements pour les boutons
+        Gère les clics pour : sélection de mode, authentification, contrôles de jeu
+        Utilise addEventListener() pour chaque bouton de l'interface
+    */
     listenButtons() {
         this.buttonPractice.addEventListener('click', () => {
             this.updateScreen();
@@ -274,6 +346,11 @@ export class PongGameUI extends SecurityUtils {
         this.buttonStart.addEventListener('click', () => this.pongGame.startGame());
         this.buttonPause.addEventListener('click', () => this.pongGame.pauseGame());
     }
+    /*
+        Nettoie complètement l'état du jeu et réinitialise l'interface
+        Ferme les interfaces de login, efface les joueurs, reset les managers
+        Appelée lors du changement de page ou de mode de jeu
+    */
     getCleanUpGame() {
         this.divInterfaceLogin.style.display = 'none';
         this.pongGame.cleanupGame();
@@ -285,6 +362,8 @@ export class PongGameUI extends SecurityUtils {
         this.divProfileUser.innerHTML = '';
     }
 }
+// ==================== Messages d'erreur ====================
+// Map des codes d'erreur pour la validation des noms d'utilisateur
 PongGameUI.USERNAME_ERROR_MESSAGES = new Map([
     [-1, 'Username trop court ou trop long (min 3 caractères et max 10 caractères)'],
     [-2, 'Username ne peut contenir que des lettres et chiffres'],

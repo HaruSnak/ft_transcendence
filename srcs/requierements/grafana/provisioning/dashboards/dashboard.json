@@ -1,0 +1,24 @@
+{
+  "dashboard": {
+    "title": "Transcendence Monitoring",
+    "tags": ["transcendence"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "title": "HTTP Requests",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[5m])",
+            "legendFormat": "{{job}}"
+          }
+        ]
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "5s"
+  }
+}

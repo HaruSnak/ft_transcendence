@@ -1,5 +1,10 @@
 import { PlayerManager } from './PlayerManager.js';
 export class TournamentManager extends PlayerManager {
+    /*
+        Crée les paires de matchs pour un tour de tournoi
+        Ajoute automatiquement un Bot si le nombre de joueurs est impair
+        Utilise un algorithme de pairage croisé (premier vs dernier, etc.)
+    */
     createMatches() {
         const matches = [];
         // Ajouter un bot si nombre impair
@@ -21,6 +26,12 @@ export class TournamentManager extends PlayerManager {
         }
         return (matches);
     }
+    /*
+        Lance et gère l'ensemble du tournoi à élimination directe
+        Boucle sur les tours jusqu'à ce qu'il ne reste qu'un champion
+        Enregistre l'historique des matchs et affiche le champion final
+        Utilise window.location.reload() pour retourner au menu après
+    */
     async startTournament(pongGame, playerMatch) {
         while (playerMatch.length > 0) {
             const nextRoundPlayers = [];
@@ -51,6 +62,11 @@ export class TournamentManager extends PlayerManager {
             playerMatch = this.createMatches();
         }
     }
+    /*
+        Gère un match unique entre deux joueurs du tournoi
+        Configure le jeu, nettoie l'état et attend le résultat via Promise
+        Affiche les logs du résultat dans la console
+    */
     async playSingleMatch(pongGame, player1, player2) {
         try {
             pongGame.setMatchesPlayers([player1, player2]);
@@ -65,6 +81,12 @@ export class TournamentManager extends PlayerManager {
             return (null);
         }
     }
+    /*
+        Attend de manière asynchrone le résultat d'un match
+        Utilise une Promise avec vérification récursive toutes les 100ms via setTimeout()
+        Nettoie le jeu et attend 4 secondes avant de résoudre (délai pour voir le résultat)
+        Récupère les scores finaux des joueurs via getScoreTwoPlayers()
+    */
     async waitForMatchResult(pongGame, player1, player2) {
         return new Promise((resolve) => {
             const checkWinner = () => {
@@ -84,6 +106,11 @@ export class TournamentManager extends PlayerManager {
             checkWinner();
         });
     }
+    /*
+        Affiche l'écran de célébration du champion du tournoi
+        Crée dynamiquement les éléments DOM avec classes Tailwind CSS (jaune pour champion)
+        Affiche un message pendant 5 secondes avant de résoudre la Promise
+    */
     async showChampion(championPly) {
         return new Promise(resolve => {
             const MsgWinOrLose = document.getElementById('gameMessageWinOrLose');

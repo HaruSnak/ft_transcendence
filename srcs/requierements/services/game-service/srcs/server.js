@@ -1,4 +1,13 @@
 import Fastify from 'fastify'
+import client from 'prom-client'
+
+/*					____METRICS Prometheus____						*/
+
+const gameRequests = new client.Counter({
+    name: 'game_requests_total',
+    help: 'Total game requests',
+    labelNames: ['method']
+});
 
 /*					____SERVER Fastify____						*/
 
@@ -18,7 +27,14 @@ fastify.get('/health', async (request, reply) => {
 
 fastify.get('/api/game', async (request, reply) => {
 	console.log('frontend route accessed!');
+    gameRequests.inc({ method: 'GET' });
     return { message: 'Game service is running' };
+});
+
+// Endpoint pour Prometheus
+fastify.get('/metrics', async (request, reply) => {
+    reply.type('text/plain');
+    return await client.register.metrics();
 });
 
 // All interfaces IPV4 (host : '0.0.0.0'), 

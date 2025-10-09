@@ -1,24 +1,38 @@
-import { userApiService } from './UserAPIService.js';
+import { userApiService } from '../UserAPIService.js';
 
+/*
+	Interface représentant un joueur dans le système de tournoi
+	Contient les informations d'identification et statistiques du joueur
+*/
 export interface TournamentPlayer {
-    userId: number | string;
-    displayName: string;
-    type: 'Guest' | 'User';
-    username?: string;
-    isAuthenticated: boolean;
-    tournamentStats: {
-        score: number;
-    };
+	userId: number | string;
+	displayName: string;
+	type: 'Guest' | 'User';
+	username?: string;
+	isAuthenticated: boolean;
+	tournamentStats: {
+		score: number;
+	};
 }
 
+/*
+	Classe abstraite de base pour gérer les joueurs
+	Fournit les fonctionnalités communes pour créer, authentifier et gérer les joueurs
+	Étendue par TournamentManager et OneVsOneManager
+*/
 export abstract class PlayerManager {
-    protected players: TournamentPlayer[] = [];
-    protected checkIsPlyConnected: boolean = false;
-    protected userApiService = new userApiService();
+	protected players: TournamentPlayer[] = [];
+	protected checkIsPlyConnected: boolean = false;
+	protected userApiService = new userApiService();
 
-    constructor() {}
+	constructor() {}
 
-    public async initDataPlayer(type: 'Guest' | 'User', username: string, password?: string): Promise<boolean> {
+	/*
+		Initialise les données d'un joueur (Guest ou User authentifié)
+		Vérifie que le nom d'utilisateur n'est pas déjà pris
+		Appelle createGuestPlayer() ou createUserPlayer() selon le type
+	*/
+	public async initDataPlayer(type: 'Guest' | 'User', username: string, password?: string): Promise<boolean> {
         try {
             if (this.isUsernameTaken(username) || username.toLowerCase().includes('bot')) {
                 console.log("Username already exists!");
@@ -38,6 +52,11 @@ export abstract class PlayerManager {
         return (false);
     }
 
+	/*
+		Crée un joueur invité (non authentifié)
+		Génère un userId temporaire unique avec Date.now() et Math.random()
+		Ajoute le joueur au tableau players
+	*/
     private createGuestPlayer(username: string): boolean {
         const guestPlayer: TournamentPlayer = {
             userId: `temp_${Date.now()}_${Math.random()}`,
@@ -50,6 +69,11 @@ export abstract class PlayerManager {
         return (true);
     }
 
+	/*
+		Crée un joueur authentifié depuis la base de données
+		Utilise userApiService.getUser() pour récupérer les données utilisateur
+		Ajoute le joueur authentifié au tableau players
+	*/
     private async createUserPlayer(username: string, password: string): Promise<boolean> {
         const plyData = await this.userApiService.getUser(username, password);
         const userPlayer: TournamentPlayer = {
@@ -64,6 +88,12 @@ export abstract class PlayerManager {
         return (true);
     }
 
+	/*
+		Vérifie si un joueur est déjà connecté via une session active
+		Utilise userApiService.getConnectedPly() pour vérifier la session
+		Ajoute automatiquement le joueur connecté si trouvé
+		Utilise checkIsPlyConnected pour éviter les vérifications multiples
+	*/
     public async isPlayerConnected(): Promise<boolean | null> {
         if (this.checkIsPlyConnected)
 			return (null);
@@ -89,6 +119,11 @@ export abstract class PlayerManager {
         return (null);
     }
 
+	/*
+		Vérifie si un nom d'utilisateur est déjà pris par un autre joueur
+		Utilise Array.some() pour parcourir les joueurs existants
+		Compare displayName pour Guest et username pour User
+	*/
     public isUsernameTaken(username: string): boolean {
         return (this.players.some(player => 
             (player.displayName === username && player.type === 'Guest') ||
@@ -96,15 +131,28 @@ export abstract class PlayerManager {
         );
     }
 
+	/*
+		Retourne le nombre total de joueurs enregistrés
+	*/
     public getNbrAllUsers(): number {
         return (this.players.length);
     }
 
+	/*
+		Réinitialise les scores de deux joueurs à zéro
+		Appelée après chaque match pour préparer le prochain
+	*/
     protected resetScore(player1: TournamentPlayer, player2: TournamentPlayer): void {
         player1.tournamentStats.score = 0;
         player2.tournamentStats.score = 0;
     }
 
+	/*
+		Enregistre l'historique d'un match dans la base de données
+		Gère différents cas : Guest vs Guest, User vs User, User vs Guest
+		Utilise switch/case pour router vers la bonne méthode API
+		Appelle resetScore() après l'enregistrement
+	*/
     protected addMatchHistory(player1: TournamentPlayer, player2: TournamentPlayer, winner: TournamentPlayer, gameType: string): void {
         const matchKey = `${player1.type}-${player2.type}`;
         switch (matchKey) {
@@ -127,10 +175,18 @@ export abstract class PlayerManager {
         this.resetScore(player1, player2);
     }
 
+	/*
+		Retourne une copie du tableau des joueurs
+		Utilise spread operator [...] pour éviter les modifications externes
+	*/
     public getPlayers(): TournamentPlayer[] {
         return ([...this.players]);
     }
 
+	/*
+		Vide complètement le tableau des joueurs et réinitialise les flags
+		Appelée à la fin d'un tournoi ou lors du nettoyage du jeu
+	*/
     public clearPlayers(): void {
         this.players = [];
         this.checkIsPlyConnected = false;

@@ -11,7 +11,7 @@ class ChatWebSocket {
     connect() {
         try {
             // Test direct d'abord
-            this.ws = new WebSocket(`ws://localhost:3001/ws`);
+            this.ws = new WebSocket(`wss://localhost:8443/api/chat/ws`);
             this.ws.onopen = () => {
                 console.log('📡 WebSocket connecté côté client');
                 this.reconnectAttempts = 0;
@@ -106,7 +106,7 @@ class ChatWebSocket {
     }
 }
 // Instance globale
-export const socket = new ChatWebSocket('ws://localhost:3001/ws');
+export const socket = new ChatWebSocket('wss://localhost:8443/api/chat/ws');
 // Fonction utilitaire pour envoyer un message
 export function sendMessageToBackend(to, text) {
     socket.emit('message', { to, text });

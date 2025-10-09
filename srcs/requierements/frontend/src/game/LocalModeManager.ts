@@ -3,6 +3,11 @@ import { PongGame } from './PongBase.js';
 
 export class OneVsOneManager extends PlayerManager {
 
+	/*
+		Lance un match 1v1 entre exactement 2 joueurs
+		Attend le résultat du match, enregistre l'historique et affiche le gagnant
+		Nettoie le jeu et les joueurs à la fin
+	*/
 	public async startMatch(pongGame: PongGame): Promise<void> {
 		if (this.players.length !== 2) {
 			throw new Error('Exactly 2 players required for 1v1 match');
@@ -26,6 +31,11 @@ export class OneVsOneManager extends PlayerManager {
 		this.clearPlayers();
 	}
 
+	/*
+		Gère un match unique entre deux joueurs
+		Configure le jeu avec les joueurs, nettoie l'état et attend le résultat
+		Utilise waitForMatchResult() en Promise pour attendre la fin du match
+	*/
 	private async playSingleMatch(pongGame: PongGame, player1: TournamentPlayer, player2: TournamentPlayer): Promise<string | null> {
 		try {
 			pongGame.setMatchesPlayers([player1, player2]);
@@ -39,6 +49,11 @@ export class OneVsOneManager extends PlayerManager {
 		}
 	}
 
+	/*
+		Attend de manière asynchrone le résultat du match
+		Utilise une Promise avec vérification récursive toutes les 100ms via setTimeout()
+		Récupère les scores finaux des joueurs une fois le match terminé
+	*/
 	private async waitForMatchResult(pongGame: PongGame, player1: TournamentPlayer, player2: TournamentPlayer): Promise<string | null> {
 		return new Promise((resolve) => {
 			const checkWinner = () => {
@@ -56,6 +71,11 @@ export class OneVsOneManager extends PlayerManager {
 		});
 	}
 
+	/*
+		Affiche l'écran de résultat du match avec le gagnant
+		Crée dynamiquement les éléments DOM avec les classes Tailwind CSS
+		Recharge la page après 3 secondes via window.location.reload()
+	*/
 	private async showMatchResult(winner: TournamentPlayer): Promise<void> {
 		return new Promise(resolve => {
 			const MsgWinOrLose = document.getElementById('gameMessageWinOrLose');

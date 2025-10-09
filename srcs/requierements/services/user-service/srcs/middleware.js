@@ -47,16 +47,16 @@ export function validateUserData(schema) {
 	return async function(request, reply) {
 		try {
 			// Validation basique
-			if (schema.username && !request.body.username) {
-				reply.code(400).send({ error: 'Username is required' });
+			if (schema.username && (!request.body.username || typeof request.body.username !== 'string' || request.body.username.trim().length < 3)) {
+				reply.code(400).send({ error: 'Le nom d\'utilisateur doit contenir au moins 3 caractères.' });
 				return;
 			}
-			if (schema.email && !request.body.email) {
-				reply.code(400).send({ error: 'Email is required' });
+			if (schema.email && (!request.body.email || typeof request.body.email !== 'string')) {
+				reply.code(400).send({ error: 'Email requis.' });
 				return;
 			}
-			if (schema.password && !request.body.password) {
-				reply.code(400).send({ error: 'Password is required' });
+			if (schema.password && (!request.body.password || typeof request.body.password !== 'string')) {
+				reply.code(400).send({ error: 'Mot de passe requis.' });
 				return;
 			}
 
@@ -64,18 +64,22 @@ export function validateUserData(schema) {
 			if (schema.email && request.body.email) {
 				const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 				if (!emailRegex.test(request.body.email)) {
-					reply.code(400).send({ error: 'Invalid email format' });
+					reply.code(400).send({ error: 'Format d\'email invalide.' });
 					return;
 				}
 			}
 
 			// Validation de la longueur du mot de passe
 			if (schema.password && request.body.password && request.body.password.length < 6) {
-				reply.code(400).send({ error: 'Password must be at least 6 characters long' });
+				reply.code(400).send({ error: 'Le mot de passe doit contenir au moins 6 caractères.' });
 				return;
 			}
+
+			// Sanitisation : trim les chaînes
+			if (request.body.username) request.body.username = request.body.username.trim();
+			if (request.body.email) request.body.email = request.body.email.trim().toLowerCase();
 		} catch (error) {
-			reply.code(400).send({ error: 'Validation failed' });
+			reply.code(400).send({ error: 'Erreur de validation.' });
 		}
 	};
 }

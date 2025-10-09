@@ -15,8 +15,17 @@ export function initLoginPage() {
         const formData = new FormData(form);
         const identifier = formData.get('identifier');
         const password = formData.get('password');
+        // Validation côté client
+        if (!identifier || identifier.trim().length === 0) {
+            alert('Veuillez entrer un identifiant (nom d\'utilisateur ou email).');
+            return;
+        }
+        if (!password || password.length < 6) {
+            alert('Le mot de passe doit contenir au moins 6 caractères.');
+            return;
+        }
         try {
-            const response = await fetch('http://localhost:3000/api/v1/auth/login', {
+            const response = await fetch('https://localhost:8443/api/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

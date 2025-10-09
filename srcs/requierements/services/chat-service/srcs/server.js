@@ -82,6 +82,20 @@ fastify.get('/ws', { websocket: true }, (connection, req) => {
 	connection.on('message', (rawMessage) => {
 		try {
 			const msg = JSON.parse(rawMessage.toString());
+			
+			// Validation du message
+			if (!msg.type || typeof msg.type !== 'string') {
+				connection.send(JSON.stringify({ type: 'error', message: 'Type de message requis.' }));
+				return;
+			}
+			if (msg.type === 'message') {
+				if (!msg.text || typeof msg.text !== 'string' || msg.text.trim().length === 0 || msg.text.length > 500) {
+					connection.send(JSON.stringify({ type: 'error', message: 'Texte invalide (1-500 caractères).' }));
+					return;
+				}
+				msg.text = msg.text.trim(); // Sanitisation
+			}
+			
 			console.log('← message reçu de', clientId, ':', msg);
 			
 			if (msg.type === 'message') {

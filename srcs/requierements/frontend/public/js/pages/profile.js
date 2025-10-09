@@ -73,8 +73,8 @@ export async function initProfilePage() {
     console.log('Initializing profile page');
     const id = window.location.hash.split('/')[1] || null;
     const url = id
-        ? `http://localhost:3000/api/v1/user/${id}`
-        : 'http://localhost:3000/api/v1/user/me';
+        ? `https://localhost:8443/api/user/${id}`
+        : 'https://localhost:8443/api/user/me';
     const res = await fetch(url, {
         credentials: 'include',
     });

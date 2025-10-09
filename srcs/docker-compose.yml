@@ -49,17 +49,6 @@ services:
             - promgraf_network
         restart: unless-stopped
 
-    #frontend:
-        #container_name: frontend
-        #build:
-          #context: ./requierements
-          #dockerfile: frontend/Dockerfile
-        #ports:
-        #- "3005:3005"
-        #networks:
-        #- app_network
-        #restart: unless-stopped
-
     nginx:
         container_name: nginx
         build:
@@ -68,7 +57,7 @@ services:
         volumes:
             - ./requierements/frontend:/usr/share/nginx/html
         ports:
-            - "8080:80"
+            - "8443:443"
         depends_on:
             - chat-service
             - game-service
@@ -155,6 +144,7 @@ services:
             - "3010:3000"
         volumes:
             - grafana_db:/var/lib/grafana
+            - ./requierements/grafana/provisioning:/etc/grafana/provisioning
         networks:
             - promgraf_network
         restart: unless-stopped
