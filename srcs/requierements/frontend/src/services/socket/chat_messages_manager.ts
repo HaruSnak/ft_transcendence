@@ -124,7 +124,44 @@ export class MessageHandlingService {
 
         const timestamp = new Date(message.timestamp).toLocaleTimeString();
         const displayName = message.from_display_name || message.from;
-        messageElement.innerHTML = `<span class="font-bold truncate inline-block max-w-48 min-w-24" title="${displayName}">${displayName}:</span> ${message.text} <small>(${timestamp})</small>`;
+
+        // Check if this is a game invitation message
+        const isGameInvitation = message.text === "Hey! Want to play a game together? 🎮";
+
+        if (isGameInvitation) {
+            // Create message with join button
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'font-bold truncate inline-block max-w-48 min-w-24';
+            nameSpan.title = displayName;
+            nameSpan.textContent = `${displayName}:`;
+
+            const textSpan = document.createElement('span');
+            textSpan.textContent = ` ${message.text} `;
+
+            const joinButton = document.createElement('button');
+            joinButton.className = 'bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs ml-2 font-medium';
+            joinButton.textContent = 'Join Game';
+            joinButton.addEventListener('click', () => {
+                const socket = this.socketConnection.getSocket();
+                if (socket) {
+                    socket.emit(SOCKET_EVENTS.JOIN_GAME_REQUEST, {
+                        inviter: message.from
+                    });
+                    console.log(`🎮 Join game request sent for inviter: ${message.from}`);
+                }
+            });
+
+            const timeSmall = document.createElement('small');
+            timeSmall.textContent = `(${timestamp})`;
+
+            messageElement.appendChild(nameSpan);
+            messageElement.appendChild(textSpan);
+            messageElement.appendChild(joinButton);
+            messageElement.appendChild(timeSmall);
+        } else {
+            // Regular message
+            messageElement.innerHTML = `<span class="font-bold truncate inline-block max-w-48 min-w-24" title="${displayName}">${displayName}:</span> ${message.text} <small>(${timestamp})</small>`;
+        }
 
         messagesContainer.appendChild(messageElement);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;

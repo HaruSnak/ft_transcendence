@@ -16,7 +16,8 @@ export const SOCKET_EVENTS = {
     MESSAGE: 'message',
     USER_LIST: 'user_list',
     ACK: 'ack',
-    REGISTER: 'register'
+    REGISTER: 'register',
+    JOIN_GAME_REQUEST: 'join_game_request'
 } as const;
 
 export const UI_ELEMENTS = {

@@ -44,6 +44,7 @@ export class ChatInterfaceManager {
 
         this.setupMessageForm();
         this.setupBlockButton();
+        this.setupInviteButton();
         this.initializeDMList();
         this.disableChatInput();
 
@@ -103,6 +104,20 @@ export class ChatInterfaceManager {
             } else {
                 this.blockUser(username, blockButton);
             }
+        });
+    }
+
+    private setupInviteButton(): void {
+        const inviteButton = document.getElementById('invite-btn');
+        if (!inviteButton) return;
+
+        inviteButton.addEventListener('click', () => {
+            const currentChat = socketService.getCurrentChat();
+            if (!currentChat) return;
+
+            // Send an invitation message
+            const invitationMessage = "Hey! Want to play a game together? 🎮";
+            socketService.sendMessage(invitationMessage);
         });
     }
 
