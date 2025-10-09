@@ -5,7 +5,7 @@ import { initGame, cleanUpGame, pongGame } from './game/game.js';
 import { socketService } from './services/socket';
 import { initLogin } from './pages/login.js';
 import { initSignup } from './pages/signup.js';
-import { initProfile } from './pages/profile.js';
+import { initProfile } from './pages/profile/index.js';
 import { initLiveChat } from './pages/livechat/index.js';
 
 let tournamentManager: any = null;
