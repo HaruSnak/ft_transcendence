@@ -376,6 +376,9 @@ async function logout() {
     }
     sessionStorage.removeItem('authToken');
     sessionStorage.removeItem('user');
+    // Show login tab
+    const loginLink = document.querySelector('.nav-links [data-page="login"]') as HTMLElement;
+    if (loginLink) loginLink.style.display = '';
     showProfileMsg('Logged out successfully!', true);
     setTimeout(() => {
         window.location.hash = 'login';

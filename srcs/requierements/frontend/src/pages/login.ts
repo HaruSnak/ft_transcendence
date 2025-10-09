@@ -54,9 +54,6 @@ export function initLogin() {
                     console.log('Login success response:', data);
                     sessionStorage.setItem('authToken', data.token);
                     sessionStorage.setItem('user', JSON.stringify(data.user));
-                    // Hide login tab immediately
-                    const loginLink = document.querySelector('[data-page="login"]') as HTMLElement;
-                    if (loginLink) loginLink.style.display = 'none';
                     showMsg('Login successful!', true);
                     // Check if first login and show welcome modal
                     if (!data.user.has_seen_welcome) {

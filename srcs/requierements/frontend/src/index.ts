@@ -16,6 +16,17 @@ let tournamentManager: any = null;
 // Navigation
 function showPage(pageId: string) {
     console.log(`📄 showPage called with: ${pageId}`);
+
+    // Check access for protected pages
+    if (pageId === 'profile' || pageId === 'live-chat') {
+        const authToken = sessionStorage.getItem('authToken');
+        if (!authToken) {
+            console.log('🔒 Access denied to protected page, redirecting to login');
+            showPage('login');
+            return;
+        }
+    }
+
     // Clean up game if switching away from game page
     if (pageId !== 'game') {
         console.log('🎮 Cleaning up game...');
@@ -274,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Check login state and hide login tab if authenticated
     const authToken = sessionStorage.getItem('authToken');
-    const loginLink = document.querySelector('[data-page="login"]');
+    const loginLink = document.querySelector('.nav-links [data-page="login"]');
     if (authToken && loginLink) {
         (loginLink as HTMLElement).style.display = 'none';
     }
