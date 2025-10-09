@@ -1,6 +1,6 @@
 // src/pages/profile.ts
 
-import { User, ProfileUpdateData } from '../utils/data_types';
+import { User, ProfileUpdateData, Match } from '../utils/data_types';
 import { UserApiService } from '../services/api/user_api_service';
 import { SecurityUtils } from '../utils/SecurityUtils';
 import { OnlineFriendsWidget } from '../components/online_friends_widget';
@@ -169,6 +169,16 @@ function populateFields(user: User, isOtherUser: boolean = false) {
         avatarField.src = avatar;
     }
 
+    // Update stats if available
+    if (!isOtherUser) {
+        const winsElements = document.querySelectorAll('.text-2xl.font-bold.mb-sm');
+        const winsElement = winsElements[0] as HTMLElement;
+        const lossesElement = winsElements[1] as HTMLElement;
+
+        if (winsElement) winsElement.textContent = (user.wins || 0).toString();
+        if (lossesElement) lossesElement.textContent = (user.losses || 0).toString();
+    }
+
     // Hide or show friends list
     const friendsContainer = document.getElementById('profile-online-friends');
     if (friendsContainer) {
@@ -188,6 +198,11 @@ function populateFields(user: User, isOtherUser: boolean = false) {
 
         if (editName) editName.value = user.display_name || user.username || '';
         if (editEmail) editEmail.value = user.email || '';
+    }
+
+    // Load match history for own profile
+    if (!isOtherUser) {
+        loadMatchHistory();
     }
 }
 
@@ -430,6 +445,68 @@ async function deleteUser() {
     } finally {
         isDeletingUser = false;
     }
+}
+
+async function loadMatchHistory() {
+    try {
+        const matches = await UserApiService.getMatchHistory();
+        displayMatchHistory(matches);
+    } catch (error) {
+        console.error('Failed to load match history:', error);
+        // Show default message if API fails
+        const historyContainer = document.querySelector('.profile-history-scroll') as HTMLElement;
+        if (historyContainer) {
+            historyContainer.innerHTML = `
+                <div class="text-4xl mb-md">🎮</div>
+                <p class="mb-md">No matches played yet</p>
+                <a href="#game-modes" class="text-primary" style="text-decoration: underline;">Start playing</a>
+            `;
+        }
+    }
+}
+
+function displayMatchHistory(matches: Match[]) {
+    const historyContainer = document.querySelector('.profile-history-scroll') as HTMLElement;
+    if (!historyContainer) return;
+
+    if (matches.length === 0) {
+        historyContainer.innerHTML = `
+            <div class="text-4xl mb-md">🎮</div>
+            <p class="mb-md">No matches played yet</p>
+            <a href="#game-modes" class="text-primary" style="text-decoration: underline;">Start playing</a>
+        `;
+        return;
+    }
+
+    // Create match history list
+    const matchesHtml = matches.slice(0, 10).map(match => {
+        const date = new Date(match.played_at).toLocaleDateString();
+        const isWinner = match.winner_username === match.player1_username || match.winner_username === match.player2_username;
+        const opponent = match.player1_username === match.player1_username ? 
+            (match.player2_display_name || match.player2_username) : 
+            (match.player1_display_name || match.player1_username);
+        const result = isWinner ? 'Won' : 'Lost';
+        const score = `${match.score_player1} - ${match.score_player2}`;
+
+        return `
+            <div class="flex justify-between items-center py-2 border-b border-gray-200 last:border-b-0">
+                <div class="flex-1">
+                    <div class="font-medium">${result} vs ${opponent}</div>
+                    <div class="text-sm text-muted">${match.game_mode} • ${date}</div>
+                </div>
+                <div class="text-right">
+                    <div class="font-bold ${isWinner ? 'text-green-600' : 'text-red-600'}">${score}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    historyContainer.innerHTML = `
+        <div class="space-y-2">
+            ${matchesHtml}
+        </div>
+        ${matches.length > 10 ? '<div class="text-center mt-4 text-sm text-muted">Showing last 10 matches</div>' : ''}
+    `;
 }
 
 async function uploadAvatar(file: File) {

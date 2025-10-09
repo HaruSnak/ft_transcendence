@@ -1,6 +1,6 @@
 // src/services/api/userApi.ts
 
-import { User, BlockedUser } from '../../utils/data_types';
+import { User, BlockedUser, Match } from '../../utils/data_types';
 import { API_BASE_URL, STORAGE_KEYS } from '../../utils/app_constants';
 
 export class UserApiService {
@@ -223,5 +223,18 @@ export class UserApiService {
             const error = await response.json();
             throw new Error(error.error || 'Failed to remove friend');
         }
+    }
+
+    static async getMatchHistory(): Promise<Match[]> {
+        const response = await fetch(`${API_BASE_URL}/user/match-history`, {
+            headers: this.getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch match history');
+        }
+
+        const data = await response.json();
+        return data.matches || [];
     }
 }

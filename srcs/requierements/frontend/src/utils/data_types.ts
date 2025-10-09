@@ -6,6 +6,8 @@ export interface User {
     display_name?: string;
     email?: string;
     avatar_url?: string;
+    wins?: number;
+    losses?: number;
 }
 
 export interface ChatMessage {
@@ -59,10 +61,17 @@ export interface Friend {
     is_online?: boolean;
 }
 
-export interface FriendRequest {
+export interface Match {
     id: number;
-    from_user: User;
-    to_user: User;
-    status: 'pending' | 'accepted' | 'declined';
-    created_at: string;
+    player1_username: string;
+    player1_display_name?: string;
+    player2_username: string;
+    player2_display_name?: string;
+    winner_username?: string;
+    score_player1: number;
+    score_player2: number;
+    game_mode: string;
+    played_at: string;
+    tournament_id?: number;
+    tournament_name?: string;
 }
