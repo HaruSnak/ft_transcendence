@@ -54,11 +54,15 @@ export class UserManagementService {
         const userItem = document.createElement('div');
         userItem.className = 'flex items-center justify-between py-1 px-1 rounded hover:bg-gray-600 overflow-hidden';
 
-        // Username display
+        // Username display - clickable to start DM
         const usernameSpan = document.createElement('span');
-        usernameSpan.className = 'text-sm truncate flex-1 min-w-0 min-w-24';
+        usernameSpan.className = 'text-sm truncate flex-1 min-w-0 min-w-24 cursor-pointer hover:text-blue-400';
         usernameSpan.textContent = user.display_name || user.username;
-        usernameSpan.title = user.display_name || user.username;
+        usernameSpan.title = `Click to chat with ${user.display_name || user.username}`;
+        usernameSpan.addEventListener('click', (event) => {
+            event.stopPropagation();
+            this.initiateDirectMessage(user);
+        });
         userItem.appendChild(usernameSpan);
 
         // Action buttons container
@@ -74,10 +78,6 @@ export class UserManagementService {
         // Profile button
         const profileButton = this.createProfileButton(user);
         buttonsContainer.appendChild(profileButton);
-
-        // Direct message button
-        const messageButton = this.createMessageButton(user);
-        buttonsContainer.appendChild(messageButton);
 
         userItem.appendChild(buttonsContainer);
         container.appendChild(userItem);
@@ -106,21 +106,10 @@ export class UserManagementService {
             friendsManager.addFriend(user.username);
             alert('Ami ajouté !');
             button.style.display = 'none';
+            // Re-render to show the message button
+            this.renderUserList();
         });
         
-        return button;
-    }
-
-    private createMessageButton(user: SocketUser): HTMLButtonElement {
-        const button = document.createElement('button');
-        button.className = 'text-xs px-1 py-0.5 rounded hover:bg-gray-500';
-        button.textContent = '💬';
-        button.title = 'Send direct message';
-        button.addEventListener('click', (event) => {
-            event.stopPropagation();
-            // This will be handled by the message service
-            this.initiateDirectMessage(user);
-        });
         return button;
     }
 

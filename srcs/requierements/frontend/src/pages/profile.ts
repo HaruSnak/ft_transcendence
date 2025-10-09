@@ -341,7 +341,6 @@ async function updateProfile() {
             const data = await response.json();
             console.log('🔧 Update profile - Response data:', JSON.stringify(data, null, 2));
             populateFields(data.user);
-            hideEditForm();
             showEditMsg('Profile updated successfully!', true);
             // Update sessionStorage with new user data
             sessionStorage.setItem('user', JSON.stringify(data.user));
