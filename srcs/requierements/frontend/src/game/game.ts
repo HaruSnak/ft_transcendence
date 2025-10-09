@@ -1,5 +1,4 @@
 // src/game/game.ts
-console.log('🎮 Loading game.ts...');
 
 import { PongGame } from './PongBase.js';
 import { TournamentManager } from './TournamentManager.js';
@@ -14,9 +13,7 @@ let localModeManager: OneVsOneManager | null = null;
 // Initialiser le jeu
 export function initGame(mode: 'solo' | 'local' | 'tournament' = 'solo')
 {
-    console.log(`🎮 Initializing game in ${mode} mode...`);
     if (pongGame) {
-        console.log('🎮 Cleaning up existing game...');
         pongGame.cleanupGame();
     }
     
@@ -26,16 +23,7 @@ export function initGame(mode: 'solo' | 'local' | 'tournament' = 'solo')
     const messageDiv = document.getElementById('gameMessageWinOrLose') as HTMLDivElement;
     const scoreDiv = document.getElementById('gameScore') as HTMLDivElement;
     
-    console.log('🎮 Game elements found:', {
-        canvas: !!canvas,
-        startBtn: !!startBtn,
-        pauseBtn: !!pauseBtn,
-        messageDiv: !!messageDiv,
-        scoreDiv: !!scoreDiv
-    });
-    
     if (canvas && startBtn && pauseBtn && messageDiv && scoreDiv) {
-        console.log('🎮 Creating new PongGame instance...');
         pongGame = new PongGame(startBtn, pauseBtn, messageDiv, scoreDiv);
         
         // Set game mode
@@ -52,17 +40,14 @@ export function initGame(mode: 'solo' | 'local' | 'tournament' = 'solo')
         pauseBtn.addEventListener('click', () => pongGame?.pauseGame());
         
         pongGame.draw(); // Initial draw
-        console.log('✅ Game initialized successfully');
     } else {
         console.log('❌ Game initialization failed: missing DOM elements');
     }
 }
 
 export function cleanUpGame() {
-    console.log('🧹 Cleaning up game...');
 	pongGame?.cleanupGame();
 	pongGame = null;
-    console.log('✅ Game cleaned up');
 }
 
 export { pongGame };

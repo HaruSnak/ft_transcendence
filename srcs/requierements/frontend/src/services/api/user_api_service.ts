@@ -72,38 +72,24 @@ export class UserApiService {
     }
 
     static async unblockUser(blockedUserId: number): Promise<void> {
-        console.log(`🔓 API call: unblock user ID ${blockedUserId}`);
-
         const headers = this.getAuthHeadersWithoutContentType();
-        console.log('🔓 Request headers:', {
-            'Authorization': headers['Authorization'] ? 'Bearer [TOKEN]' : 'MISSING'
-        });
 
         const response = await fetch(`${API_BASE_URL}/user/unblock/${blockedUserId}`, {
             method: 'DELETE',
             headers: headers
         });
 
-        console.log(`🔓 API response status: ${response.status}`);
-        console.log(`🔓 API response ok: ${response.ok}`);
-
         if (!response.ok) {
             let errorMessage = 'Failed to unblock user';
             try {
                 const errorData = await response.json();
-                console.error('🔓 API error response (full):', JSON.stringify(errorData, null, 2));
-                console.error('🔓 API error response (object):', errorData);
                 errorMessage = errorData.error || errorData.message || errorData.detail || errorMessage;
             } catch (parseError) {
-                console.error('🔓 Could not parse error response:', parseError);
                 const textResponse = await response.text();
-                console.error('🔓 Raw error response text:', textResponse);
                 errorMessage = textResponse || errorMessage;
             }
             throw new Error(`${errorMessage} (Status: ${response.status})`);
         }
-
-        console.log('🔓 User successfully unblocked via API');
     }
 
     static async updateProfile(updates: Partial<User>): Promise<User> {

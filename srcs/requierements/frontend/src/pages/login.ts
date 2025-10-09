@@ -26,7 +26,6 @@ export function initLogin() {
             const password = formData.get('password') as string;
 
             showMsg('', true);
-            console.log('Login form submit:', { identifier, password });
 
             if (!identifier || !password) {
                 showMsg('Please fill in username and password', false);
@@ -41,8 +40,6 @@ export function initLogin() {
                     },
                     body: JSON.stringify({ username: identifier, password }),
                 });
-                console.log('POST /api/auth/login payload:', { username: identifier, password });
-                console.log('POST /api/auth/login response status:', response.status);
 
                 if (!response.ok) {
                     // Try GET as fallback if POST fails (for debugging)
@@ -51,7 +48,6 @@ export function initLogin() {
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('Login success response:', data);
                     sessionStorage.setItem('authToken', data.token);
                     sessionStorage.setItem('user', JSON.stringify(data.user));
                     showMsg('Login successful!', true);

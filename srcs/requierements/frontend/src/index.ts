@@ -1,5 +1,4 @@
 // src/index.ts
-console.log('🔄 Loading index.ts...');
 
 import './style.css';
 import { initGame, cleanUpGame, pongGame } from './game/game.js';
@@ -9,19 +8,14 @@ import { initSignup } from './pages/signup.js';
 import { initProfile } from './pages/profile.js';
 import { initLiveChat } from './pages/livechat/index.js';
 
-console.log('✅ All imports loaded');
-
 let tournamentManager: any = null;
 
 // Navigation
 function showPage(pageId: string) {
-    console.log(`📄 showPage called with: ${pageId}`);
-
     // Check access for protected pages
     if (pageId === 'profile' || pageId === 'live-chat') {
         const authToken = sessionStorage.getItem('authToken');
         if (!authToken) {
-            console.log('🔒 Access denied to protected page, redirecting to login');
             showPage('login');
             return;
         }
@@ -29,7 +23,6 @@ function showPage(pageId: string) {
 
     // Clean up game if switching away from game page
     if (pageId !== 'game') {
-        console.log('🎮 Cleaning up game...');
         cleanUpGame();
     }
 
@@ -41,12 +34,10 @@ function showPage(pageId: string) {
     // Show selected page
     const page = document.getElementById(pageId);
     if (page) {
-        console.log(`✅ Showing page: ${pageId}`);
         page.classList.remove('hidden');
         
         // Initialize page-specific functionality
         if (pageId === 'profile') {
-            console.log('👤 Re-initializing profile page...');
             initProfile();
         }
     } else {
@@ -59,18 +50,14 @@ function showPage(pageId: string) {
     });
     const activeLink = document.querySelector(`[data-page="${pageId}"]`);
     if (activeLink) {
-        console.log(`🎯 Setting active link for: ${pageId}`);
         activeLink.classList.add('active');
     }
 }
 
 function initNavigation() {
-    console.log('🧭 Initializing navigation...');
     // Handle nav links
     document.querySelectorAll('[data-page]').forEach(link => {
-        console.log('🔗 Attaching event listener to:', link);
         link.addEventListener('click', (e) => {
-            console.log('🖱️ Clicked on:', link, 'Page:', link.getAttribute('data-page'));
             e.preventDefault();
             const pageId = link.getAttribute('data-page');
             if (pageId) {
@@ -91,14 +78,11 @@ function initNavigation() {
             sessionStorage.setItem('profileUsername', username);
             showPage('profile');
         } else if (document.getElementById(hash)) {
-            console.log(`🔗 Initial page from hash: ${hash}`);
             showPage(hash);
         } else {
-            console.log('🏠 Showing default page: home');
             showPage('home');
         }
     } else {
-        console.log('🏠 Showing default page: home');
         showPage('home');
     }
 
@@ -113,60 +97,42 @@ function initNavigation() {
                 sessionStorage.setItem('profileUsername', username);
                 showPage('profile');
             } else if (document.getElementById(hash)) {
-                console.log(`🔄 Hash changed to: ${hash}`);
                 showPage(hash);
             }
         }
     });
-    console.log('✅ Navigation initialized');
 }
 
 // Game initialization
 function initGameSection() {
-    console.log('🎮 Initializing game section...');
     const soloModeBtn = document.getElementById('solo-mode');
     const localModeBtn = document.getElementById('vs-local-mode');
     const tournamentModeBtn = document.getElementById('tournament-mode');
 
     if (soloModeBtn) {
-        console.log('🎯 Solo mode button found');
         soloModeBtn.addEventListener('click', () => {
-            console.log('🎮 Starting solo game...');
             showPage('game');
             initGame('solo');
         });
-    } else {
-        console.log('❌ Solo mode button not found');
     }
 
     if (localModeBtn) {
-        console.log('🎯 Local mode button found');
         localModeBtn.addEventListener('click', () => {
-            console.log('🎮 Starting local game...');
             showPage('game');
             initGame('local');
         });
-    } else {
-        console.log('❌ Local mode button not found');
     }
 
     if (tournamentModeBtn) {
-        console.log('🏆 Tournament mode button found');
         tournamentModeBtn.addEventListener('click', () => {
-            console.log('🏆 Starting tournament setup...');
             showPage('tournament-setup');
             initTournamentSetup();
         });
-    } else {
-        console.log('❌ Tournament mode button not found');
     }
-    console.log('✅ Game section initialized');
 }
 
 // Tournament setup
 function initTournamentSetup() {
-    console.log('🏆 Initializing tournament setup...');
-    
     const addPlayerBtn = document.getElementById('add-player-btn');
     const newPlayerNameInput = document.getElementById('new-player-name') as HTMLInputElement;
     const playerTypeSelect = document.getElementById('player-type') as HTMLSelectElement;
@@ -219,7 +185,6 @@ function initTournamentSetup() {
     if (startTournamentBtn) {
         startTournamentBtn.addEventListener('click', () => {
             if (players.length >= 2 && players.length <= 8) {
-                console.log('🏆 Starting tournament with players:', players);
                 startTournament(players);
             }
         });
@@ -233,12 +198,9 @@ function initTournamentSetup() {
     
     // Initialize with empty list
     updatePlayersList();
-    console.log('✅ Tournament setup initialized');
 }
 
 function startTournament(players: Array<{name: string, type: 'guest' | 'user'}>) {
-    console.log('🏆 Starting tournament...');
-    
     // Import tournament manager dynamically
     import('./game/TournamentManager.js').then(({ TournamentManager }) => {
         tournamentManager = new TournamentManager();
@@ -256,7 +218,6 @@ function startTournament(players: Array<{name: string, type: 'guest' | 'user'}>)
         
         // Create matches and start tournament
         const matches = tournamentManager.createMatches();
-        console.log('🏆 Tournament matches:', matches);
         
         // Switch to game page and start tournament
         showPage('game');
@@ -271,16 +232,11 @@ function startTournament(players: Array<{name: string, type: 'guest' | 'user'}>)
 
 // Initialize everything
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('📋 DOM Content Loaded - Starting initialization...');
     initNavigation();
     initGameSection();
-    console.log(' Initializing login...');
     initLogin();
-    console.log('📝 Initializing signup...');
     initSignup();
-    console.log('👤 Initializing profile...');
     initProfile();
-    console.log('💬 Initializing live chat...');
     initLiveChat();
 
     // Check login state and hide login tab if authenticated
@@ -289,6 +245,4 @@ document.addEventListener('DOMContentLoaded', () => {
     if (authToken && loginLink) {
         (loginLink as HTMLElement).style.display = 'none';
     }
-
-    console.log('🎉 All initializations complete!');
 });

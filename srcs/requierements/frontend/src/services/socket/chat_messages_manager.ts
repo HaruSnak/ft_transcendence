@@ -21,7 +21,6 @@ export class MessageHandlingService {
         }
 
         socket.on(SOCKET_EVENTS.MESSAGE, (messageData: ChatMessage) => {
-            console.log('💬 Message received:', messageData);
             this.handleIncomingMessage(messageData);
         });
     }
@@ -39,14 +38,12 @@ export class MessageHandlingService {
 
         // Check if sender is blocked
         if (this.isUserBlocked(message.from)) {
-            console.log(`🚫 Message from ${message.from} ignored (user blocked)`);
             this.addMessageToHistory(message);
             return;
         }
 
         // Skip messages that we already displayed locally (avoid duplicates)
         if (this.isDuplicateMessage(message)) {
-            console.log('🔄 Duplicate message skipped');
             return;
         }
 
@@ -85,7 +82,6 @@ export class MessageHandlingService {
     }
 
     public startDirectMessage(username: string, displayName: string): void {
-        console.log(`💬 Starting direct message with: ${username}`);
         this.currentChat = { type: 'dm', user: username, displayName: displayName };
 
         this.updateChatHeader(`Direct Message with ${displayName}`);
@@ -147,7 +143,6 @@ export class MessageHandlingService {
                     socket.emit(SOCKET_EVENTS.JOIN_GAME_REQUEST, {
                         inviter: message.from
                     });
-                    console.log(`🎮 Join game request sent for inviter: ${message.from}`);
                 }
             });
 
@@ -267,17 +262,13 @@ export class MessageHandlingService {
     }
 
     public sendMessage(messageText: string): void {
-        console.log(`📤 Sending message: "${messageText}"`);
-
         if (!this.currentChat) {
-            console.error('❌ Cannot send message: No active conversation');
             alert('Please select a user to start chatting first.');
             return;
         }
 
         const currentUser = this.socketConnection.getCurrentUser();
         if (!currentUser) {
-            console.error('❌ Cannot send message: No current user');
             return;
         }
 
@@ -291,9 +282,6 @@ export class MessageHandlingService {
                 to: this.currentChat.user,
                 text: messageText
             });
-            console.log('✅ Message sent via Socket.IO');
-        } else {
-            console.error('❌ Cannot send message: Socket not connected');
         }
     }
 

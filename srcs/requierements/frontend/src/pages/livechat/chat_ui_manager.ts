@@ -40,15 +40,11 @@ export class ChatInterfaceManager {
     }
 
     private initializeChatInterface(): void {
-        console.log('💬 Initializing chat interface...');
-
         this.setupMessageForm();
         this.setupBlockButton();
         this.setupInviteButton();
         this.initializeDMList();
         this.disableChatInput();
-
-        console.log('✅ Chat interface initialized');
     }
 
     private setupMessageForm(): void {
@@ -60,16 +56,12 @@ export class ChatInterfaceManager {
             return;
         }
 
-        console.log('💬 Chat form found, attaching submit handler');
-
         chatForm.addEventListener('submit', (event) => {
             event.preventDefault();
             const message = chatInput.value.trim();
 
             if (message) {
                 this.sendMessage(message, chatInput);
-            } else {
-                console.log('💬 Empty message, not sending');
             }
         });
     }
@@ -78,12 +70,9 @@ export class ChatInterfaceManager {
         const currentChat = socketService.getCurrentChat();
 
         if (currentChat) {
-            console.log(`💬 Sending message: "${message}"`);
             socketService.sendMessage(message);
             inputElement.value = '';
-            console.log('💬 Message sent and input cleared');
         } else {
-            console.log('❌ No chat selected, cannot send message');
             alert('Please select a user to start chatting first.');
         }
     }

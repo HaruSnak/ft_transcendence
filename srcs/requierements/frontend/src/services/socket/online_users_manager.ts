@@ -21,7 +21,6 @@ export class UserManagementService {
     }
 
     public updateOnlineUsers(users: SocketUser[]): void {
-        console.log('👥 Updating online users list:', users);
         this.onlineUsers = users;
         this.renderUserList();
         
@@ -46,8 +45,6 @@ export class UserManagementService {
                 this.createUserListItem(user, userListContainer);
             }
         });
-
-        console.log('✅ Online users list rendered successfully');
     }
 
     private createUserListItem(user: SocketUser, container: HTMLElement): void {

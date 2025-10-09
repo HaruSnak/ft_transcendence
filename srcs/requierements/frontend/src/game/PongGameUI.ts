@@ -203,7 +203,6 @@ export class PongGameUI extends SecurityUtils {
 		const currentManager = this.getCurrentManager();
 		const playerCount = currentManager.getNbrAllUsers();
 		
-		console.log(playerCount); // delete
 		if (this.currentMode === 'tournament' && playerCount >= 3) {
 			this.buttonLaunchGame.style.display = 'block';
 			this.buttonLaunchGame.textContent = '🏆 Launch Tournament';

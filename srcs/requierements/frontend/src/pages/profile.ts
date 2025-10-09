@@ -53,7 +53,6 @@ export function initProfile() {
 
 async function loadProfile() {
     const token = sessionStorage.getItem('authToken');
-    console.log('Profile: token in sessionStorage:', token);
     if (!token) {
         // Redirige vers la page de login si pas de token
         window.location.hash = 'login';
@@ -85,10 +84,8 @@ async function loadProfile() {
             });
         }
 
-        console.log('Profile: response status:', response.status);
         if (response.ok) {
             const data = await response.json();
-            console.log('Profile: loaded user data:', data);
             populateFields(data.user, !!profileUsername);
             showState('main');
             // No auto edit form logic here!
@@ -109,7 +106,6 @@ async function loadProfile() {
                 // Initialize online friends widget for own profile
                 if (!onlineFriendsWidget) {
                     onlineFriendsWidget = new OnlineFriendsWidget('profile-online-friends');
-                    console.log('✅ Online friends widget initialized');
                     
                     // Get online users from socket service if available
                     import('../services/socket/index.js').then(({ socketService }) => {
@@ -133,7 +129,6 @@ async function loadProfile() {
             try {
                 const errorData = await response.json();
                 errorMsg = errorData.error || JSON.stringify(errorData);
-                console.error('Profile: backend error:', errorData);
             } catch (e) {
                 console.error('Profile: error parsing backend error:', e);
             }
@@ -207,11 +202,9 @@ function populateFields(user: User, isOtherUser: boolean = false) {
 }
 
 function showState(state: string) {
-    console.log(`🔄 Changing state to: ${state}`);
     // Hide all states
     document.querySelectorAll('[data-state]').forEach(el => {
         el.classList.add('hidden');
-        console.log(`🔄 Hidden state: ${(el as HTMLElement).getAttribute('data-state')}`);
     });
 
     // Show selected state
@@ -222,17 +215,14 @@ function showState(state: string) {
         if (state === 'main' && el.getAttribute('style')?.includes('display: flex')) {
             (el as HTMLElement).style.display = 'flex';
         }
-        console.log(`🔄 Shown state: ${state}`);
     });
 }
 
 function showEditForm() {
-    console.log('🔧 Opening edit form');
     showState('edit');
 }
 
 function hideEditForm() {
-    console.log('🔧 Closing edit form');
     showState('main');
 }
 
@@ -276,13 +266,9 @@ async function updateProfile() {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
 
-    console.log('🔧 Update profile - Raw form data:', JSON.stringify({ displayName, email, password }, null, 2));
-
     // Sanitize inputs
     let sanitizedDisplayName = displayName ? SecurityUtils.sanitizeDisplayName(displayName) : '';
     const sanitizedEmail = email ? SecurityUtils.sanitizeText(email) : '';
-
-    console.log('🔧 Update profile - Sanitized data:', JSON.stringify({ sanitizedDisplayName, sanitizedEmail, password }, null, 2));
 
     // Validate display name
     if (sanitizedDisplayName) {
@@ -298,10 +284,6 @@ async function updateProfile() {
     const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
     const currentDisplayName = currentUser.display_name || currentUser.username || '';
     const currentEmail = currentUser.email || '';
-
-    console.log('🔧 Update profile - Current user:', JSON.stringify(currentUser, null, 2));
-    console.log('🔧 Update profile - Current display name:', currentDisplayName);
-    console.log('🔧 Update profile - Current email:', currentEmail);
 
     // Check display name availability only if it changed
     if (sanitizedDisplayName && sanitizedDisplayName !== currentDisplayName) {
@@ -338,8 +320,6 @@ async function updateProfile() {
     if (sanitizedEmail !== currentEmail) updateData.email = sanitizedEmail; // Include email if changed
     if (password) updateData.password = password;
 
-    console.log('🔧 Update profile - Data to send:', JSON.stringify(updateData, null, 2));
-
     try {
         const response = await fetch('/api/user/profile', {
             method: 'PUT',
@@ -350,11 +330,8 @@ async function updateProfile() {
             body: JSON.stringify(updateData),
         });
 
-        console.log('🔧 Update profile - Response status:', response.status);
-
         if (response.ok) {
             const data = await response.json();
-            console.log('🔧 Update profile - Response data:', JSON.stringify(data, null, 2));
             populateFields(data.user);
             showEditMsg('Profile updated successfully!', true);
             // Update sessionStorage with new user data
@@ -365,7 +342,7 @@ async function updateProfile() {
             });
         } else {
             const errorText = await response.text();
-            console.error('🔧 Update profile - Error response:', errorText);
+            console.error('Profile update error:', errorText);
             showEditMsg('Profile update failed', false);
         }
     } catch (error) {

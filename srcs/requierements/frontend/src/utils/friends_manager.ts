@@ -25,7 +25,6 @@ export class FriendsManager {
             try {
                 const friendsArray = JSON.parse(stored);
                 this.friends = new Set(friendsArray);
-                console.log('✅ Friends loaded:', Array.from(this.friends));
             } catch (error) {
                 console.error('❌ Error loading friends:', error);
                 this.friends = new Set();
@@ -43,7 +42,6 @@ export class FriendsManager {
         const key = `${FRIENDS_STORAGE_KEY}_${currentUser}`;
         const friendsArray = Array.from(this.friends);
         localStorage.setItem(key, JSON.stringify(friendsArray));
-        console.log('💾 Friends saved:', friendsArray);
     }
 
     /**
@@ -76,8 +74,6 @@ export class FriendsManager {
             detail: { friends: Array.from(this.friends) }
         });
         document.dispatchEvent(event);
-        
-        console.log(`➕ Friend added: ${username}`);
     }
 
     /**
@@ -94,8 +90,6 @@ export class FriendsManager {
             detail: { friends: Array.from(this.friends) }
         });
         document.dispatchEvent(event);
-        
-        console.log(`➖ Friend removed: ${username}`);
     }
 
     /**
@@ -131,8 +125,6 @@ export class FriendsManager {
             detail: { friends: [] }
         });
         document.dispatchEvent(event);
-        
-        console.log('🗑️ All friends cleared');
     }
 }
 
