@@ -13,6 +13,10 @@ export class ProfileManager {
         this.checkAuthentication();
     }
 
+    // ===========================================
+    // AUTHENTICATION & INITIALIZATION
+    // ===========================================
+
     private checkAuthentication(): void {
         const token = sessionStorage.getItem('authToken');
         this.isAuthenticated = !!token;
@@ -43,6 +47,10 @@ export class ProfileManager {
             window.location.hash = 'login';
         });
     }
+
+    // ===========================================
+    // EVENT LISTENERS SETUP
+    // ===========================================
 
     private setupEventListeners(): void {
         // Handle profile actions
@@ -78,6 +86,10 @@ export class ProfileManager {
             });
         }
     }
+
+    // ===========================================
+    // PROFILE LOADING & DISPLAY
+    // ===========================================
 
     private async loadProfile(): Promise<void> {
         this.showState('loading');
@@ -195,6 +207,10 @@ export class ProfileManager {
         }
     }
 
+    // ===========================================
+    // MATCH HISTORY MANAGEMENT
+    // ===========================================
+
     private async loadMatchHistory(): Promise<void> {
         try {
             const response = await fetch('/api/user/match-history', {
@@ -256,6 +272,10 @@ export class ProfileManager {
             container.appendChild(matchDiv);
         });
     }
+
+    // ===========================================
+    // PROFILE EDITING
+    // ===========================================
 
     private showEditForm(): void {
         const mainState = document.querySelector('[data-state="main"]');
@@ -342,6 +362,10 @@ export class ProfileManager {
         }
     }
 
+    // ===========================================
+    // AVATAR MANAGEMENT
+    // ===========================================
+
     private async uploadAvatar(): Promise<void> {
         const fileInput = document.querySelector('[data-field="edit-avatar"]') as HTMLInputElement;
         if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
@@ -388,6 +412,10 @@ export class ProfileManager {
         }
     }
 
+    // ===========================================
+    // ACCOUNT MANAGEMENT
+    // ===========================================
+
     private async logout(): Promise<void> {
         try {
             await fetch('/api/auth/logout', {
@@ -433,6 +461,10 @@ export class ProfileManager {
             alert('❌ Erreur réseau.');
         }
     }
+
+    // ===========================================
+    // UI STATE MANAGEMENT
+    // ===========================================
 
     private showState(state: string): void {
         document.querySelectorAll('[data-state]').forEach(el => {
