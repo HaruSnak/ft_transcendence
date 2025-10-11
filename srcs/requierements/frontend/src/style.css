@@ -4,357 +4,366 @@
 
 /* ================================
    DESIGN SYSTEM MODERNE ET CLEAN
-   ================================
-   Ce fichier définit le système de design complet de l'application.
-   Il utilise des variables CSS pour une cohérence parfaite et un thème sombre moderne.
-*/
+   ================================ */
 
 :root {
-  /* ===========================================
-     COULEURS - PALETTE MODERNE ET ÉPURÉE
-     ===========================================
-     Définit tous les tons utilisés dans l'app :
-     - bg-* : arrière-plans (du plus foncé au plus clair)
-     - text-* : couleurs du texte (principal, secondaire, muted)
-     - accent-* : couleurs d'accent pour actions et états
-     - border-* : couleurs des bordures et séparations
-  */
-  --bg-primary: #0a0a0b;      /* Fond principal très sombre */
-  --bg-secondary: #141517;    /* Fond des cartes et sections */
-  --bg-tertiary: #1f2023;     /* Fond des éléments tertiaires */
-  --border-primary: #2a2d32;  /* Bordures principales */
-  --border-hover: #3a3f47;    /* Bordures au survol */
-  --text-primary: #ffffff;    /* Texte principal (blanc) */
-  --text-secondary: #a8a8a8;  /* Texte secondaire (gris clair) */
-  --text-muted: #6b6b6b;      /* Texte muted (gris foncé) */
-  --accent-blue: #3b82f6;     /* Bleu principal pour actions */
-  --accent-blue-hover: #2563eb; /* Bleu plus foncé au survol */
-  --accent-success: #10b981;  /* Vert pour succès */
-  --accent-danger: #ef4444;   /* Rouge pour erreurs/danger */
+  /* Colors - Palette moderne et épurée */
+  --bg-primary: #0a0a0b;
+  --bg-secondary: #141517;
+  --bg-tertiary: #1f2023;
+  --border-primary: #2a2d32;
+  --border-hover: #3a3f47;
+  --text-primary: #ffffff;
+  --text-secondary: #a8a8a8;
+  --text-muted: #6b6b6b;
+  --accent-blue: #3b82f6;
+  --accent-blue-hover: #2563eb;
+  --accent-success: #10b981;
+  --accent-danger: #ef4444;
 
-  /* ===========================================
-     ESPACEMENT - SYSTÈME DE SPACING CONSISTANT
-     ===========================================
-     Échelle d'espacement de 0.25rem à 3rem pour marges/paddings
-  */
-  --space-xs: 0.25rem;   /* Très petit (4px) */
-  --space-sm: 0.5rem;    /* Petit (8px) */
-  --space-md: 1rem;      /* Moyen (16px) */
-  --space-lg: 1.5rem;    /* Large (24px) */
-  --space-xl: 2rem;      /* Extra large (32px) */
-  --space-2xl: 3rem;     /* Très large (48px) */
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
 
-  /* ===========================================
-     TYPOGRAPHIE - ÉCHELLE DE TAILLES DE TEXTE
-     ===========================================
-     De xs (12px) à 4xl (64px) pour hiérarchiser le contenu
-  */
-  --text-xs: 0.75rem;     /* 12px - petits labels */
-  --text-sm: 0.875rem;    /* 14px - texte secondaire */
-  --text-base: 1rem;      /* 16px - texte normal */
-  --text-lg: 1.125rem;    /* 18px - texte important */
-  --text-xl: 1.25rem;     /* 20px - titres petits */
-  --text-2xl: 1.5rem;     /* 24px - titres moyens */
-  --text-3xl: 1.875rem;   /* 30px - titres grands */
-  --text-4xl: 2.25rem;    /* 36px - titres très grands */
+  /* Typography */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
 
-  /* ===========================================
-     FORMES - RAYONS DE BORDURE
-     ===========================================
-     Pour arrondir les coins des éléments
-  */
-  --radius-sm: 0.375rem;  /* 6px - légèrement arrondi */
-  --radius-md: 0.5rem;    /* 8px - moyennement arrondi */
-  --radius-lg: 0.75rem;   /* 12px - bien arrondi */
+  /* Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
 
-  /* ===========================================
-     OMBRES - PROFONDEUR VISUELLE
-     ===========================================
-     Pour donner du relief aux éléments
-  */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);   /* Ombre subtile */
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);  /* Ombre moyenne */
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1); /* Ombre prononcée */
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 }
 
-/* ===========================================
-   RESET ET BASE - FONDATIONS DE L'APPLICATION
-   ===========================================
-   Reset des styles par défaut et configuration de base
-*/
+/* Reset et base */
 * {
-  box-sizing: border-box; /* Tous les éléments incluent padding/border dans leur largeur */
+  box-sizing: border-box;
 }
 
 body {
-  /* Configuration du corps de la page */
-  background: var(--bg-primary);                    /* Fond sombre principal */
-  color: var(--text-primary);                       /* Texte blanc par défaut */
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; /* Police système moderne */
-  line-height: 1.6;                                 /* Interligne confortable */
-  display: flex;                                    /* Layout flexbox */
-  flex-direction: column;                           /* Orientation verticale */
-  min-height: 100vh;                                /* Hauteur minimale pleine fenêtre */
-  overflow-x: hidden;                               /* Pas de scroll horizontal */
-  overflow-y: auto;                                 /* Scroll vertical si nécessaire */
-  margin: 0;                                        /* Suppression marges par défaut */
-  padding: 0;                                       /* Suppression padding par défaut */
-}
-
-/* ===========================================
-   LAYOUT UTILITAIRES - STRUCTURE DE LA PAGE
-   ===========================================
-   Classes pour organiser le contenu de l'application
-*/
-.container {
-  /* Conteneur principal centré avec largeur max */
-  flex: 1 1 auto;                    /* Prend tout l'espace disponible */
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  line-height: 1.6;
   display: flex;
   flex-direction: column;
-  max-width: 1200px;                 /* Largeur maximale */
-  margin: 0 auto;                    /* Centrage horizontal */
-  padding: 0 var(--space-sm);        /* Padding latéral */
-  justify-content: center;           /* Centrage vertical du contenu */
+  height: 100vh;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  line-height: 1.6;
+}
+
+/* Layout utilitaires */
+.container {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-sm);
+  justify-content: center;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-sm);
+  justify-content: center;
+  box-sizing: border-box;
   box-sizing: border-box;
 }
 
 .page {
-  /* Chaque "page" de l'application (login, profile, chat, etc.) */
   display: flex;
   flex-direction: column;
-  padding: var(--space-md) 0;         /* Padding vertical */
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-md) 0;
   box-sizing: border-box;
-  justify-content: center;           /* Centrage du contenu */
-  min-height: calc(100vh - 70px);    /* Hauteur minimale (sans nav) */
-  overflow-y: auto;                  /* Scroll vertical si nécessaire */
+  justify-content: center;
+  overflow: hidden;
+  padding: var(--space-md) 0;
+  justify-content: center;
+  box-sizing: border-box;
+}
+.profile-history-scroll {
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .page.hidden {
-  display: none; /* Masque la page quand elle n'est pas active */
+  display: none;
 }
 
-.profile-history-scroll {
-  /* Scroll spécial pour l'historique du profil */
-  max-height: 300px;                 /* Hauteur maximale */
-  overflow-y: auto;                  /* Scroll vertical seulement */
-}
-
-/* ===========================================
-   NAVIGATION MODERNE - BARRE DE NAVIGATION FIXE
-   ===========================================
-   La barre de navigation en haut de l'écran
-*/
+/* Navigation moderne */
 .nav {
-  /* Barre de navigation principale */
-  background: var(--bg-secondary);     /* Fond sombre */
-  border-bottom: 1px solid var(--border-primary); /* Ligne de séparation */
-  position: fixed;                    /* Fixée en haut */
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-primary);
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 70px;                      /* Hauteur fixe */
-  overflow: hidden;                   /* Pas de débordement */
+  height: 100vh;
+  overflow: hidden;
+  height: 70px;
 }
 
 .nav-container {
-  /* Conteneur interne de la nav */
   display: flex;
-  align-items: center;                /* Alignement vertical centré */
-  justify-content: space-between;     /* Logo à gauche, liens à droite */
-  height: 100%;                      /* Prend toute la hauteur */
-  max-width: 1200px;                 /* Même largeur max que .container */
-  margin: 0 auto;                    /* Centrage */
-  padding: 0 var(--space-lg);        /* Padding latéral */
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
   overflow: hidden;
+  padding: 0 var(--space-lg);
 }
 
 .nav-logo {
-  /* Logo de l'application */
-  font-size: var(--text-xl);          /* Taille du texte */
-  font-weight: 600;                  /* Semi-bold */
-  color: var(--text-primary);         /* Blanc */
-  text-decoration: none;             /* Pas de soulignement */
-  letter-spacing: -0.025em;          /* Légère compression */
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+  letter-spacing: -0.025em;
 }
 
 .nav-links {
-  /* Liste des liens de navigation */
   display: flex;
-  gap: var(--space-lg);              /* Espace entre les liens */
-  list-style: none;                  /* Pas de puces */
+  gap: var(--space-lg);
+  list-style: none;
   margin: 0;
   padding: 0;
 }
 
 .nav-link {
-  /* Style de base des liens de nav */
-  color: var(--text-secondary);       /* Gris clair */
+  color: var(--text-secondary);
   text-decoration: none;
   font-size: var(--text-sm);
   font-weight: 500;
-  padding: var(--space-sm) var(--space-md); /* Padding interne */
-  border-radius: var(--radius-md);   /* Coins arrondis */
-  transition: all 0.15s ease;        /* Animation douce */
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  transition: all 0.15s ease;
 }
 
 .nav-link:hover {
-  /* Au survol */
-  color: var(--text-primary);         /* Blanc */
-  background: var(--bg-tertiary);     /* Fond légèrement plus clair */
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
 }
 
 .nav-link.active {
-  /* Lien actif (page courante) */
-  color: var(--accent-blue);          /* Bleu */
-  background: rgba(59, 130, 246, 0.1); /* Fond bleu transparent */
+  color: var(--accent-blue);
+  background: rgba(59, 130, 246, 0.1);
 }
 
-/* ===========================================
-   CARDS ET CONTAINERS - ÉLÉMENTS DE CONTENU
-   ===========================================
-   Composants pour structurer le contenu (cartes, headers, etc.)
-*/
+/* Cards et containers */
 .card {
-  /* Carte générique pour encadrer du contenu */
-  background: var(--bg-secondary);     /* Fond sombre */
-  border: 1px solid var(--border-primary); /* Bordure subtile */
-  border-radius: var(--radius-lg);    /* Coins bien arrondis */
-  padding: var(--space-md);           /* Padding interne */
-  box-shadow: var(--shadow-sm);       /* Ombre légère */
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  box-shadow: var(--shadow-sm);
 }
 
 .card-header {
-  /* En-tête d'une carte */
-  margin-bottom: var(--space-lg);     /* Marge en bas */
+  margin-bottom: var(--space-lg);
 }
 
 .card-title {
-  /* Titre d'une carte */
-  font-size: var(--text-2xl);          /* Grande taille */
-  font-weight: 600;                  /* Semi-bold */
-  color: var(--text-primary);         /* Blanc */
-  margin: 0 0 var(--space-sm) 0;     /* Marges */
-  letter-spacing: -0.025em;          /* Légère compression */
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-sm) 0;
+  letter-spacing: -0.025em;
 }
 
 .card-description {
-  /* Description sous le titre */
-  color: var(--text-secondary);       /* Gris */
+  color: var(--text-secondary);
   margin: 0;
   font-size: var(--text-base);
 }
 
-/* ===========================================
-   BOUTONS MODERNES - SYSTÈME DE BOUTONS COMPLET
-   ===========================================
-   Différents styles de boutons pour toutes les actions
-*/
+/* Boutons modernes */
 .btn {
-  /* Classe de base pour tous les boutons */
-  display: inline-flex;               /* Flex pour aligner icônes + texte */
-  align-items: center;                /* Centrage vertical */
-  justify-content: center;            /* Centrage horizontal */
-  gap: var(--space-sm);              /* Espace icône-texte */
-  padding: var(--space-md) var(--space-lg); /* Padding interne */
-  font-size: var(--text-sm);          /* Taille du texte */
-  font-weight: 500;                  /* Medium */
-  border-radius: var(--radius-md);   /* Coins arrondis */
-  border: none;                      /* Pas de bordure par défaut */
-  cursor: pointer;                   /* Curseur pointer */
-  transition: all 0.15s ease;        /* Animation douce */
-  text-decoration: none;             /* Pas de soulignement pour les liens */
-  outline: none;                     /* Suppression outline par défaut */
-  min-height: 40px;                  /* Hauteur minimale */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  outline: none;
+  min-height: 40px;
 }
 
 .btn:disabled {
-  /* État désactivé */
-  opacity: 0.5;                      /* Semi-transparent */
-  cursor: not-allowed;               /* Curseur d'interdiction */
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-/* VARIATIONS DE BOUTONS */
 .btn-primary {
-  /* Bouton principal (actions importantes) */
-  background: var(--accent-blue);     /* Fond bleu */
-  color: white;                      /* Texte blanc */
+  background: var(--accent-blue);
+  color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  /* Au survol (si pas désactivé) */
-  background: var(--accent-blue-hover); /* Bleu plus foncé */
-  transform: translateY(-1px);       /* Légère élévation */
-  box-shadow: var(--shadow-md);      /* Ombre plus prononcée */
+  background: var(--accent-blue-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-secondary {
-  /* Bouton secondaire (actions moins importantes) */
-  background: var(--bg-tertiary);     /* Fond terne */
-  color: var(--text-primary);         /* Texte blanc */
-  border: 1px solid var(--border-primary); /* Bordure */
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--bg-tertiary);     /* Fond identique */
-  border-color: var(--border-hover);  /* Bordure plus claire */
-  transform: translateY(-1px);       /* Légère élévation */
+  background: var(--bg-tertiary);
+  border-color: var(--border-hover);
+  transform: translateY(-1px);
 }
 
-/* TAILLES DE BOUTONS */
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.btn-danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--accent-danger);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
 .btn-lg {
-  /* Bouton large */
-  padding: var(--space-lg) var(--space-xl); /* Plus de padding */
-  font-size: var(--text-base);       /* Texte plus grand */
-  min-height: 48px;                  /* Hauteur plus grande */
+  padding: var(--space-lg) var(--space-xl);
+  font-size: var(--text-base);
+  min-height: 48px;
 }
 
-/* ===========================================
-   GRILLE ET LAYOUT - SYSTÈME DE GRILLE CSS
-   ===========================================
-   Classes pour créer des layouts en grille
-*/
+.btn-sm {
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--text-xs);
+  min-height: 32px;
+}
+
+.btn-xs {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--text-xs);
+  min-height: 32px;
+}
+
+/* Forms modernes */
+.form-group {
+  margin-bottom: var(--space-lg);
+}
+
+.form-label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.form-input {
+  width: 100%;
+  padding: var(--space-md);
+  font-size: var(--text-base);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  transition: all 0.15s ease;
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Grid layouts */
 .grid {
-  /* Classe de base pour les grilles */
   display: grid;
-  gap: var(--space-lg);              /* Espace entre les éléments */
+  gap: var(--space-lg);
 }
 
 .grid-2 {
-  /* Grille à 2 colonnes */
-  grid-template-columns: repeat(2, 1fr); /* 2 colonnes égales */
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .grid-3 {
-  /* Grille à 3 colonnes */
-  grid-template-columns: repeat(3, 1fr); /* 3 colonnes égales */
+  grid-template-columns: repeat(3, 1fr);
 }
 
-/* ===========================================
-   FLEX UTILITIES - UTILITAIRES FLEXBOX
-   ===========================================
-   Classes pour gérer les layouts flexibles
-*/
+.grid-auto {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+/* Flex utilities */
 .flex {
-  display: flex; /* Active le mode flexbox */
+  display: flex;
 }
 
 .flex-col {
-  flex-direction: column; /* Orientation verticale */
+  flex-direction: column;
 }
 
 .items-center {
-  align-items: center; /* Alignement vertical centré */
+  align-items: center;
+}
+
+.items-start {
+  align-items: flex-start;
 }
 
 .justify-center {
-  justify-content: center; /* Alignement horizontal centré */
+  justify-content: center;
 }
 
 .justify-between {
-  justify-content: space-between; /* Espace entre les éléments */
+  justify-content: space-between;
 }
 
-/* Espacement dans les flex containers */
 .gap-sm { gap: var(--space-sm); }
 .gap-md { gap: var(--space-md); }
 .gap-lg { gap: var(--space-lg); }
@@ -364,21 +373,29 @@ body {
 .space-y-md > * + * { margin-top: var(--space-md); }
 .space-y-lg > * + * { margin-top: var(--space-lg); }
 
-/* ===========================================
-   UTILITAIRES DE TEXTE - CLASSES DE TYPOGRAPHIE
-   ===========================================
-   Classes pour contrôler l'apparence du texte
-*/
+/* Text utilities */
 .text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.text-xs { font-size: var(--text-xs); }
+.text-sm { font-size: var(--text-sm); }
+.text-base { font-size: var(--text-base); }
+.text-lg { font-size: var(--text-lg); }
+.text-xl { font-size: var(--text-xl); }
+.text-2xl { font-size: var(--text-2xl); }
+.text-3xl { font-size: var(--text-3xl); }
 .text-4xl { font-size: var(--text-4xl); }
 
-/* ===========================================
-   UTILITAIRES D'ESPACEMENT - MARGES ET PADDINGS
-   ===========================================
-   Classes pour ajouter des marges et paddings
-*/
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
 
-/* Marges */
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+
+/* Spacing utilities */
 .mt-sm { margin-top: var(--space-sm); }
 .mt-md { margin-top: var(--space-md); }
 .mt-lg { margin-top: var(--space-lg); }
@@ -389,7 +406,6 @@ body {
 .mb-lg { margin-bottom: var(--space-lg); }
 .mb-xl { margin-bottom: var(--space-xl); }
 
-/* Paddings */
 .pt-sm { padding-top: var(--space-sm); }
 .pt-md { padding-top: var(--space-md); }
 .pt-lg { padding-top: var(--space-lg); }
@@ -405,207 +421,213 @@ body {
 .p-lg { padding: var(--space-lg); }
 .p-xl { padding: var(--space-xl); }
 
-/* ===========================================
-   STYLES DE CHAT - INTERFACE DE MESSAGERIE
-   ===========================================
-   Styles spécifiques à la fonctionnalité de chat en temps réel
-*/
+/* Space between children */
+.space-y-sm > * + * { margin-top: var(--space-sm); }
+.space-y-md > * + * { margin-top: var(--space-md); }
+.space-y-lg > * + * { margin-top: var(--space-lg); }
+
+/* Game canvas */
+.game-canvas {
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Chat styles */
 .chat-container {
-  /* Conteneur principal du chat */
-  height: 600px;                       /* Hauteur fixe */
+  height: 600px;
   display: flex;
-  gap: var(--space-lg);                /* Espace entre sidebar et main */
+  gap: var(--space-lg);
 }
 
 .chat-sidebar {
-  /* Barre latérale du chat (liste des utilisateurs) */
-  width: 200px;                        /* Largeur fixe */
-  background: var(--bg-tertiary);      /* Fond terne */
-  border: 1px solid var(--border-primary); /* Bordure */
-  border-radius: var(--radius-lg);     /* Coins arrondis */
-  padding: var(--space-lg);            /* Padding interne */
+  width: 200px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
   display: flex;
-  flex-direction: column;              /* Layout vertical */
+  flex-direction: column;
 }
 
 .chat-main {
-  /* Zone principale du chat (messages + formulaire) */
-  flex: 1;                             /* Prend l'espace restant */
-  background: var(--bg-secondary);     /* Fond sombre */
-  border: 1px solid var(--border-primary); /* Bordure */
-  border-radius: var(--radius-lg);     /* Coins arrondis */
-  padding: var(--space-lg);            /* Padding interne */
+  flex: 1;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
   display: flex;
-  flex-direction: column;              /* Layout vertical */
+  flex-direction: column;
 }
 
 .chat-messages {
-  /* Zone d'affichage des messages */
-  flex: 1;                             /* Prend l'espace disponible */
-  overflow-y: auto;                    /* Scroll vertical */
-  padding: var(--space-lg);            /* Padding interne */
-  background: var(--bg-tertiary);      /* Fond légèrement différent */
-  border-radius: var(--radius-md);     /* Coins légèrement arrondis */
-  margin-bottom: var(--space-lg);      /* Marge en bas */
-  min-height: 400px;                   /* Hauteur minimale */
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-lg);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-lg);
+  min-height: 400px;
 }
 
 .chat-message {
-  /* Style de base d'un message */
-  padding: var(--space-md);            /* Padding interne */
-  margin-bottom: var(--space-sm);      /* Marge en bas */
-  border-radius: var(--radius-md);     /* Coins arrondis */
-  font-size: var(--text-sm);           /* Petite taille */
+  padding: var(--space-md);
+  margin-bottom: var(--space-sm);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
 }
 
 .chat-message.own {
-  /* Message envoyé par l'utilisateur actuel */
-  background: var(--accent-blue);      /* Fond bleu */
-  color: white;                        /* Texte blanc */
-  margin-left: auto;                   /* Aligné à droite */
-  max-width: 70%;                      /* Largeur max */
+  background: var(--accent-blue);
+  color: white;
+  margin-left: auto;
+  max-width: 70%;
 }
 
 .chat-message.other {
-  /* Message reçu d'un autre utilisateur */
-  background: var(--bg-secondary);     /* Fond sombre */
-  border: 1px solid var(--border-primary); /* Bordure */
-  max-width: 70%;                      /* Largeur max */
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  max-width: 70%;
 }
 
 .chat-form {
-  /* Formulaire d'envoi de message */
   display: flex;
-  gap: var(--space-md);                /* Espace entre input et bouton */
+  gap: var(--space-md);
 }
 
 .chat-input {
-  /* Champ de saisie du message */
-  flex: 1;                             /* Prend l'espace disponible */
+  flex: 1;
 }
 
-/* ===========================================
-   RESPONSIVE DESIGN - ADAPTATION MOBILE
-   ===========================================
-   Styles qui s'adaptent aux écrans plus petits
-*/
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.modal-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  max-width: 500px;
+  width: 90%;
+  box-shadow: var(--shadow-lg);
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+
+.modal-overlay.show .modal {
+  transform: scale(1);
+}
+
+.modal-header {
+  text-align: center;
+  margin-bottom: var(--space-lg);
+}
+
+.modal-title {
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-sm) 0;
+}
+
+.modal-body {
+  text-align: center;
+  margin-bottom: var(--space-xl);
+}
+
+.modal-body p {
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+  margin: 0;
+}
+
+.modal-footer {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: center;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-  /* Tablettes et mobiles */
   .nav-links {
-    gap: var(--space-md);             /* Liens plus rapprochés */
+    gap: var(--space-md);
   }
   .nav-link {
-    padding: var(--space-sm);         /* Padding réduit */
-    font-size: var(--text-xs);        /* Texte plus petit */
+    padding: var(--space-sm);
+    font-size: var(--text-xs);
   }
   .grid-2,
   .grid-3 {
-    grid-template-columns: 1fr;       /* Grille à 1 colonne */
+    grid-template-columns: 1fr;
   }
   .chat-container {
-    flex-direction: column;           /* Chat en colonne */
-    height: auto;                     /* Hauteur automatique */
+    flex-direction: column;
+    height: auto;
   }
   .chat-sidebar {
-    width: 100%;                      /* Pleine largeur */
-    height: 150px;                    /* Hauteur fixe réduite */
+    width: 100%;
+    height: 150px;
   }
   .container {
-    padding: 0 var(--space-xs);       /* Padding réduit */
-    height: 100%;                     /* Hauteur pleine */
-    justify-content: center;          /* Centrage */
+    padding: 0 var(--space-xs);
+    height: 100%;
+    justify-content: center;
   }
   .page {
-    min-height: calc(100vh - 70px);   /* Hauteur minimale sans la nav */
-    height: auto;                     /* Hauteur automatique pour permettre le scroll */
-    padding: var(--space-xs) 0;       /* Padding réduit */
-    justify-content: flex-start;      /* Alignement en haut pour permettre le scroll */
+    min-height: calc(100vh - 70px);
+    height: calc(100vh - 70px);
+    padding: var(--space-xs) 0;
+    justify-content: center;
   }
   .card {
-    padding: var(--space-sm);         /* Padding réduit */
+    padding: var(--space-sm);
   }
 }
 
-/* ===========================================
-   RESPONSIVE POUR PETITS ÉCRANS (TÉLÉPHONES)
-   ===========================================
-   Adaptation supplémentaire pour écrans très petits
-*/
-@media (max-width: 480px) {
-  /* Téléphones */
-  .nav-links {
-    gap: var(--space-sm);             /* Liens encore plus rapprochés */
-  }
-  .nav-link {
-    padding: var(--space-xs);         /* Padding minimal */
-    font-size: 0.6875rem;             /* 11px - très petit */
-  }
-  .chat-sidebar {
-    height: 120px;                    /* Sidebar encore plus petite */
-  }
-  .chat-messages {
-    min-height: 300px;                /* Zone messages réduite */
-  }
-  .nav-logo {
-    font-size: var(--text-lg);        /* Logo plus petit */
-  }
-}
-
-/* ===========================================
-   RESPONSIVE POUR GRANDS ÉCRANS (DESKTOP LARGE)
-   ===========================================
-   Optimisation pour écrans larges
-*/
-@media (min-width: 1200px) {
-  /* Desktop large */
-  .container {
-    max-width: 1400px;                /* Conteneur plus large */
-  }
-  .chat-container {
-    height: 700px;                    /* Chat plus grand */
-  }
-  .chat-sidebar {
-    width: 250px;                     /* Sidebar plus large */
-  }
-}
-
-/* ===========================================
-   SCROLLBARS PERSONNALISÉES - STYLE DES BARRES DE SCROLL
-   ===========================================
-   Personnalisation des barres de défilement Webkit
-*/
+/* Scrollbar styling */
 ::-webkit-scrollbar {
-  /* Barre de scroll verticale */
-  width: 6px;                         /* Épaisseur fine */
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  /* Fond de la barre */
-  background: var(--bg-tertiary);     /* Couleur terne */
+  background: var(--bg-tertiary);
 }
 
 ::-webkit-scrollbar-thumb {
-  /* Poignée de scroll */
-  background: var(--border-primary);  /* Couleur de bordure */
-  border-radius: var(--radius-sm);   /* Coins arrondis */
+  background: var(--border-primary);
+  border-radius: var(--radius-sm);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  /* Au survol de la poignée */
-  background: var(--border-hover);    /* Couleur plus claire */
+  background: var(--border-hover);
 }
 
-/* ===========================================
-   ÉDITION DE MESSAGE - CHAMP SPÉCIAL
-   ===========================================
-   Styles pour l'édition de messages existants
-*/
+/* Edit message styling */
 #edit-message {
-  /* Zone d'édition de message */
-  max-height: 120px;                  /* Hauteur maximale */
-  overflow-y: auto;                   /* Scroll si trop long */
-  word-wrap: break-word;              /* Césure des mots longs */
-  white-space: pre-wrap;              /* Préserve les sauts de ligne */
-  scrollbar-width: thin;              /* Scrollbar fine (Firefox) */
-  scrollbar-color: var(--border-primary) var(--bg-tertiary); /* Couleurs personnalisées */
+  max-height: 120px;
+  overflow-y: auto;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-primary) var(--bg-tertiary);
 }
