@@ -1,355 +1,415 @@
-<!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Transcendance</title>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcendance</title>
+    <meta name="description" content="Modern Pong Game with Live Chat">
+    <link rel="icon" href="data:,">
+    <link href="/public/css/index.css" rel="stylesheet">
+</head>
+<body>
 
-    	<link rel="stylesheet" href="public/css/index.css">
-	</head>
-	<body class="bg-gray-900 text-gray-100">
+<!-- ================================== NAVBAR ================================== -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="#home" class="nav-logo" data-page="home">Transcendance</a>
+            <ul class="nav-links">
+                <li><a href="#home" class="nav-link" data-page="home">Home</a></li>
+                <li><a href="#game" class="nav-link" data-page="game">Game</a></li>
+                <li><a href="#live-chat" class="nav-link" data-page="live-chat">Chat</a></li>
+                <li><a href="#profile" class="nav-link" data-page="profile">Profile</a></li>
+                <li><a href="#login" class="nav-link" data-page="login">Login</a></li>
+            </ul>
+        </div>
+    </nav>
 
-<!-- ================= NAVBAR ================= -->
-		<nav class="bg-gray-800 px-4 py-2 fixed w-full z-10">
-			<div class="max-w-6xl mx-auto flex justify-between items-center">
-				<button data-page="home" class="text-xl font-bold text-blue-400 cursor-pointer">Transcendance</button>
-				<div class="space-x-4">
-					<button data-page="home" class="hover:underline cursor-pointer">Home</button>
-					<button data-page="game" class="hover:underline cursor-pointer">Game</button>
-					<button data-page="live-chat" class="hover:underline cursor-pointer">LiveChat</button>
-					<button data-page="board" class="hover:underline cursor-pointer">Board</button>
-					<button data-page="create_room" class="hover:underline cursor-pointer">Create Room</button>
-					<button data-page="room" class="hover:underline cursor-pointer">Room</button>
-					<button data-page="profile" class="hover:underline cursor-pointer">Profil</button>
-					<button data-page="login" class="hover:underline cursor-pointer">Login</button>
-				</div>
+    <!-- Main Content -->
+    <main class="mt-16">
+        
+<!-- ================================== HOME ================================== -->
+        <section id="home" class="page">
+            <div class="container">
+                <div class="text-center" style="padding: 4rem 0;">
+                    <h1 class="text-4xl font-bold mb-lg">Welcome to Transcendance</h1>
+                    <div class="flex justify-center gap-lg">
+                        <a href="#" class="btn btn-primary btn-lg" data-page="live-chat">Start Chatting</a>
+                        <a href="#" class="btn btn-secondary btn-lg" data-page="game">Play Game</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+<!-- ================================== GAME ================================== -->
+		<section id="game" class="page hidden flex flex-col items-center justify-center pt-17 space-y-6">
+			<h1 class="text-4xl font-bold text-blue-400">Pong Game</h1>
+			<p>Choose a game mode from the following!</p> <!--  Modifier  Controls: W/S for left paddle | Arrow Up/Down for right paddle-->
+			<div id="main-menu-game" class="relative">
+				<button id="buttonPracticeGame" class="px-12 py-4 font-semibold text-white rounded-lg bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 shadow-lg
+					hover:from-pink-500 hover:to-yellow-400 hover:scale-110 transform transition duration-400 ease-in-out
+					focus:outline-none focus:ring-4 focus:ring-pink-400">
+					Practice
+					<span class="absolute inset-0 rounded-lg opacity-0 hover:opacity-30 bg-pink-400 blur-xl transition duration-500"></span>
+				</button>
+				<button id="buttonPlyLocalGame" class="relative px-12 py-4 font-semibold text-white rounded-lg bg-gradient-to-r from-green-600 via-teal-600 to-cyan-500 shadow-lg
+					hover:from-teal-500 hover:to-lime-400 hover:scale-110 transform transition duration-400 ease-in-out
+					focus:outline-none focus:ring-4 focus:ring-teal-400">
+					1 versus 1
+					<span class="absolute inset-0 rounded-lg opacity-0 hover:opacity-30 bg-teal-400 blur-xl transition duration-500"></span>
+				</button>
+				<button id="buttonTournamentGame" class="relative px-12 py-4 font-semibold text-white rounded-lg bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 shadow-lg
+					hover:from-indigo-500 hover:to-purple-400 hover:scale-110 transform transition duration-400 ease-in-out
+					focus:outline-none focus:ring-4 focus:ring-indigo-400">
+					Tournament
+					<span class="absolute inset-0 rounded-lg opacity-0 hover:opacity-30 bg-indigo-400 blur-xl transition duration-500"></span>
+				</button>
+			<!--<button id="practiceGameButton" class="relative px-12 py-4 font-semibold text-white rounded-lg bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 shadow-lg
+					hover:from-pink-500 hover:to-yellow-400 hover:scale-110 transform transition duration-400 ease-in-out
+					focus:outline-none focus:ring-4 focus:ring-pink-400">
+					Local
+					<span class="absolute inset-0 rounded-lg opacity-0 hover:opacity-30 bg-pink-400 blur-xl transition duration-500"></span>
+				</button>
+				<button id="plyLocalGameButton" class="relative px-12 py-4 font-semibold text-white rounded-lg bg-gradient-to-r from-green-600 via-teal-600 to-cyan-500 shadow-lg
+					hover:from-teal-500 hover:to-lime-400 hover:scale-110 transform transition duration-400 ease-in-out
+					focus:outline-none focus:ring-4 focus:ring-teal-400">
+					Remote
+					<span class="absolute inset-0 rounded-lg opacity-0 hover:opacity-30 bg-teal-400 blur-xl transition duration-500"></span>
+				</button>
+				MENU SI REMOTE FAIT-->
 			</div>
-		</nav>
-
-		<!-- conteneur central -->
-		<main class="pt-16 max-w-4xl mx-auto space-y-8 px-4">
-
-<!-- ================= HOME ================= -->
-			<section id="home" class="page hidden flex flex-col items-center justify-center pt-16 space-y-6">
-				<h1 class="text-4xl font-bold text-blue-400">Welcome to Transcendance</h1>
-				<div class="flex space-x-4">
-					<button data-page="live-chat" class="px-4 py-2 border border-blue-400 rounded hover:bg-blue-500">LiveChat</button>
-					<button data-page="game" class="px-4 py-2 border border-blue-400 rounded hover:bg-blue-500">Play Game</button>
-					<button data-page="board" class="px-4 py-2 border border-blue-400 rounded hover:bg-blue-500">Board</button>
-				</div>
-			</section>
-
-<!-- ================= GAME ================= -->
-			<section id="game" class="page hidden flex flex-col items-center justify-center pt-17 space-y-6">
-				<h1 class="text-4xl font-bold text-blue-400">Pong Game</h1>
-				<p>Choose a game mode from the following!</p> <!--  Modifier  Controls: W/S for left paddle | Arrow Up/Down for right paddle-->
-				<div id="main-menu-game" class="relative">
-					<button id="buttonPracticeGame" class="px-12 py-4 font-semibold text-white rounded-lg bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 shadow-lg
-						hover:from-pink-500 hover:to-yellow-400 hover:scale-110 transform transition duration-400 ease-in-out
-						focus:outline-none focus:ring-4 focus:ring-pink-400">
-						Practice
-						<span class="absolute inset-0 rounded-lg opacity-0 hover:opacity-30 bg-pink-400 blur-xl transition duration-500"></span>
-					</button>
-					<button id="buttonPlyLocalGame" class="relative px-12 py-4 font-semibold text-white rounded-lg bg-gradient-to-r from-green-600 via-teal-600 to-cyan-500 shadow-lg
-						hover:from-teal-500 hover:to-lime-400 hover:scale-110 transform transition duration-400 ease-in-out
-						focus:outline-none focus:ring-4 focus:ring-teal-400">
-						1 versus 1
-						<span class="absolute inset-0 rounded-lg opacity-0 hover:opacity-30 bg-teal-400 blur-xl transition duration-500"></span>
-					</button>
-					<button id="buttonTournamentGame" class="relative px-12 py-4 font-semibold text-white rounded-lg bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 shadow-lg
-						hover:from-indigo-500 hover:to-purple-400 hover:scale-110 transform transition duration-400 ease-in-out
-						focus:outline-none focus:ring-4 focus:ring-indigo-400">
-						Tournament
-						<span class="absolute inset-0 rounded-lg opacity-0 hover:opacity-30 bg-indigo-400 blur-xl transition duration-500"></span>
-					</button>
-				<!--<button id="practiceGameButton" class="relative px-12 py-4 font-semibold text-white rounded-lg bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 shadow-lg
-						hover:from-pink-500 hover:to-yellow-400 hover:scale-110 transform transition duration-400 ease-in-out
-						focus:outline-none focus:ring-4 focus:ring-pink-400">
-						Local
-						<span class="absolute inset-0 rounded-lg opacity-0 hover:opacity-30 bg-pink-400 blur-xl transition duration-500"></span>
-					</button>
-					<button id="plyLocalGameButton" class="relative px-12 py-4 font-semibold text-white rounded-lg bg-gradient-to-r from-green-600 via-teal-600 to-cyan-500 shadow-lg
-						hover:from-teal-500 hover:to-lime-400 hover:scale-110 transform transition duration-400 ease-in-out
-						focus:outline-none focus:ring-4 focus:ring-teal-400">
-						Remote
-						<span class="absolute inset-0 rounded-lg opacity-0 hover:opacity-30 bg-teal-400 blur-xl transition duration-500"></span>
-					</button>
-					MENU SI REMOTE FAIT-->
-				</div>
-				<div id= "menu-add-login"class="hidden w-[500px] min-w-[600px] relative flex flex-col rounded-lg border border-slate-200 bg-white shadow-lg mx-auto">
-					<!-- Section Login -->
-					<div class="ui-login flex flex-col items-center gap-4 p-8">
-						<h2 class="text-xl font-semibold text-slate-800 mb-2">Add a user</h2>
-						
-						<div class="w-full max-w-[280px] flex flex-col gap-4">
-							<div class="input-username-ui">
-								<label class="block mb-2 text-sm font-medium text-slate-700" >Login</label>
-								<input 
-									id="inputLoginGM"
-									class="w-full bg-gray-50 placeholder:text-slate-400 text-slate-700 text-sm border border-slate-300 rounded-md px-4 py-3 transition duration-300 ease focus:outline-none focus:border-blue-500 hover:border-blue-300 shadow-sm focus:shadow-md" 
-									placeholder="Username" 
-								/>
-								<p class="text-xs text-red-600 text-left max-w-[280px] mt-1"> <!-- Empty --> </p>
-							</div>
-							
-							<div class="input-password-ui">
-								<label class="block mb-2 text-sm font-medium text-slate-700">Password</label>
-								<input
-									id="inputPasswordGM"
-									type="password"
-									class="w-full bg-gray-50 placeholder:text-slate-400 text-slate-700 text-sm border border-slate-300 rounded-md px-4 py-3 transition duration-300 ease focus:outline-none focus:border-blue-500 hover:border-blue-300 shadow-sm focus:shadow-md" 
-									placeholder="Password" 
-								/>
-								<p class="text-xs text-red-600 text-left max-w-[280px] mt-1"> <!-- Empty --> </p>
-							</div>
-							
-							<button id= "buttonAddLogginGM" class="w-full mt-2 bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-md transition duration-200 ease shadow-sm hover:shadow-md">
-								Add/Login
-							</button>
-						</div>
-						
-						<p class="text-xs text-slate-500 text-center max-w-[350px] mt-1"> If you already have an account, then log in.<br> Otherwise, just enter a username that isn't already there. </p>
-						<button id= "buttonLaunchGame" class="hidden w-full mt-2 bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-4 rounded-md transition duration-200 ease shadow-sm hover:shadow-md"></button>
-						<!--<p class="text-xs text-red-600 text-center max-w-[350px] mt-1"> Use at least 8 characters, one uppercase letter, one lowercase letter and one number. </p> -->
-					</div>
+			<div id= "menu-add-login"class="hidden w-[500px] min-w-[600px] relative flex flex-col rounded-lg border border-slate-200 bg-white shadow-lg mx-auto">
+				<!-- Section Login -->
+				<div class="ui-login flex flex-col items-center gap-4 p-8">
+					<h2 class="text-xl font-semibold text-slate-800 mb-2">Add a user</h2>
 					
-					<!-- Separator -->
-					<div class="separator relative">
-						<hr class="border-slate-200">
-						<div class="absolute inset-0 flex justify-center">
-							<span class="bg-white px-4 text-sm text-slate-500">Room</span>
-						</div>
-					</div>
-					
-					<!-- Section Room -->
-					<div id="profile-user" class="grid grid-cols-2 gap-4 p-6 pt-6">
-    					<h3 class="col-span-2 text-lg text-center font-medium text-slate-800 mb-2">Game room</h3>
-						<template id="profile-template">
-							<div class="text-slate-800 rounded-lg p-2 transition-all hover:bg-slate-50 focus:bg-slate-50 active:bg-slate-100 border border-slate-200 hover:border-slate-300 cursor-pointer flex items-center space-x-3">
-								
-								<!-- Image profile -->
-								<div class="profile-img flex-shrink-0">
-									<div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
-										<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
-											<path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm7.753 18.305c-.261-.586-.789-.991-1.871-1.241-2.293-.529-4.428-.993-3.393-2.945 3.145-5.942.833-9.119-2.489-9.119-3.388 0-5.644 3.299-2.489 9.119 1.066 1.964-1.148 2.427-3.393 2.945-1.084.25-1.608.658-1.867 1.246-1.405-1.723-2.251-3.919-2.251-6.31 0-5.514 4.486-10 10-10s10 4.486 10 10c0 2.389-.845 4.583-2.247 6.305z"/>
-										</svg>
-									</div>
-								</div>
-								
-								<!-- Status Player -->
-								<div class="min-w-0 flex-1">
-									<h6 class="profile-username text-slate-800 font-medium text-base truncate">
-										<!-- Empty -->
-									</h6>
-									<p class="profile-type text-slate-500 text-sm mt-1">
-										<!-- Empty -->
-									</p>
-								</div>
-							</div>
-						</template>
-
-					</div>
-
-					<!--		Leaderboard	Tournament			-->
-					<!--<div id= "leaderboard-tournament"class="hidden w-[500px] min-w-[400px] relative flex flex-col rounded-lg border border-slate-200 bg-white shadow-lg mx-auto">
-						<div id="profile-user" class="grid grid-cols-2 gap-4 p-8 pt-6">
-
-						</div>
-					</div>-->
-				</div>
-				<!-- 						GAMEPLAY INTERFACE						-->
-				<div class="relative p-6 pt-6">
-					<canvas id="pongCanvas" class="bg-emerald-500 border-4 border-black" width="800" height="600"></canvas>
-					<div id="gameMessageWinOrLose" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-4xl font-bold hidden transition-opacity duration-300"></div>
-					<div id="scoreInGame" class="absolute top-2 left-1/2 transform -translate-x-1/2 bg-black/70 px-4 py-2 rounded-lg border border-cyan-400/50">
-						<span class="text-cyan-400 font-mono text-xl font-bold">0 - 0</span>
-					</div>
-				</div>
-				<div id = "ingame-button" class="text-center mt-4 space-y-0.5 space-x-2 hidden">
-					<button id="buttonPauseGame" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded">Pause</button>
-					<button id="buttonStartGame" class="bg-green-400 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Start Game</button>
-				</div>
-			</section>
-
-<!-- ================= LIVE CHAT ================= -->
-			<section id="live-chat" class="page hidden p-6">
-				<h1 class="text-2xl font-bold mb-4">Live chat</h1>
-				<div class="flex space-x-4 items-stretch">
-
-					<!-- Colonne de gauche : général chan + private message -->
-					<div class="w-48 bg-gray-800 p-4 rounded flex flex-col">
-						<button id="btn-general" class="mb-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">General</button>
-						<div id="dm-list" class="flex-1 overflow-auto space-y-2"></div>
-					</div>
-
-					<!-- Colonne centrale : zone de chat -->
-					<div class="flex-1 bg-gray-700 p-4 flex flex-col rounded">
-
-						<!-- header du chat -->
-						<div id="chat-header" class="mb-2 flex items-center justify-between text-lg font-semibold text-white">
-							<span id="chat-title"># general</span>
-							<div class="flex space-x-2">
-								<button id="invite-btn" class="px-2 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-500 hidden">Play together</button>
-								<button id="block-btn" class="px-2 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-500 hidden">Block user</button>
-							</div>
-						</div>
-
-						<!-- Zone des messages -->
-						<div id="chat_messages" class="flex-1 overflow-auto space-y-2 mb-4 p-2 bg-gray-600 rounded min-h-[400px]"></div>
-
-						<!-- send boutton -->
-						<form id="chat_form" class="flex">
-							<input
-								id="chat_input"
-								type="text"
-								placeholder="Tape ton message..."
-								class="flex-1 p-2 rounded-l bg-gray-600 text-white"
+					<div class="w-full max-w-[280px] flex flex-col gap-4">
+						<div class="input-username-ui">
+							<label class="block mb-2 text-sm font-medium text-slate-700" >Login</label>
+							<input 
+								id="inputLoginGM"
+								class="w-full bg-gray-50 placeholder:text-slate-400 text-slate-700 text-sm border border-slate-300 rounded-md px-4 py-3 transition duration-300 ease focus:outline-none focus:border-blue-500 hover:border-blue-300 shadow-sm focus:shadow-md" 
+								placeholder="Username" 
 							/>
-							<button type="submit" class="px-4 bg-blue-500 rounded-r text-white">Send</button>
-						</form>
+							<p class="text-xs text-red-600 text-left max-w-[280px] mt-1"> <!-- Empty --> </p>
+						</div>
+						
+						<div class="input-password-ui">
+							<label class="block mb-2 text-sm font-medium text-slate-700">Password</label>
+							<input
+								id="inputPasswordGM"
+								type="password"
+								class="w-full bg-gray-50 placeholder:text-slate-400 text-slate-700 text-sm border border-slate-300 rounded-md px-4 py-3 transition duration-300 ease focus:outline-none focus:border-blue-500 hover:border-blue-300 shadow-sm focus:shadow-md" 
+								placeholder="Password" 
+							/>
+							<p class="text-xs text-red-600 text-left max-w-[280px] mt-1"> <!-- Empty --> </p>
+						</div>
+						
+						<button id= "buttonAddLogginGM" class="w-full mt-2 bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-md transition duration-200 ease shadow-sm hover:shadow-md">
+							Add/Login
+						</button>
 					</div>
-
-					<!-- Colonne de droite : Utilisateurs en ligne -->
-					<div id="user-list" class="w-48 bg-gray-800 p-4 space-y-2 rounded overflow-auto flex flex-col">
-						<h2 class="text-lg font-semibold mb-2 text-blue-300">Users online</h2>
+					
+					<p class="text-xs text-slate-500 text-center max-w-[350px] mt-1"> If you already have an account, then log in.<br> Otherwise, just enter a username that isn't already there. </p>
+					<button id= "buttonLaunchGame" class="hidden w-full mt-2 bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-4 rounded-md transition duration-200 ease shadow-sm hover:shadow-md"></button>
+					<!--<p class="text-xs text-red-600 text-center max-w-[350px] mt-1"> Use at least 8 characters, one uppercase letter, one lowercase letter and one number. </p> -->
+				</div>
+				
+				<!-- Separator -->
+				<div class="separator relative">
+					<hr class="border-slate-200">
+					<div class="absolute inset-0 flex justify-center">
+						<span class="bg-white px-4 text-sm text-slate-500">Room</span>
 					</div>
 				</div>
-			</section>
+				
+				<!-- Section Room -->
+				<div id="profile-user" class="grid grid-cols-2 gap-4 p-6 pt-6">
+					<h3 class="col-span-2 text-lg text-center font-medium text-slate-800 mb-2">Game room</h3>
+					<template id="profile-template">
+						<div class="text-slate-800 rounded-lg p-2 transition-all hover:bg-slate-50 focus:bg-slate-50 active:bg-slate-100 border border-slate-200 hover:border-slate-300 cursor-pointer flex items-center space-x-3">
+							
+							<!-- Image profile -->
+							<div class="profile-img flex-shrink-0">
+								<div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+										<path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm7.753 18.305c-.261-.586-.789-.991-1.871-1.241-2.293-.529-4.428-.993-3.393-2.945 3.145-5.942.833-9.119-2.489-9.119-3.388 0-5.644 3.299-2.489 9.119 1.066 1.964-1.148 2.427-3.393 2.945-1.084.25-1.608.658-1.867 1.246-1.405-1.723-2.251-3.919-2.251-6.31 0-5.514 4.486-10 10-10s10 4.486 10 10c0 2.389-.845 4.583-2.247 6.305z"/>
+									</svg>
+								</div>
+							</div>
+							
+							<!-- Status Player -->
+							<div class="min-w-0 flex-1">
+								<h6 class="profile-username text-slate-800 font-medium text-base truncate">
+									<!-- Empty -->
+								</h6>
+								<p class="profile-type text-slate-500 text-sm mt-1">
+									<!-- Empty -->
+								</p>
+							</div>
+						</div>
+					</template>
 
-<!-- ================= ROOM ================= -->
-			<section id="room" class="page hidden p-6">
-				<h1 class="text-2xl font-bold mb-4">Game Room</h1>
-				<div id="room_players" class="bg-gray-800 p-4 rounded space-y-4">
-				<h2 class="text-lg font-semibold text-white">
-					Players <span id="room_player_count">0</span>/<span id="room_player_max">0</span>
-				</h2>
-				<template id="room_player">
-					<div class="flex items-center space-x-2 p-2 bg-gray-700 rounded">
-					<span id="room_player_name" class="text-white"></span>
-					</div>
-				</template>
-				<button id="room_start_button" disabled class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50">Start game</button>
-				<canvas id="game" width="600" height="400" class="w-full border border-gray-600 rounded"></canvas>
 				</div>
-			</section>
 
-<!-- ================= CREATE ROOM ================= -->
-			<section id="create_room" class="page hidden p-6">
-				<h1 class="text-2xl font-bold mb-4">Create Room</h1>
-				<form id="create_room_form" class="bg-gray-800 p-4 rounded space-y-4">
-				<div>
-					<label class="block mb-1 text-gray-300">Room name</label>
-					<input
-					type="text"
-					name="room_name"
-					class="w-full p-2 rounded bg-gray-700 text-white"
-					required
-					/>
-				</div>
-				<div>
-					<label class="block mb-1 text-gray-300">Max players</label>
-					<select name="max_players" class="w-full p-2 rounded bg-gray-700 text-white">
-					<option value="2" selected>2</option>
-					<option value="4">4</option>
-					</select>
-				</div>
-				<button type="submit" class="mt-2 w-full bg-green-500 py-2 rounded text-white hover:bg-green-600">Create</button>
-				</form>
-			</section>
+				<!--		Leaderboard	Tournament			-->
+				<!--<div id= "leaderboard-tournament"class="hidden w-[500px] min-w-[400px] relative flex flex-col rounded-lg border border-slate-200 bg-white shadow-lg mx-auto">
+					<div id="profile-user" class="grid grid-cols-2 gap-4 p-8 pt-6">
 
-<!-- ================= BOARD ================= -->
-			<section id="board" class="page hidden text-center">
-				<div class="bg-gray-800 p-6 rounded-2xl shadow-xl max-w-md mx-auto">
-					<div class="flex items-center justify-center mb-6">
-						<span class="text-3xl">🏆</span>
-						<h2 class="ml-2 text-2xl font-bold text-white">Players Leaderboard</h2>
 					</div>
-					<table class="w-full text-left text-gray-200">
-						<thead>
-							<tr class="border-b border-gray-700">
-								<th class="px-4 py-2 w-1/6">#</th>
-								<th class="px-4 py-2 w-1/2">Players</th>
-								<th class="px-4 py-2 w-1/3">Score</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr class="bg-gray-700 hover:bg-gray-600 transition">
-								<td class="px-4 py-3">1</td>
-								<td class="px-4 py-3 flex items-center">
-									<span class="text-xl">🥇</span><span class="ml-2">Phi</span>
-								</td>
-								<td class="px-4 py-3">1538</td>
-							</tr>
-							<tr class="bg-gray-800 hover:bg-gray-700 transition">
-								<td class="px-4 py-3">2</td>
-								<td class="px-4 py-3 flex items-center">
-									<span class="text-xl">🥈</span><span class="ml-2">Vesperal</span>
-								</td>
-								<td class="px-4 py-3">1294</td>
-							</tr>
-							<tr class="bg-gray-700 hover:bg-gray-600 transition">
-								<td class="px-4 py-3">3</td>
-								<td class="px-4 py-3 flex items-center">
-									<span class="text-xl">🥉</span><span class="ml-2">Torka</span>
-								</td>
-								<td class="px-4 py-3">1121</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-			</section>
+				</div>-->
+			</div>
+			<!-- 						GAMEPLAY INTERFACE						-->
+			<div class="relative p-6 pt-6">
+				<canvas id="pongCanvas" class="bg-emerald-500 border-4 border-black" width="800" height="600"></canvas>
+				<div id="gameMessageWinOrLose" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-4xl font-bold hidden transition-opacity duration-300"></div>
+			</div>
+			<div id="scoreInGame" class="bg-black/70 px-4 py-2 rounded-lg border border-cyan-400/50 mx-auto w-fit">
+				<span class="text-cyan-400 font-mono text-xl font-bold">0 - 0</span>
+			</div>
+			<div id = "ingame-button" class="text-center mt-4 space-y-0.5 space-x-2 hidden">
+				<button id="buttonPauseGame" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded">Pause</button>
+				<button id="buttonStartGame" class="bg-green-400 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Start Game</button>
+			</div>
+		</section>
 
-<!-- ================= LOGIN ================= -->
-			<section id="login" class="page hidden max-w-sm mx-auto bg-gray-800 p-6 rounded shadow-lg">
-				<h1 class="text-2xl font-bold text-center text-blue-400 mb-4">Sign In</h1>
-				<form id="login_form" class="space-y-4">
-					<div>
-						<label class="block mb-1">User</label>
-						<input id="username" name="identifier" type="text" class="w-full p-2 rounded bg-gray-700" required />
-					</div>
-					<div>
-						<label class="block mb-1">Password</label>
-						<input id="password" name="password" type="password" class="w-full p-2 rounded bg-gray-700" required />
-					</div>
-					<button type="submit" class="w-full bg-blue-500 py-2 rounded text-white">Login</button>
-				</form>
-				<div class="mt-4 text-center">
-					<button id="button-signup" class="text-sm text-gray-400 hover:underline">Create account</button>
-				</div>
-			</section>
+<!-- ================================== LIVE CHAT ================================== -->
+        <section id="live-chat" class="page hidden">
+            <div class="container">
+                <div class="card">
+                    <div class="card-header">
+                        <h1 class="card-title">Live Chat</h1>
+                        <p class="card-description">Connect with other players</p>
+                    </div>
+                    
+                    <div class="chat-container">
+                        <!-- Colonne de gauche : général chan + private message -->
+                        <div class="chat-sidebar">
+                            <div>
+                                <h3 class="text-sm font-medium text-secondary mb-sm">Direct Messages</h3>
+                                <div id="dm-list" class="flex flex-col gap-sm"></div>
+                            </div>
+                        </div>
 
-<!-- ================= SIGN UP ================= -->
-			<section id="signup" class="page hidden max-w-sm mx-auto bg-gray-800 p-6 rounded shadow-lg">
-				<h1 class="text-2xl font-bold text-center text-green-400 mb-4">Create account</h1>
-				<form id="signup_form" class="space-y-4">
-					<div>
-						<label class="block mb-1">User</label>
-						<input id="su_username" type="text" class="w-full p-2 rounded bg-gray-700" required />
-					</div>
-					<div>
-						<label class="block mb-1">Email</label>
-						<input id="su_email" type="email" class="w-full p-2 rounded bg-gray-700" required />
-					</div>
-					<div>
-						<label class="block mb-1">Password</label>
-						<input id="su_password" type="password" class="w-full p-2 rounded bg-gray-700" required />
-					</div>
-					<button type="submit" class="w-full bg-green-500 py-2 rounded text-white">Create account</button>
-				</form>
-				<div class="mt-4 text-center">
-					<button id="button-cancel-signup" class="text-sm text-gray-400 hover:underline">Cancel</button>
-				</div>
-			</section>
-		</main>
+                        <!-- Colonne centrale : zone de chat -->
+                        <div class="chat-main">
+                            <!-- header du chat -->
+                            <div id="chat-header" class="flex justify-between items-center mb-lg">
+                                <span id="chat-title" class="text-lg font-medium">Select a user to start chatting</span>
+                                <div class="flex gap-sm">
+                                    <button id="invite-btn" class="btn btn-ghost btn-sm hidden">Play Together</button>
+                                    <button id="block-btn" class="btn btn-ghost btn-sm hidden">Block User</button>
+                                </div>
+                            </div>
 
-<!-- ================= Profil page ================= -->
-			<section id="profile" class="hidden p-8">
-				<div class="flex flex-col items-center max-w-xl mx-auto">
-					<h1 class="text-2xl font-bold mb-4 text-center">Profil</h1>
-					<div id="profile-container"></div>
-				</div>
-			</section>
+                            <!-- Zone des messages -->
+                            <div id="chat_messages" class="chat-messages"></div>
 
-		<script type="module" src="./public/js/index.js"></script>
-	</body>
+                            <!-- send boutton -->
+                            <form id="chat_form" class="chat-form">
+                                <input id="chat_input" type="text" placeholder="Type your message..." class="form-input chat-input" />
+                                <button id="chat_send_btn" type="submit" class="btn btn-primary">Send</button>
+                            </form>
+                        </div>
+
+                        <!-- Colonne de droite : Utilisateurs en ligne -->
+                        <div class="chat-sidebar">
+                            <h3 class="text-sm font-medium text-secondary mb-md">Online Users</h3>
+                            <div id="user-list" class="flex flex-col gap-sm"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+<!-- ================================== PROFIL PAGE ================================== -->
+        <section id="profile" class="page hidden" style="position: relative;">
+            <div class="container">
+                <!-- Loading state -->
+                <div data-state="loading" class="card text-center hidden" style="max-width: 400px; margin: 0 auto;">
+                    <div class="text-xl">⏳ Loading...</div>
+                </div>
+
+                <!-- Access denied state -->
+                <div data-state="denied" class="card text-center hidden" style="max-width: 400px; margin: 0 auto;">
+                    <div class="text-xl mb-lg">🔒 Access denied</div>
+                    <button data-action="login" class="btn btn-primary">Login</button>
+                </div>
+
+                <!-- Main profile with sidebar -->
+                <div data-state="main" class="hidden" style="display: flex; gap: 1.5rem; max-width: 1200px; margin: 0 auto;">
+                    <!-- Main profile card -->
+                    <div class="card" style="flex: 1;">
+                        <!-- Header with avatar and main buttons -->
+                        <div class="flex items-start justify-between mb-xl">
+                            <div class="flex items-center gap-lg">
+                                <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 2px solid var(--border-primary);">
+                                    <img data-field="avatar" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;"/>
+                                </div>
+                                <div>
+                                    <h1 data-field="name" class="text-3xl font-bold"></h1>
+                                </div>
+                            </div>
+                            <!-- Logout button at top right -->
+                            <button data-action="logout" class="btn btn-danger btn-xs" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">🚪 Logout</button>
+                        </div>
+                        <!-- Edit button, login and email below avatar -->
+                        <div class="mb-lg">
+                            <button data-action="edit" class="btn btn-secondary btn-sm mb-sm"> ⚙️ Edit </button>
+                            <div data-field="info" class="text-muted text-sm"></div>
+                        </div>
+
+                        <!-- Statistics -->
+                        <div>
+                            <h3 class="text-lg font-semibold mb-lg">📊 Statistics</h3>
+                            <div class="grid grid-2 gap-md">
+                                <div class="card p-lg text-center">
+                                    <div class="text-2xl font-bold mb-sm">0</div>
+                                    <div class="text-muted text-xs">Wins</div>
+                                </div>
+                                <div class="card p-lg text-center">
+                                    <div class="text-2xl font-bold mb-sm">0</div>
+                                    <div class="text-muted text-xs">Losses</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Match history at the bottom -->
+                        <div class="mt-xl pt-xl" style="border-top: 1px solid var(--border-primary);">
+                            <h3 class="text-lg font-semibold mb-lg">🏆 Recent Matches</h3>
+                            <div class="card text-center p-xl text-muted profile-history-scroll">
+                                <div class="text-4xl mb-md">🎮</div>
+                                <p class="mb-md">No matches played yet</p>
+                                <a href="#game-modes" class="text-primary" style="text-decoration: underline;">Start playing</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Online Friends Sidebar -->
+                    <div class="chat-sidebar" style="min-width: 220px; max-width: 250px;">
+                        <h3 class="text-sm font-medium text-secondary mb-md">Online Friends</h3>
+                        <div id="profile-online-friends" class="flex flex-col gap-sm"></div>
+                    </div>
+                </div>
+
+                <!-- Edit form -->
+                <form data-state="edit" class="card hidden" style="max-width: 600px; max-height: 80vh; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); overflow-y: auto;">
+                    <div class="flex items-center justify-between mb-lg">
+                        <h4 class="text-xl font-semibold">⚙️ Edit Profile</h4>
+                        <button type="button" data-action="cancel" class="btn btn-sm btn-ghost"> ✕ Close </button>
+                    </div>
+                    
+                    <!-- Message area for edit form -->
+                    <div id="edit-message" class="mb-lg text-center hidden"></div>
+                    
+                    <div class="grid grid-1 gap-lg">
+                        <div class="form-group">
+                            <label class="form-label">Display Name</label>
+                            <input type="text" name="name" data-field="edit-name" placeholder="Your display name" class="form-input" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" data-field="edit-email" placeholder="your@email.com" class="form-input" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">New password</label>
+                            <input type="password" name="password" placeholder="Leave blank to keep current" class="form-input" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Avatar</label>
+                            <input type="file" name="avatar" data-field="edit-avatar" accept="image/*" class="form-input" />
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-md mt-xl">
+                        <button type="submit" class="btn btn-primary" style="flex: 1;"> ✅ Save </button>
+                        <button type="button" data-action="delete" class="btn btn-danger"> 🗑️ Delete account </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+<!-- ================================== LOGIN ================================== -->
+        <section id="login" class="page hidden">
+            <div class="container">
+                <div class="card" style="max-width: 400px; margin: 0 auto;">
+                    <div class="card-header text-center">
+                        <h1 class="card-title">Sign In</h1>
+                        <p class="card-description">Welcome back! Please sign in to your account</p>
+                    </div>
+                    
+                    <form id="login_form">
+                        <div class="form-group">
+                            <label class="form-label" for="username">Username</label>
+                            <input id="username" name="identifier" type="text" class="form-input" required placeholder="Enter your username" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="password">Password</label>
+                            <input id="password" name="password" type="password" class="form-input" required placeholder="Enter your password" />
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">Sign In</button>
+                    </form>
+                    
+                    <div class="text-center mt-lg">
+                        <button id="button-signup" class="btn btn-ghost">Don't have an account? Create one</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+<!-- ================================== SIGN UP ================================== -->
+        <section id="signup" class="page hidden">
+            <div class="container">
+                <div class="card" style="max-width: 400px; margin: 0 auto;">
+                    <div class="card-header text-center">
+                        <h1 class="card-title">Create Account</h1>
+                        <p class="card-description">Join the community and start playing</p>
+                    </div>
+                    
+                    <form id="signup_form">
+                        <div class="form-group">
+                            <label class="form-label" for="su_username">Username</label>
+                            <input id="su_username" name="username" type="text" class="form-input" required placeholder="Choose a username" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="su_display_name">Display Name</label>
+                            <input id="su_display_name" name="display_name" type="text" class="form-input" required placeholder="Choose a display name" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="su_email">Email</label>
+                            <input id="su_email" name="email" type="email" class="form-input" required placeholder="Enter your email" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="su_password">Password</label>
+                            <input id="su_password" name="password" type="password" class="form-input" required placeholder="Create a password" />
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">Create Account</button>
+                    </form>
+                    
+                    <div class="text-center mt-lg">
+                        <button id="button-cancel-signup" class="btn btn-ghost">Already have an account? Sign in</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+<!-- ==================================================================== -->
+    </main>
+
+    <!-- Profile Edit Prompt Modal -->
+    <div id="edit-profile-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">🎉 Welcome to Transcendance!</h2>
+            </div>
+            <div class="modal-body">
+                <p class="modal-text">Complete your profile to personalize your experience.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="edit-profile-btn" class="btn btn-primary">Edit Profile</button>
+                <button id="skip-edit-btn" class="btn btn-ghost">Skip for Now</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/public/js/index.js"></script>
+</body>
 </html>

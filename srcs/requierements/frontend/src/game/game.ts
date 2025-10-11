@@ -1,5 +1,3 @@
-// src/game.ts
-
 import { PongGameUI } from './PongGameUI.js';
 
 /*

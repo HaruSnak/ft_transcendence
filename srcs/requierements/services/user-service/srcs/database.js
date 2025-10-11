@@ -33,12 +33,12 @@ class Database {
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				username VARCHAR(50) UNIQUE NOT NULL,
 				email VARCHAR(100) UNIQUE NOT NULL,
-				password_hash VARCHAR(255),
+				password_hash VARCHAR(255) NOT NULL,
 				display_name VARCHAR(50),
 				avatar_url VARCHAR(255) DEFAULT '/assets/default-avatar.png',
 				is_online BOOLEAN DEFAULT 0,
 				is_user BOOLEAN DEFAULT 1,
-				is_guest BOOLEAN DEFAULT 0,
+				has_seen_welcome BOOLEAN DEFAULT 0,
 				created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 				updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 			)`,
@@ -80,25 +80,6 @@ class Database {
 				FOREIGN KEY(winner_id) REFERENCES users(id) ON DELETE CASCADE
 			)`,
 			
-			// 🆕 Table pour les matchs incluant des guests (sans contraintes FK)
-			`CREATE TABLE IF NOT EXISTS game_sessions (
-				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				player1_type VARCHAR(10) NOT NULL, -- 'user' ou 'guest'
-				player1_id INTEGER,               -- NULL si guest
-				player1_name VARCHAR(50),         -- Nom du guest si applicable
-				player2_type VARCHAR(10) NOT NULL,
-				player2_id INTEGER,
-				player2_name VARCHAR(50),
-				winner_type VARCHAR(10),
-				winner_player INTEGER,            -- 1 ou 2
-				score_player1 INTEGER DEFAULT 0,
-				score_player2 INTEGER DEFAULT 0,
-				game_type VARCHAR(50) DEFAULT 'pong',
-				game_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-				session_duration INTEGER,         -- Durée en secondes
-				is_tournament BOOLEAN DEFAULT 0
-			)`,
-			
 			// Table des tokens blacklistés
 			`CREATE TABLE IF NOT EXISTS blacklisted_tokens (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -107,6 +88,29 @@ class Database {
 				blacklisted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 				expires_at DATETIME NOT NULL,
 				FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+			)`,
+			
+			// Table des utilisateurs bloqués
+			`CREATE TABLE IF NOT EXISTS blocked_users (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				user_id INTEGER NOT NULL,
+				blocked_user_id INTEGER NOT NULL,
+				created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+				FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+				FOREIGN KEY(blocked_user_id) REFERENCES users(id) ON DELETE CASCADE,
+				UNIQUE(user_id, blocked_user_id)
+			)`,
+			
+			// Table des invitations de jeu
+			`CREATE TABLE IF NOT EXISTS game_invitations (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				from_user_id INTEGER NOT NULL,
+				to_user_id INTEGER NOT NULL,
+				game_type VARCHAR(50) DEFAULT 'pong',
+				status VARCHAR(20) DEFAULT 'pending',
+				created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+				FOREIGN KEY(from_user_id) REFERENCES users(id) ON DELETE CASCADE,
+				FOREIGN KEY(to_user_id) REFERENCES users(id) ON DELETE CASCADE
 			)`
 		];
 
@@ -119,16 +123,13 @@ class Database {
 				}
 			});
 		});
-		
-		// Ajouter la colonne is_guest si elle n'existe pas (migration)
-		this.db.run(`ALTER TABLE users ADD COLUMN is_guest BOOLEAN DEFAULT 0`, (err) => {
-			if (err && !err.message.includes('duplicate column')) {
-				console.error('Erreur lors de la migration is_guest:', err.message);
+
+		// Add new columns if they don't exist
+		this.db.run(`ALTER TABLE users ADD COLUMN has_seen_welcome BOOLEAN DEFAULT 0`, (err) => {
+			if (err && !err.message.includes('duplicate column name')) {
+				console.error('Error adding has_seen_welcome column:', err.message);
 			}
 		});
-		
-		// Permettre password_hash nullable pour les guests (migration)
-		// Note: SQLite ne permet pas ALTER COLUMN, donc on doit reconstruire si nécessaire
 	}
 
 	// Méthode pour exécuter des requêtes SELECT

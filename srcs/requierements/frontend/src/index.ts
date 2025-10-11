@@ -1,14 +1,14 @@
 // src/index.ts
 
-//import './style.css';
+import './style.css';
 
-import { initHomePage } from './pages/home.js';
-import { initChatPage } from './pages/livechat.js';
-import { loadBoardPage } from './pages/board.js';
-import { initCreateRoomPage, initRoomPage } from './pages/room.js';
-import { initLoginPage } from './pages/login.js';
-import { initSignupPage } from './pages/signup.js';
-import { initProfilePage } from './pages/profile.js';
+// Imports des pages (version de votre collègue pour tout sauf le game)
+import { initLogin } from './pages/login.js';
+import { initSignup } from './pages/signup.js';
+import { initProfile } from './pages/profile/index.js';
+import { initLiveChat } from './pages/livechat/index.js';
+
+// Import du game (VOTRE version)
 import { initGame, cleanUpGame } from './game/game.js';
 
 // Expose startPong() au window
@@ -19,87 +19,134 @@ declare global {
 }
 export {}; // Force le mode module TS
 
-// Toutes les pages de l’app
+// Toutes les pages de l'app
 const pages = [
   'home',
   'game',
   'live-chat',
-  'board',
-  'room',
-  'create_room',
   'login',
   'signup',
   'profile',
 ] as const;
 type Page = (typeof pages)[number];
 
-// Affiche la page demandée et cache les autres
-function showPage(page: string) {
-  pages.forEach((p) => {
-    document.getElementById(p)!.classList.toggle('hidden', p !== page);
+// Affiche la page demandée et cache les autres (simplifié)
+function showPage(pageId: string) {
+  // Hide all pages
+  document.querySelectorAll('.page').forEach(page => {
+    page.classList.add('hidden');
   });
-}
 
-initHomePage();
-initChatPage();
-//loadBoardPage();
-//initRoomPage();
-//initCreateRoomPage();
-initLoginPage();
-initSignupPage();
-/*
-  // For the profile page, it's either #profile or #profile/:id
-  const profileRegex = /^profile(\/[a-zA-Z0-9]+)?$/;
-  if (page === 'profile' || profileRegex.test(page)) {
-    console.log('Initializing profile page');
-    return initProfilePage();
+  // Show selected page
+  const page = document.getElementById(pageId);
+  if (page) {
+    page.classList.remove('hidden');
+    
+    // Initialize page-specific functionality
+    if (pageId === 'profile') {
+      initProfile();
+    }
+  }
+
+  // Update nav active state
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.classList.remove('active');
+  });
+  const activeLink = document.querySelector(`[data-page="${pageId}"]`);
+  if (activeLink) {
+    activeLink.classList.add('active');
   }
 }
-*/
 
-// Lie les clics de la navbar
-function initNav() {
-  const links = document.querySelectorAll<HTMLElement>('[data-page]');
-  links.forEach((link) => {
+// Navigation - VOTRE VERSION (garde la logique du game propre)
+function initNavigation() {
+  // Handle nav links
+  document.querySelectorAll('[data-page]').forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
-      const target = link.dataset.page as Page;
-      navigateTo(target);
+      const pageId = link.getAttribute('data-page');
+      if (pageId) {
+        navigateTo(pageId);
+      }
     });
   });
 
-  // Support du back/forward
-  window.addEventListener('popstate', () => {
-    const hash = window.location.hash.slice(1) as Page;
-    if (pages.includes(hash)) {
+  // Handle initial page based on hash
+  const hash = window.location.hash.substring(1);
+  if (hash) {
+    if (hash.startsWith('profile-')) {
+      const username = hash.substring(8);
+      sessionStorage.setItem('profileUsername', username);
+      navigateTo('profile', false);
+    } else if (pages.includes(hash as Page)) {
       navigateTo(hash, false);
+    } else {
+      navigateTo('home', false);
+    }
+  } else {
+    navigateTo('home', false);
+  }
+
+  // Handle hash changes
+  window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.substring(1);
+    if (hash) {
+      if (hash.startsWith('profile-')) {
+        const username = hash.substring(8);
+        sessionStorage.setItem('profileUsername', username);
+        navigateTo('profile', false);
+      } else if (pages.includes(hash as Page)) {
+        navigateTo(hash, false);
+      }
     }
   });
 }
 
-// Change de page et met à jour l’URL (pushState par défaut)
+// Change de page - HYBRID: votre logique game + sa logique navigation
 export function navigateTo(page: string, push = true) {
+  // Check access for protected pages
+  if (page === 'profile' || page === 'live-chat') {
+    const authToken = sessionStorage.getItem('authToken');
+    if (!authToken) {
+      navigateTo('login', push);
+      return;
+    }
+  }
+
   if (push) {
-    window.history.pushState(null, '', `#${page}`);
+    window.location.hash = page;
   }
-  showPage(page.split('/')[0]);
-  // Initialisation spécifique pour la page game
-  if (page.split('/')[0] === 'game') {
-    initGame(); // Initialise le jeu quand on arrive sur #game
-  } else {
-    cleanUpGame(); // Arrête le jeu si on quitte #game
+  
+  // VOTRE LOGIQUE: Clean up game si on quitte la page game
+  if (page !== 'game') {
+    cleanUpGame();
   }
-  //initPage(page);
+  
+  showPage(page);
+  
+  // VOTRE LOGIQUE: Initialisation spécifique pour le jeu
+  if (page === 'game') {
+    initGame();
+  }
 }
 
-// Démarrage de l’app
+// Démarrage de l'app
 window.addEventListener('DOMContentLoaded', () => {
-  initNav();
+  // Initialize pages (version de votre collègue)
+  initLogin();
+  initSignup();
+  initProfile();
+  initLiveChat();
 
-  // Page initiale selon le hash ou home
-  const hash = window.location.hash.substring(1);
-  const first = hash !== '' ? hash : 'home';
-  navigateTo(first);
+  // Initialize navigation
+  initNavigation();
+
+  // Check login state and hide login tab if authenticated
+  const authToken = sessionStorage.getItem('authToken');
+  const loginLink = document.querySelector('.nav-links [data-page="login"]');
+  if (authToken && loginLink) {
+    (loginLink as HTMLElement).style.display = 'none';
+  }
 });
 
 // Remplace window.startPong

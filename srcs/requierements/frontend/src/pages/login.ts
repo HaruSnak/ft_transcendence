@@ -1,53 +1,133 @@
-/* eslint-disable no-undef */
 // src/pages/login.ts
-export function initLoginPage() {
-  console.log('Login');
-  // Récup le formulaire de login et reset les input (champs)
-  const form = document.getElementById('login_form') as HTMLFormElement;
-  // form.reset();
 
-  // Bouton vers la page de creat account
-  const button_Signup = document.getElementById('button-signup');
-  button_Signup?.addEventListener('click', () => {
-    window.location.hash = '#signup';
-  });
+export function initLogin() {
+    const loginForm = document.getElementById('login_form') as HTMLFormElement;
+    const signupBtn = document.getElementById('button-signup');
 
-  form.onsubmit = async (event: SubmitEvent) => {
-    event.preventDefault();
-    const formData = new FormData(form);
-    const identifier = formData.get('identifier') as string;
-    const password = formData.get('password') as string;
+    if (loginForm) {
+        // Ajoute un conteneur pour les messages au-dessus du formulaire
+        let msgDiv = document.getElementById('login-message');
+        if (!msgDiv) {
+            msgDiv = document.createElement('div');
+            msgDiv.id = 'login-message';
+            msgDiv.style.marginBottom = '1rem';
+            loginForm.parentElement?.insertBefore(msgDiv, loginForm);
+        }
+        function showMsg(msg: string, ok: boolean) {
+            msgDiv!.textContent = msg;
+            msgDiv!.style.color = ok ? 'var(--success, #22c55e)' : 'var(--danger, #ef4444)';
+            msgDiv!.style.fontWeight = 'bold';
+            msgDiv!.style.textAlign = 'center';
+        }
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(loginForm);
+            const identifier = formData.get('identifier') as string;
+            const password = formData.get('password') as string;
 
-    // Validation côté client
-    if (!identifier || identifier.trim().length === 0) {
-      alert('Veuillez entrer un identifiant (nom d\'utilisateur ou email).');
-      return;
+            showMsg('', true);
+
+            if (!identifier || !password) {
+                showMsg('Please fill in username and password', false);
+                return;
+            }
+
+            try {
+                let response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username: identifier, password }),
+                });
+
+                if (!response.ok) {
+                    // Try GET as fallback if POST fails (for debugging)
+                    response = await fetch(`/api/auth/login?username=${encodeURIComponent(identifier)}&password=${encodeURIComponent(password)}`);
+                }
+
+                if (response.ok) {
+                    const data = await response.json();
+                    sessionStorage.setItem('authToken', data.token);
+                    sessionStorage.setItem('user', JSON.stringify(data.user));
+                    showMsg('Login successful!', true);
+                    // Check if first login and show welcome modal
+                    if (!data.user.has_seen_welcome) {
+                        const modal = document.getElementById('edit-profile-modal');
+                        modal?.classList.add('show');
+                        modal?.classList.remove('hidden');
+                        // Mark as seen
+                        fetch('/api/user/profile', {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${data.token}`
+                            },
+                            body: JSON.stringify({ has_seen_welcome: true })
+                        }).catch(err => console.error('Failed to update welcome status:', err));
+                        // No auto-redirect; wait for user to click buttons
+                    } else {
+                        setTimeout(() => {
+                            window.location.hash = 'profile';
+                            location.reload();
+                        }, 600);
+                    }
+                } else {
+                    let errorMsg = 'Unknown error';
+                    try {
+                        const errorData = await response.json();
+                        errorMsg = errorData.error || JSON.stringify(errorData);
+                        console.error('Backend error:', errorData);
+                    } catch (e) {
+                        console.error('Error parsing backend error:', e);
+                    }
+                    showMsg('Login failed: ' + errorMsg, false);
+                }
+            } catch (error: any) {
+                console.error('Login error:', error);
+                showMsg('Network error: ' + (error?.message || error), false);
+            }
+        });
     }
-    if (!password || password.length < 6) {
-      alert('Le mot de passe doit contenir au moins 6 caractères.');
-      return;
+
+    if (signupBtn) {
+        signupBtn.addEventListener('click', () => {
+            window.location.hash = 'signup';
+        });
     }
 
-    try {
-      const response = await fetch('https://localhost:8443/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ identifier, password }),
-        credentials: 'include',
-      });
+    // Modal event listeners
+    const modal = document.getElementById('edit-profile-modal');
+    const editBtn = document.getElementById('edit-profile-btn');
+    const skipBtn = document.getElementById('skip-edit-btn');
 
-      if (!response.ok) {
-        throw new Error('Login failed');
-      }
-
-      const result = await response.json();
-      console.log('Login successful:', result);
-      // Redirection ou autre action après le login réussi
-      window.location.hash = '#live-chat';
-    } catch (error) {
-      console.error('Error during login:', error);
+    if (modal) {
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('show');
+                modal.classList.add('hidden');
+            }
+        });
     }
-  };
+
+    if (editBtn) {
+        editBtn.addEventListener('click', () => {
+            modal?.classList.remove('show');
+            modal?.classList.add('hidden');
+            window.location.hash = 'profile';
+            setTimeout(() => {
+                const evt = new CustomEvent('openProfileEdit');
+                window.dispatchEvent(evt);
+            }, 100);
+        });
+    }
+
+    if (skipBtn) {
+        skipBtn.addEventListener('click', () => {
+            modal?.classList.remove('show');
+            modal?.classList.add('hidden');
+            window.location.hash = 'profile';
+        });
+    }
 }

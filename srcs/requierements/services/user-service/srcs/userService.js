@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
 import database from './database.js';
@@ -9,7 +9,7 @@ const SALT_ROUNDS = 10;
 class UserService {
 	// Créer un nouvel utilisateur
 	async createUser(userData) {
-		const { username, email, password, display_name } = userData;
+		const { username, email, password, display_name, avatar_url } = userData;
 
 		try {
 			// Vérifier si l'utilisateur existe déjà
@@ -25,11 +25,11 @@ class UserService {
 			// Hasher le mot de passe
 			const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
 
-			// Insérer l'utilisateur
+			// Insérer l'utilisateur avec avatar_url
 			const result = await database.run(
-				`INSERT INTO users (username, email, password_hash, display_name) 
-				 VALUES (?, ?, ?, ?)`,
-				[username, email, password_hash, display_name || username]
+				`INSERT INTO users (username, email, password_hash, display_name, avatar_url) 
+				 VALUES (?, ?, ?, ?, ?)`,
+				[username, email, password_hash, display_name || username, avatar_url || '/assets/default-avatar.png']
 			);
 
 			// Créer les statistiques utilisateur
@@ -38,7 +38,7 @@ class UserService {
 				[result.id]
 			);
 
-			return { id: result.id, username, email, display_name: display_name || username };
+			return { id: result.id, username, email, display_name: display_name || username, avatar_url: avatar_url || '/assets/default-avatar.png' };
 		} catch (error) {
 			throw error;
 		}
@@ -80,7 +80,7 @@ class UserService {
 	async authenticateUser(username, password) {
 		try {
 			const user = await database.get(
-				'SELECT id, username, email, password_hash, display_name, avatar_url FROM users WHERE username = ? OR email = ?',
+				'SELECT id, username, email, password_hash, display_name, avatar_url, has_seen_welcome FROM users WHERE username = ? OR email = ?',
 				[username, username]
 			);
 
@@ -114,7 +114,8 @@ class UserService {
 					username: user.username,
 					email: user.email,
 					display_name: user.display_name,
-					avatar_url: user.avatar_url
+					avatar_url: user.avatar_url,
+					has_seen_welcome: user.has_seen_welcome
 				}
 			};
 		} catch (error) {
@@ -126,7 +127,7 @@ class UserService {
 	async getUserById(userId) {
 		try {
 			const user = await database.get(
-				`SELECT u.id, u.username, u.email, u.display_name, u.avatar_url, u.is_online, u.created_at,
+				`SELECT u.id, u.username, u.email, u.display_name, u.avatar_url, u.is_online, u.has_seen_welcome, u.created_at,
 						s.wins, s.losses, s.games_played
 				 FROM users u
 				 LEFT JOIN user_stats s ON u.id = s.user_id
@@ -144,25 +145,103 @@ class UserService {
 		}
 	}
 
+	// Obtenir un utilisateur par username
+	async getUserByUsername(username) {
+		try {
+			const user = await database.get(
+				`SELECT u.id, u.username, u.display_name, u.avatar_url, u.is_online, u.has_seen_welcome, u.created_at,
+						s.wins, s.losses, s.games_played
+				 FROM users u
+				 LEFT JOIN user_stats s ON u.id = s.user_id
+				 WHERE u.username = ?`,
+				[username]
+			);
+
+			if (!user) {
+				throw new Error('User not found');
+			}
+
+			return user;
+		} catch (error) {
+			throw error;
+		}
+	}
+
 	// Mettre à jour le profil utilisateur
 	async updateUser(userId, updates) {
 		try {
-			const { display_name, avatar_url } = updates;
+			const { display_name, email, password, avatar_url, has_seen_welcome } = updates;
 			
-			const result = await database.run(
-				`UPDATE users SET 
-				 display_name = COALESCE(?, display_name),
-				 avatar_url = COALESCE(?, avatar_url),
-				 updated_at = CURRENT_TIMESTAMP
-				 WHERE id = ?`,
-				[display_name, avatar_url, userId]
-			);
+			// Préparer les valeurs pour la requête
+			let updateFields = [];
+			let updateValues = [];
+			
+			if (display_name !== undefined) {
+				updateFields.push('display_name = ?');
+				updateValues.push(display_name);
+			}
+			
+			if (email !== undefined) {
+				updateFields.push('email = ?');
+				updateValues.push(email);
+			}
+			
+			if (password !== undefined) {
+				// Hasher le nouveau mot de passe
+				const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
+				updateFields.push('password_hash = ?');
+				updateValues.push(password_hash);
+			}
+			
+			if (avatar_url !== undefined) {
+				updateFields.push('avatar_url = ?');
+				updateValues.push(avatar_url);
+			}
+			
+			if (has_seen_welcome !== undefined) {
+				updateFields.push('has_seen_welcome = ?');
+				updateValues.push(has_seen_welcome);
+			}
+			
+			// Ajouter updated_at et WHERE clause
+			updateFields.push('updated_at = CURRENT_TIMESTAMP');
+			updateValues.push(userId);
+			
+			if (updateFields.length === 1) {
+				// Seulement updated_at, rien à mettre à jour
+				return await this.getUserById(userId);
+			}
+			
+			const sql = `UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`;
+			
+			const result = await database.run(sql, updateValues);
 
 			if (result.changes === 0) {
 				throw new Error('User not found');
 			}
 
 			return await this.getUserById(userId);
+		} catch (error) {
+			throw error;
+		}
+	}
+
+	// Supprimer un utilisateur
+	async deleteUser(userId) {
+		try {
+			// Supprimer d'abord les dépendances
+			await database.run('DELETE FROM blocked_users WHERE user_id = ? OR blocked_user_id = ?', [userId, userId]);
+			await database.run('DELETE FROM user_stats WHERE user_id = ?', [userId]);
+			await database.run('DELETE FROM match_history WHERE player1_id = ? OR player2_id = ?', [userId, userId]);
+			await database.run('DELETE FROM game_invitations WHERE from_user_id = ? OR to_user_id = ?', [userId, userId]);
+			await database.run('DELETE FROM blacklisted_tokens WHERE user_id = ?', [userId]);
+			
+			// Supprimer l'utilisateur
+			const result = await database.run('DELETE FROM users WHERE id = ?', [userId]);
+			
+			if (result.changes === 0) {
+				throw new Error('User not found');
+			}
 		} catch (error) {
 			throw error;
 		}
@@ -367,6 +446,108 @@ class UserService {
 			await database.run('DELETE FROM blacklisted_tokens WHERE expires_at <= datetime("now")');
 		} catch (error) {
 			console.error('Error cleaning up expired tokens:', error);
+		}
+	}
+	
+	// ========== BLOCKED USERS ==========
+	
+	// Obtenir les utilisateurs bloqués
+	async getBlockedUsers(userId) {
+		try {
+			const blockedUsers = await database.query(
+				`SELECT u.id, u.username, u.display_name 
+				 FROM blocked_users bu
+				 JOIN users u ON bu.blocked_user_id = u.id
+				 WHERE bu.user_id = ?`,
+				[userId]
+			);
+			return blockedUsers;
+		} catch (error) {
+			throw error;
+		}
+	}
+
+	// Bloquer un utilisateur
+	async blockUser(userId, blockedUserId) {
+		if (userId === parseInt(blockedUserId)) {
+			throw new Error('Cannot block yourself');
+		}
+		
+		try {
+			await database.run(
+				'INSERT INTO blocked_users (user_id, blocked_user_id) VALUES (?, ?)',
+				[userId, blockedUserId]
+			);
+		} catch (error) {
+			if (error.message.includes('UNIQUE constraint failed')) {
+				throw new Error('User is already blocked');
+			}
+			throw error;
+		}
+	}
+
+	// Débloquer un utilisateur
+	async unblockUser(userId, blockedUserId) {
+		try {
+			const result = await database.run(
+				'DELETE FROM blocked_users WHERE user_id = ? AND blocked_user_id = ?',
+				[userId, blockedUserId]
+			);
+			if (result.changes === 0) {
+				throw new Error('User is not blocked');
+			}
+		} catch (error) {
+			throw error;
+		}
+	}
+	
+	// ========== GAME INVITATIONS ==========
+	
+	// Obtenir les invitations de jeu
+	async getGameInvitations(userId) {
+		try {
+			const invitations = await database.query(
+				`SELECT gi.*, u.username as from_username, u.display_name as from_display_name
+				 FROM game_invitations gi
+				 JOIN users u ON gi.from_user_id = u.id
+				 WHERE gi.to_user_id = ? AND gi.status = 'pending'`,
+				[userId]
+			);
+			return invitations;
+		} catch (error) {
+			throw error;
+		}
+	}
+
+	// Créer une invitation de jeu
+	async createGameInvitation(fromUserId, toUserId, gameType = 'pong') {
+		if (fromUserId === parseInt(toUserId)) {
+			throw new Error('Cannot invite yourself');
+		}
+		
+		try {
+			const result = await database.run(
+				'INSERT INTO game_invitations (from_user_id, to_user_id, game_type) VALUES (?, ?, ?)',
+				[fromUserId, toUserId, gameType]
+			);
+			return { id: result.id };
+		} catch (error) {
+			throw error;
+		}
+	}
+
+	// Répondre à une invitation
+	async respondToGameInvitation(invitationId, userId, status) {
+		try {
+			const result = await database.run(
+				'UPDATE game_invitations SET status = ? WHERE id = ? AND to_user_id = ?',
+				[status, invitationId, userId]
+			);
+			if (result.changes === 0) {
+				throw new Error('Invitation not found or not for this user');
+			}
+		} catch (error) {
+			throw error;
 		}
 	}
 }

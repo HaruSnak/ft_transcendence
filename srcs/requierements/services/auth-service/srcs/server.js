@@ -1,5 +1,8 @@
 import Fastify from 'fastify'
+import jwt from 'jsonwebtoken'
 import client from 'prom-client'
+
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-for-dev';
 
 /*					____METRICS Prometheus____						*/
 
@@ -20,6 +23,20 @@ const activeSessions = new client.Counter({
 const fastify = Fastify({
 	logger : true
 })
+
+// In-memory user storage (temporary)
+const users = [];
+const sessions = new Map();
+
+// Add a default user for testing
+users.push({
+	id: 1,
+	username: 'testuser',
+	display_name: 'Test User',
+	email: 'test@example.com',
+	password: 'password',
+	createdAt: new Date().toISOString()
+});
 
 // Route for testing health
 fastify.get('/health', async (request, reply) => {
@@ -48,6 +65,70 @@ fastify.get('/api/login', async (request, reply) => {
 	else
 		loginAttempts.inc({status: 'failed'});
 	return {message: successLogin ? 'Login OK' : 'Login failed'};
+});
+
+// POST /api/auth/register - User registration
+fastify.post('/api/auth/register', async (request, reply) => {
+	const { username, display_name, email, password } = request.body;
+
+	// Basic validation
+	if (!username || !display_name || !email || !password) {
+		return reply.code(400).send({ error: 'Username, display name, email, and password are required' });
+	}
+
+	// Check if user already exists
+	const existingUser = users.find(user => user.username === username || user.email === email);
+	if (existingUser) {
+		return reply.code(409).send({ error: 'User already exists' });
+	}
+
+	// Create user (in production, hash password!)
+	const user = {
+		id: users.length + 1,
+		username,
+		display_name,
+		email,
+		password, // In production: hash this!
+		createdAt: new Date().toISOString()
+	};
+
+	users.push(user);
+
+	console.log(`New user registered: ${username}`);
+
+	return reply.code(201).send({
+		message: 'User registered successfully',
+		user: { id: user.id, username: user.username, display_name: user.display_name, email: user.email },
+		token: jwt.sign({ userId: user.id, username: user.username }, JWT_SECRET, { expiresIn: '24h' })
+	});
+});
+
+// POST /api/auth/login - User login
+fastify.post('/api/auth/login', async (request, reply) => {
+	const { username, password } = request.body;
+
+	if (!username || !password) {
+		loginAttempts.inc({status: 'failed'});
+		return reply.code(400).send({ error: 'Username and password are required' });
+	}
+
+	const user = users.find(u => (u.username === username || u.email === username) && u.password === password);
+	if (!user) {
+		loginAttempts.inc({status: 'failed'});
+		return reply.code(401).send({ error: 'Invalid credentials' });
+	}
+
+	loginAttempts.inc({status: 'success'});
+	activeSessions.inc();
+
+	const token = jwt.sign({ userId: user.id, username: user.username }, JWT_SECRET, { expiresIn: '24h' });
+	sessions.set(token, user);
+
+	return reply.send({
+		message: 'Login successful',
+		user: { id: user.id, username: user.username, display_name: user.display_name, email: user.email },
+		token
+	});
 });
 
 // All interfaces IPV4 (host : '0.0.0.0'), 

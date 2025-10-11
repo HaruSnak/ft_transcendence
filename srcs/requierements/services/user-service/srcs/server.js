@@ -2,7 +2,9 @@ import Fastify from 'fastify'
 import client from 'prom-client'
 import userService from './userService.js'
 import { authenticateToken, validateUserData } from './middleware.js'
-//import { request } from 'http'
+import database from './database.js'
+import fs from 'fs'
+import path from 'path'
 
 /*					____SERVER Fastify____						*/
 
@@ -17,6 +19,9 @@ await fastify.register(import('@fastify/cors'), {
 
 // Enregistrer le support pour les formulaires
 await fastify.register(import('@fastify/formbody'))
+
+// Enregistrer le support pour les fichiers multipart
+await fastify.register(import('@fastify/multipart'))
 
 // Route for testing health
 fastify.get('/health', async (request, reply) => {
@@ -39,23 +44,23 @@ fastify.get('/api/user', async (request, reply) => {
 // Inscription
 fastify.post('/api/auth/register', {
 	preHandler: validateUserData({ username: true, email: true, password: true })
-}, async (request, reply) => {
-	try {
-		const { username, email, password, display_name } = request.body;
-		const user = await userService.createUser({ username, email, password, display_name });
-		
-		reply.code(201).send({
-			success: true,
-			message: 'User created successfully',
-			user
-		});
-	} catch (error) {
-		reply.code(400).send({
-			success: false,
-			error: error.message
-		});
-	}
-});
+	}, async (request, reply) => {
+		try {
+			const { username, email, password, display_name, avatar_url } = request.body;
+			const user = await userService.createUser({ username, email, password, display_name, avatar_url });
+        
+			reply.code(201).send({
+				success: true,
+				message: 'User created successfully',
+				user
+			});
+		} catch (error) {
+			reply.code(400).send({
+				success: false,
+				error: error.message
+			});
+		}
+	});
 
 // Connexion
 fastify.post('/api/auth/login', {
@@ -135,6 +140,24 @@ fastify.get('/api/user/profile/:id', async (request, reply) => {
 	}
 });
 
+// Obtenir le profil d'un utilisateur par username
+fastify.get('/api/user/by-username/:username', async (request, reply) => {
+	try {
+		const user = await userService.getUserByUsername(request.params.username);
+		// Ne pas exposer l'email pour les autres utilisateurs
+		delete user.email;
+		reply.send({
+			success: true,
+			user
+		});
+	} catch (error) {
+		reply.code(404).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
 // Mettre à jour le profil
 fastify.put('/api/user/profile', {
 	preHandler: authenticateToken
@@ -149,6 +172,67 @@ fastify.put('/api/user/profile', {
 		});
 	} catch (error) {
 		reply.code(400).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
+// Supprimer le compte utilisateur
+fastify.delete('/api/user/profile', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		await userService.deleteUser(request.user.userId);
+		reply.send({
+			success: true,
+			message: 'User account deleted successfully'
+		});
+	} catch (error) {
+		reply.code(400).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
+// Upload avatar
+fastify.post('/api/user/avatar', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		console.log('Avatar upload: received request');
+		const data = await request.file();
+		if (!data) {
+			console.log('Avatar upload: no file');
+			return reply.code(400).send({ success: false, error: 'No file uploaded' });
+		}
+
+		const userId = request.user.userId;
+		console.log('Avatar upload: userId', userId);
+		
+		// Read file buffer
+		const buffer = await data.toBuffer();
+		console.log('Avatar upload: buffer length', buffer.length);
+		
+		// Convert to base64 data URL
+		const base64 = buffer.toString('base64');
+		const mimeType = data.mimetype || 'image/png';
+		const dataUrl = `data:${mimeType};base64,${base64}`;
+		console.log('Avatar upload: dataUrl length', dataUrl.length);
+		
+		// Update user avatar_url with data URL
+		await userService.updateUser(userId, { avatar_url: dataUrl });
+		console.log('Avatar upload: updated user');
+
+		reply.send({
+			success: true,
+			message: 'Avatar uploaded successfully',
+			avatar_url: dataUrl
+		});
+	} catch (error) {
+		console.error('Avatar upload error:', error);
+		reply.code(500).send({
 			success: false,
 			error: error.message
 		});
@@ -189,124 +273,250 @@ fastify.get('/api/user/matches/:id', async (request, reply) => {
 	}
 });
 
-	// Ajouter un match (pour les autres services)
-	fastify.post('/api/user/match', async (request, reply) => {
-		try {
-			const { player1_id, player2_id, winner_id, score_player1, score_player2, game_type, 
-					player1_name, player2_name } = request.body;
-			
-			if (!player1_id && !player1_name) {
-				return reply.code(400).send({
-					success: false,
-					error: 'Missing player1_id or player1_name'
-				});
-			}
-			
-			if (!player2_id && !player2_name) {
-				return reply.code(400).send({
-					success: false,
-					error: 'Missing player2_id or player2_name'
-				});
-			}
-			
-			if (winner_id === undefined && !request.body.winner_player) {
-				return reply.code(400).send({
-					success: false,
-					error: 'Missing winner_id or winner_player (1 or 2)'
-				});
-			}
-			
-			// 🎯 LOGIQUE INTELLIGENTE : Choisir la bonne table selon les joueurs
-			const hasGuests = !player1_id || !player2_id;
-			
-			if (hasGuests) {
-				// ✅ Au moins un guest → game_sessions (pas de contraintes FK)
-				const winner_player = request.body.winner_player || 
-									  (winner_id === player1_id ? 1 : 2);
-				
-				const result = await userService.addGameSession({
-					player1_id: player1_id || null,
-					player1_name: player1_name || `Player1_${Date.now()}`,
-					player2_id: player2_id || null, 
-					player2_name: player2_name || `Player2_${Date.now()}`,
-					winner_player,
-					score_player1: score_player1 || 0,
-					score_player2: score_player2 || 0,
-					game_type: game_type || 'pong'
-				});
-				
-				reply.code(201).send({
-					success: true,
-					message: 'Game session recorded successfully (includes guests)',
-					session_id: result.id,
-					stored_in: 'game_sessions'
-				});
-			}
-			else {
-				// ✅ Tous des users → match_history (logique classique avec FK)
-				// Vérifier que les users existent
-				try {
-					await userService.getUserById(player1_id);
-					await userService.getUserById(player2_id);
-				} catch (error) {
-					return reply.code(404).send({
-						success: false,
-						error: `One of the players not found in database`
-					});
-				}
-				
-				const result = await userService.addMatch(
-					player1_id, 
-					player2_id, 
-					winner_id, 
-					score_player1 || 0, 
-					score_player2 || 0, 
-					game_type
-				);
-				
-				reply.code(201).send({
-					success: true,
-					message: 'Match added successfully (users only)',
-					match_id: result.id,
-					stored_in: 'match_history'
-				});
-			}
-		} catch (error) {
-			reply.code(500).send({
+// Ajouter un match (pour les autres services)
+fastify.post('/api/user/match', async (request, reply) => {
+	try {
+		const { player1_id, player2_id, winner_id, score_player1, score_player2, game_type } = request.body;
+		
+		if (!player1_id || !player2_id || winner_id === undefined) {
+			return reply.code(400).send({
 				success: false,
-				error: error.message
+				error: 'Missing required fields: player1_id, player2_id, winner_id'
 			});
 		}
-	});
+		
+		const result = await userService.addMatch(
+			player1_id, 
+			player2_id, 
+			winner_id, 
+			score_player1 || 0, 
+			score_player2 || 0, 
+			game_type
+		);
+		
+		reply.code(201).send({
+			success: true,
+			message: 'Match added successfully',
+			match_id: result.id
+		});
+	} catch (error) {
+		reply.code(500).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
 
-	// 🆕 Nouveau endpoint pour l'historique incluant les guests
-	fastify.get('/api/user/:userId/game-sessions', {
-		preHandler: authenticateToken
-	}, async (request, reply) => {
-		try {
-			const { userId } = request.params;
-			
-			// Vérifier que l'utilisateur demande ses propres données ou est admin
-			if (request.user.userId !== parseInt(userId)) {
-				return reply.code(403).send({
-					success: false,
-					error: 'Access denied'
-				});
-			}
-			
-			const sessions = await userService.getUserGameSessions(userId);
-			
-			reply.send({
-				success: true,
-				sessions
-			});
-		} catch (error) {
-			reply.code(500).send({
+/*					____BLOCKED USERS ROUTES____						*/
+
+// Obtenir les utilisateurs bloqués
+fastify.get('/api/user/blocked', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		const blockedUsers = await userService.getBlockedUsers(request.user.userId);
+		reply.send({
+			success: true,
+			blocked_users: blockedUsers
+		});
+	} catch (error) {
+		reply.code(500).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
+// Bloquer un utilisateur
+fastify.post('/api/user/block', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		const { blocked_user_id } = request.body;
+		if (!blocked_user_id) {
+			return reply.code(400).send({
 				success: false,
-				error: error.message
+				error: 'blocked_user_id is required'
 			});
 		}
-	});// All interfaces IPV4 (host : '0.0.0.0'), 
+		
+		await userService.blockUser(request.user.userId, blocked_user_id);
+		reply.send({
+			success: true,
+			message: 'User blocked successfully'
+		});
+	} catch (error) {
+		reply.code(400).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
+// Débloquer un utilisateur
+fastify.delete('/api/user/unblock/:blocked_user_id', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		await userService.unblockUser(request.user.userId, request.params.blocked_user_id);
+		reply.send({
+			success: true,
+			message: 'User unblocked successfully'
+		});
+	} catch (error) {
+		reply.code(400).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
+/*					____GAME INVITATIONS ROUTES____						*/
+
+// Obtenir les invitations de jeu
+fastify.get('/api/user/game-invitations', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		const invitations = await userService.getGameInvitations(request.user.userId);
+		reply.send({
+			success: true,
+			invitations: invitations
+		});
+	} catch (error) {
+		reply.code(500).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
+// Créer une invitation de jeu
+fastify.post('/api/user/game-invitation', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		const { to_user_id, game_type } = request.body;
+		if (!to_user_id) {
+			return reply.code(400).send({
+				success: false,
+				error: 'to_user_id is required'
+			});
+		}
+		
+		const invitation = await userService.createGameInvitation(
+			request.user.userId, 
+			to_user_id, 
+			game_type || 'pong'
+		);
+		reply.code(201).send({
+			success: true,
+			message: 'Game invitation sent',
+			invitation
+		});
+	} catch (error) {
+		reply.code(400).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
+// Répondre à une invitation
+fastify.put('/api/user/game-invitation/:id', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		const { status } = request.body;
+		if (!['accepted', 'declined'].includes(status)) {
+			return reply.code(400).send({
+				success: false,
+				error: 'Status must be "accepted" or "declined"'
+			});
+		}
+		
+		await userService.respondToGameInvitation(
+			request.params.id, 
+			request.user.userId, 
+			status
+		);
+		reply.send({
+			success: true,
+			message: `Invitation ${status} successfully`
+		});
+	} catch (error) {
+		reply.code(400).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
+// Vérifier la disponibilité du display name
+fastify.post('/api/user/check-display-name', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		const { display_name } = request.body;
+		if (!display_name) {
+			return reply.code(400).send({
+				success: false,
+				error: 'display_name is required'
+			});
+		}
+
+		// Vérifier si le display name existe déjà (en excluant l' utilisateur actuel)
+		const existingUser = await database.get(
+			'SELECT id FROM users WHERE display_name = ? AND id != ?',
+			[display_name, request.user.userId]
+		);
+
+		const available = !existingUser;
+		reply.send({
+			success: true,
+			available
+		});
+	} catch (error) {
+		reply.code(500).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
+// Vérifier la disponibilité de l'email
+fastify.post('/api/user/check-email', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		const { email } = request.body;
+		if (!email) {
+			return reply.code(400).send({
+				success: false,
+				error: 'email is required'
+			});
+		}
+
+		// Vérifier si l'email existe déjà (en excluant l' utilisateur actuel)
+		const existingUser = await database.get(
+			'SELECT id FROM users WHERE email = ? AND id != ?',
+			[email, request.user.userId]
+		);
+
+		const available = !existingUser;
+		reply.send({
+			success: true,
+			available
+		});
+	} catch (error) {
+		reply.code(500).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
+// All interfaces IPV4 (host : '0.0.0.0'), 
 fastify.listen({ port : 3003, host : '0.0.0.0'}, function (err, address) {
 	if (err) {
 		fastify.log.error(err);
