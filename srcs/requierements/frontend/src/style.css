@@ -63,7 +63,7 @@ body { /* Styles de base pour le corps de la page */
   display: flex; /* Utilise Flexbox pour la structure */
   flex-direction: column; /* Direction verticale */
   height: 100vh; /* Hauteur pleine fenêtre */
-  overflow: hidden; /* Cache le débordement */
+  overflow: auto; /* Permet le scroll vertical si le contenu dépasse */
   margin: 0; /* Supprime les marges par défaut */
   padding: 0; /* Supprime les paddings par défaut */
 }
@@ -86,7 +86,7 @@ body { /* Styles de base pour le corps de la page */
   padding: var(--space-md) 0; /* Padding vertical */
   box-sizing: border-box; /* Gestion des dimensions */
   justify-content: center; /* Centre le contenu */
-  overflow: hidden; /* Cache le débordement */
+  overflow: auto; /* Permet le scroll si le contenu dépasse */
 }
 
 .profile-history-scroll { /* Zone de défilement pour l'historique du profil */
