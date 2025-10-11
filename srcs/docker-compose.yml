@@ -10,6 +10,7 @@ services:
             - promgraf_network
         restart: unless-stopped
 
+    #delete ?
     game-service:
         container_name: game-service
         build: ./requierements/services/game-service
