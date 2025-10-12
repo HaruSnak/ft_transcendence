@@ -1,4 +1,4 @@
-import { TournamentPlayer } from './game/PlayerManager.js'
+import { TournamentPlayer } from './PlayerManager.js'
 
 /**
 	Interface de réponse d'authentification
@@ -22,7 +22,7 @@ export interface authResponse {
 */
 export class userApiService {
 	// ==================== Configuration API ====================
-	private userURL = `https://localhost:8443/api/`;
+	private userURL = `/api`;
 
 	/**
 		Authentifie un utilisateur avec username et password
@@ -36,7 +36,7 @@ export class userApiService {
 				password: password
 			}
 			// Envoyer la requête POST avec les identifiants
-			const response = await fetch(this.userURL + `auth/login`, {
+			const response = await fetch(this.userURL + `/auth/login`, {
 				method: `POST`,
 				headers: {
 					'Content-Type': 'application/json',
@@ -47,9 +47,9 @@ export class userApiService {
 			if (response.ok) {
 				const data = await response.json();
 				
-				// Stocker le token JWT dans localStorage pour les requêtes futures
+				// Stocker le token JWT dans sessionStorage pour les requêtes futures
 				if (data.token) {
-					localStorage.setItem('authToken', data.token);
+					sessionStorage.setItem('authToken', data.token);
 				}
 				return {
 					successful: true,
@@ -64,7 +64,7 @@ export class userApiService {
 			}
 			else {
 				console.log(`Error HTTP `, response.status);
-				return { successful: false };
+				return ({ successful: false });
 			}
 		}
 		catch (error) {
@@ -80,11 +80,11 @@ export class userApiService {
 	public async getConnectedPly(): Promise<authResponse | null> {
 		try {
 			// Vérifier la présence du token d'authentification
-			const token = localStorage.getItem('authToken');
+			const token = sessionStorage.getItem('authToken');
 			if (!token)
 				return { successful: false };
 			// Requête GET avec le token Bearer pour authentification
-			const response = await fetch(this.userURL + `user/profile`, {
+			const response = await fetch(this.userURL + `/user/profile`, {
 				method: `GET`,
 				headers: {
 					'Authorization': `Bearer ${token}`,
@@ -106,13 +106,13 @@ export class userApiService {
 				};
 			}
 			else if (response.status === 401) {
-				// Token invalide ou expiré - nettoyer localStorage
-				localStorage.removeItem(`authToken`);
-				return { successful: false };
+				// Token invalide ou expiré - nettoyer sessionStorage
+				sessionStorage.removeItem(`authToken`);
+				return ({ successful: false });
 			}
 			else {
 				console.log(`Error HTTP: `, response.status);
-				return { successful: false };
+				return ({ successful: false });
 			}
 		}
 		catch (error) {
@@ -193,10 +193,10 @@ export class userApiService {
 	public async getUserCompleteHistory(userId: number) {
 		try {
 			// Récupérer le token d'authentification
-			const token = localStorage.getItem('authToken');
+			const token = sessionStorage.getItem('authToken');
 			
 			// Requête GET avec authentification Bearer
-			const response = await fetch(this.userURL + `user/${userId}/game-sessions`, {
+			const response = await fetch(this.userURL + `/user/matches/${userId}`, {
 				headers: {
 					'Authorization': `Bearer ${token}`
 				}
@@ -204,8 +204,8 @@ export class userApiService {
 
 			const result = await response.json();
 			if (result.success) {
-				console.log('Complete history:', result.sessions);
-				return result.sessions;
+				console.log('Complete history:', result.matches);
+				return (result.matches);
 			}
 		}
 		catch (error) {

@@ -8,9 +8,15 @@ WORKDIR /srcs
 COPY package*.json ./
 RUN npm install
 
+# Create non-root user for security
+RUN groupadd -g 1001 srcsgroup && \
+    useradd -u 1001 -g srcsgroup -s /bin/bash -m srcsuser
+
 COPY . .
 
-RUN mkdir -p /srcs/data && chmod 755 /srcs/data
+RUN mkdir -p /srcs/data && chown -R srcsuser:srcsgroup /srcs
+
+USER srcsuser
 
 EXPOSE 3003
 

@@ -1,4 +1,4 @@
-import { userApiService } from '../UserAPIService.js';
+import { userApiService } from './UserAPIService.js';
 
 /*
 	Interface représentant un joueur dans le système de tournoi
@@ -39,10 +39,10 @@ export abstract class PlayerManager {
                 return (false);
             }
             if (type === 'Guest') {
-                return this.createGuestPlayer(username);
+                return (this.createGuestPlayer(username));
             }
 			else if (type === 'User') {
-                return await this.createUserPlayer(username, password!);
+                return (await this.createUserPlayer(username, password!));
             }
         }
 		catch (error) {

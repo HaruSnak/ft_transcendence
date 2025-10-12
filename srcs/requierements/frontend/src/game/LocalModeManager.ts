@@ -81,7 +81,7 @@ export class OneVsOneManager extends PlayerManager {
 			const MsgWinOrLose = document.getElementById('gameMessageWinOrLose');
 			if (!MsgWinOrLose) {
 				resolve();
-				return;
+				return ;
 			}
 
 			MsgWinOrLose.classList.remove('hidden');

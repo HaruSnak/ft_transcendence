@@ -45,7 +45,7 @@ class UserService {
 	}
 
 	// Créer un utilisateur guest temporaire
-	async createGuestUser(guestName = null) {
+	/*async createGuestUser(guestName = null) {
 		try {
 			const timestamp = Date.now();
 			const randomSuffix = Math.random().toString(36).substr(2, 5);
@@ -74,7 +74,7 @@ class UserService {
 		} catch (error) {
 			throw error;
 		}
-	}
+	}*/
 
 	// Authentifier un utilisateur
 	async authenticateUser(username, password) {
@@ -257,7 +257,7 @@ class UserService {
 						w.username as winner_username, w.display_name as winner_display_name
 				 FROM match_history m
 				 JOIN users u1 ON m.player1_id = u1.id
-				 JOIN users u2 ON m.player2_id = u2.id
+				 LEFT JOIN users u2 ON m.player2_id = u2.id
 				 LEFT JOIN users w ON m.winner_id = w.id
 				 WHERE m.player1_id = ? OR m.player2_id = ?
 				 ORDER BY m.game_date DESC

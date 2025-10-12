@@ -29,8 +29,7 @@ export async function authenticateToken(request, reply) {
         const decoded = jwt.verify(token, JWT_SECRET);
         console.log('✅ JWT verified successfully for user:', decoded.userId);
         request.user = decoded;
-        // Fastify continue automatiquement
-        return; // Important : return explicite pour éviter la suite
+        // Fastify 5.x : ne pas retourner de valeur pour continuer
     } catch (err) {
         console.log('❌ JWT verification failed:', err.message);
         console.log('🔍 Error details:', err);

@@ -1,6 +1,8 @@
 // src/utils/constants.ts
 
-export const SERVER_URL = 'http://localhost:3001';
+// CRITICAL SECURITY: Must use HTTPS for secure WebSocket (wss://)
+// Frontend connects through nginx reverse proxy (port 8443), not directly to services
+export const SERVER_URL = 'https://localhost:8443/api/chat';
 export const API_BASE_URL = '/api';
 
 export const STORAGE_KEYS = {

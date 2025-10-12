@@ -126,7 +126,10 @@ export function navigateTo(page: string, push = true) {
   
   // VOTRE LOGIQUE: Initialisation spécifique pour le jeu
   if (page === 'game') {
-    initGame();
+    // Utiliser setTimeout pour s'assurer que le DOM est complètement chargé
+    setTimeout(() => {
+      initGame();
+    }, 50); // 50ms devrait être suffisant pour que le DOM soit mis à jour
   }
 }
 
@@ -154,7 +157,8 @@ window.startPong = () => {
   const startButton = document.getElementById('startGameButton') as HTMLButtonElement;
   if (startButton) {
     startButton.click(); // Simule un clic sur le bouton Start Game
-  } else {
+  }
+  else {
     console.log('Bouton Start Game non trouvé');
   }
 };

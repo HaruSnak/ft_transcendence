@@ -64,7 +64,7 @@ export class TournamentManager extends PlayerManager {
                 await this.showChampion(nextRoundPlayers[0]);
                 pongGame.cleanupGame();
                 window.location.reload();
-                return;
+                return ;
             }
             this.players = nextRoundPlayers;
             playerMatch = this.createMatches();
@@ -84,7 +84,7 @@ export class TournamentManager extends PlayerManager {
             
             const winner = await this.waitForMatchResult(pongGame, player1, player2);
             console.log(`Match finished: ${winner || 'Draw'}`);
-            return winner;
+            return (winner);
         }
 		catch (error) {
             console.error('Match error:', error);
@@ -128,7 +128,7 @@ export class TournamentManager extends PlayerManager {
             const MsgWinOrLose = document.getElementById('gameMessageWinOrLose');
             if (!MsgWinOrLose) {
                 resolve();
-                return;
+                return ;
             }
 
             MsgWinOrLose.classList.remove('hidden');

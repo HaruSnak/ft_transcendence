@@ -95,8 +95,8 @@ export async function initProfilePage() {
 
   const id = window.location.hash.split('/')[1] || null;
   const url = id
-    ? `https://localhost:8443/api/user/${id}`
-    : 'https://localhost:8443/api/user/me';
+    ? `/api/user/${id}`
+    : '/api/user/me';
   const res = await fetch(url, {
     credentials: 'include',
   });

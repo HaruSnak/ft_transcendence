@@ -62,11 +62,11 @@ export class PongGame {
 
 	// ==================== Module IA ====================
 	private lastAITime = 0;
-	private aiTargetY = this.INITIAL_PADDLE_Y; // Position cible prédite par l'IA
-	private aiPredictedBallY = this.BALL_CENTER_Y; // Position Y prédite de la balle
-	private aiUpdateInterval = 1000; // L'IA met à jour sa vue chaque seconde
-	private aiReactionDelay = 0.15; // Délai de réaction pour simuler un comportement humain
-	private aiPredictionError = 0; // Erreur de prédiction pour rendre l'IA moins parfaite
+	private aiTargetY = this.INITIAL_PADDLE_Y;		// Position cible prédite par l'IA
+	private aiPredictedBallY = this.BALL_CENTER_Y;	// Position Y prédite de la balle
+	private aiUpdateInterval = 1000;				// L'IA met à jour sa vue chaque seconde
+	private aiReactionDelay = 0.15;					// Délai de réaction pour simuler un comportement humain
+	private aiPredictionError = 0;					// Erreur de prédiction pour rendre l'IA moins parfaite
 
 	/**
 		Constructeur - Initialise le jeu Pong avec les éléments DOM
@@ -133,7 +133,7 @@ export class PongGame {
 	*/
 	public draw() {
 		if (!this.ctx)
-			return;
+			return ;
 		this.ctx.clearRect(0, 0, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
 		if (!this.gameRunning) {
 			this.showPreGameMessage();
@@ -181,12 +181,12 @@ export class PongGame {
 	*/
 	private update() {
 		if (!this.gameRunning || this.gamePaused)
-			return;
+			return ;
 
 		// Vérifier si un joueur a gagné
 		if (this.leftPaddle.score >= this.WINNING_SCORE || this.rightPaddle.score >= this.WINNING_SCORE) {
 			this.endGame();
-			return;
+			return ;
 		}
 
 		// Déplacer la balle dans les deux directions
@@ -357,6 +357,12 @@ export class PongGame {
 		this.gameRunning = false;
 		this.gamePaused = false;
 		this.whoWin = 'null';
+		
+		// Réinitialiser les modes de jeu
+		this.gameBotGM = false;
+		this.gameLocalGM = false;
+		this.gameTournamentGM = false;
+		
 		this.divMessageWinOrLose.classList.add('hidden');
 		// Nettoyer les touches de l'IA
 		this.keys.delete('ArrowUp');
@@ -364,6 +370,10 @@ export class PongGame {
 		if (this.animationFrameId)
 			cancelAnimationFrame(this.animationFrameId);
 		this.resetGameState();
+		
+		// Effacer le canvas visuellement
+		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		
 		if (this.buttonStart) {
 			this.buttonStart.disabled = false;
 			this.buttonStart.removeEventListener('click', this.startGame);

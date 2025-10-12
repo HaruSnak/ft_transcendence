@@ -19,10 +19,8 @@ RUN chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/data && \
     chmod +x /usr/share/elasticsearch/init-ilm.sh
 
 # Génération du keystore pour sécuriser les mots de passe
-# Le keystore chiffre les credentials sensibles (SSL, API keys, etc.)
-# -x permet de lire depuis stdin pour automatisation
-RUN /usr/share/elasticsearch/bin/elasticsearch-keystore create && \
-    echo "elasticpassword" | /usr/share/elasticsearch/bin/elasticsearch-keystore add -x "xpack.security.http.ssl.keystore.secure_password"
+# Le keystore chiffre les credentials sensibles (API keys, etc.)
+RUN /usr/share/elasticsearch/bin/elasticsearch-keystore create
 
 # Retour à l'utilisateur elasticsearch (sécurité)
 USER elasticsearch

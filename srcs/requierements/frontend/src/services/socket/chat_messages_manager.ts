@@ -2,6 +2,7 @@
 
 import { ChatMessage, DirectMessage, SocketUser, SocketConnection } from '../../utils/data_types';
 import { UI_ELEMENTS, SOCKET_EVENTS } from '../../utils/app_constants';
+import { SecurityUtils } from '../../utils/SecurityUtils';
 
 export class MessageHandlingService {
     private currentChat: DirectMessage | null = null;
@@ -154,8 +155,10 @@ export class MessageHandlingService {
             messageElement.appendChild(joinButton);
             messageElement.appendChild(timeSmall);
         } else {
-            // Regular message
-            messageElement.innerHTML = `<span class="font-bold truncate inline-block max-w-48 min-w-24" title="${displayName}">${displayName}:</span> ${message.text} <small>(${timestamp})</small>`;
+            // Regular message - SECURITY: Escape HTML to prevent XSS
+            const safeDisplayName = SecurityUtils.escapeHTML(displayName);
+            const safeMessageText = SecurityUtils.escapeHTML(message.text);
+            messageElement.innerHTML = `<span class="font-bold truncate inline-block max-w-48 min-w-24" title="${safeDisplayName}">${safeDisplayName}:</span> ${safeMessageText} <small>(${timestamp})</small>`;
         }
 
         messagesContainer.appendChild(messageElement);

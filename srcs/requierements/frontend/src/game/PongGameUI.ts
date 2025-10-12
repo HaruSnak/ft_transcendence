@@ -13,6 +13,7 @@ export class PongGameUI extends SecurityUtils {
 	private	divInterfaceInGame = document.getElementById('ingame-button') as HTMLDivElement;
 	protected divMessageWinOrLose = document.getElementById('gameMessageWinOrLose') as HTMLDivElement;
 	protected divScoreInGame = document.getElementById('scoreInGame') as HTMLDivElement;
+	private canvasContainer = document.getElementById('canvas-container') as HTMLDivElement;
 
 	// ==================== Éléments d'interface - Menu principal ====================
 	// Sélection du mode de jeu (Practice contre IA / Local 1v1 / Tournament)
@@ -43,6 +44,18 @@ export class PongGameUI extends SecurityUtils {
 	// État actuel du mode de jeu
 	private currentMode: 'tournament' | 'local' | null = null;
 
+	// ==================== Gestion des timers ====================
+	private activeTimers: number[] = []; // Liste des setTimeout actifs
+
+	// ==================== Event Listeners (références pour nettoyage) ====================
+	private boundHandlePractice: () => void;
+	private boundHandleLocal: () => Promise<void>;
+	private boundHandleTournament: () => Promise<void>;
+	private boundHandleAddLogin: () => Promise<void>;
+	private boundHandleLaunchGame: () => Promise<void>;
+	private boundHandleStart: () => void;
+	private boundHandlePause: () => void;
+
 	// ==================== Messages d'erreur ====================
 	// Map des codes d'erreur pour la validation des noms d'utilisateur
 	private static readonly USERNAME_ERROR_MESSAGES = new Map([
@@ -66,28 +79,64 @@ export class PongGameUI extends SecurityUtils {
 		);
 		this.tournaments = new TournamentManager;
 		this.oneVsOne = new OneVsOneManager;
+		
+		// Création des références de fonctions pour pouvoir les supprimer plus tard
+		this.boundHandlePractice = () => {
+			this.updateScreen();
+			this.pongGame.setModeGame('gameBotGM');
+		};
+		this.boundHandleLocal = async () => {
+			this.currentMode = 'local';
+			this.clearAllProfiles(); // Nettoyer au changement de mode
+			await this.handleAuthentication();
+		};
+		this.boundHandleTournament = async () => {
+			this.currentMode = 'tournament';
+			this.clearAllProfiles(); // Nettoyer au changement de mode
+			await this.handleAuthentication();
+		};
+		this.boundHandleAddLogin = async () => await this.handleAuthentication();
+		this.boundHandleLaunchGame = async () => await this.leaderboardTournament();
+		this.boundHandleStart = () => this.pongGame.startGame();
+		this.boundHandlePause = () => this.pongGame.pauseGame();
+		
 		this.listenButtons();
-		this.showMainMenu();
+		
+		// Initialiser l'état caché de tous les éléments du jeu
+		// Pour éviter qu'ils apparaissent au chargement initial de la page
+		this.initializeHiddenState();
+	}
+
+	/*
+	Initialise tous les éléments de l'interface en état caché
+	Note: Les éléments principaux sont déjà cachés via CSS (class="hidden")
+	Cette méthode s'assure que les éléments dynamiques restent cachés
+	*/
+	private initializeHiddenState() {
+		// Ces éléments ne sont pas cachés par défaut en HTML, on les cache ici
+		this.buttonLaunchGame.style.display = 'none';
 	}
 
 	/*
 	Affiche le menu principal et masque les autres interfaces
 	Réinitialise le mode de jeu actuel à null
+	Appelée lors de l'accès à la page game ou après un cleanup
 	*/
-	private showMainMenu() {
+	public showMainMenu() {
 		this.divInterfaceMainMenu.style.display = 'block';
-		this.divScoreInGame.style.display = 'none'
-		this.pongGame.canvas.style.display = 'none';
-		this.divInterfaceInGame.style.display = 'none';
+		this.divInterfaceLogin.style.display = 'none';
+		this.divScoreInGame.style.display = 'none';
+		this.divScoreInGame.classList.add('hidden');
+		this.canvasContainer.classList.add('hidden');
+		this.divInterfaceInGame.classList.add('hidden');
 		this.currentMode = null;
 	}
 
 	/*
-	Retourne le gestionnaire approprié selon le mode actuel
-	@returns TournamentManager si mode tournoi, sinon OneVsOneManager
+		Retourne le gestionnaire approprié selon le mode actuel
 	*/
 	private getCurrentManager(): TournamentManager | OneVsOneManager {
-		return this.currentMode === 'tournament' ? this.tournaments : this.oneVsOne;
+		return (this.currentMode === 'tournament' ? this.tournaments : this.oneVsOne);
 	}
 
 	/*
@@ -101,11 +150,12 @@ export class PongGameUI extends SecurityUtils {
 			const label = container.querySelector(`label`) as HTMLLabelElement;
 			const input = container.querySelector(`input`) as HTMLInputElement;
 			const errorMsg = container.querySelector('p') as HTMLElement;
-			setTimeout(() => {
+			const timerId = window.setTimeout(() => {
 				label.style.color = ``;
 				input.style.borderColor = ``;
 				errorMsg.textContent = ``;
 			}, 2000);
+			this.activeTimers.push(timerId);
 		});
 	}
 
@@ -145,11 +195,9 @@ export class PongGameUI extends SecurityUtils {
 	}
 
 	/*
-	Valide le nom d'utilisateur selon les règles définies
-	Utilise validateUsername() de SecurityUtils (classe parente)
-	Affiche les messages d'erreur appropriés en cas d'échec
-	@param username - Le nom d'utilisateur à valider
-	@returns true si valide, false sinon
+		Valide le nom d'utilisateur selon les règles définies
+		Utilise validateUsername() de SecurityUtils (classe parente)
+		Affiche les messages d'erreur appropriés en cas d'échec
 	*/
 	private verificationUserName(username: string): boolean {
 		const validationCode = this.validateUsername(username);
@@ -179,17 +227,26 @@ export class PongGameUI extends SecurityUtils {
 	}
 
 	/*
-		Crée un élément DOM représentant un joueur à partir d'un template
-		Clone le template HTML et remplit les données (username, type)
+		Crée un élément DOM représentant un joueur à partir du template HTML
+		Clone le template et remplit les données dynamiques (username, type)
+		Cette méthode est optimale : rapide, maintenable et professionnelle
 	*/
 	private createPlayerElement(username: string, type: string): HTMLElement {
 		const profileTemplate = document.getElementById('profile-template') as HTMLTemplateElement;
+		
+		// Le template est toujours disponible car le DOM est chargé avant l'appel
 		const profileClone = profileTemplate.content.cloneNode(true) as DocumentFragment;
 		const playerDiv = profileClone.firstElementChild as HTMLElement;
 
-		playerDiv.className += ' w-48 h-16 min-w-48 max-w-48';
+		// Forcer la bordure noire avec du CSS inline (priorité maximale sur Tailwind)
+		playerDiv.style.outline = '2px solid #000000';
+		playerDiv.style.outlineOffset = '-2px';
+		playerDiv.style.borderColor = '#000000';
+		
+		// Remplir les données utilisateur
 		(profileClone.querySelector('.profile-username') as HTMLElement).textContent = username;
 		(profileClone.querySelector('.profile-type') as HTMLElement).textContent = type;
+		
 		return (playerDiv);
 	}
 
@@ -204,8 +261,25 @@ export class PongGameUI extends SecurityUtils {
 		if (!check)
 			return ;
 		else {
-			const ply = this.createPlayerElement(this.inputLoginGM.value, 'User Session');
-			this.divProfileUser.appendChild(ply);
+			// Récupérer le joueur connecté depuis le manager
+			const players = currentManager.getPlayers();
+			if (players.length > 0) {
+				// Vérifier si le profil existe déjà dans l'interface
+				const existingProfiles = this.divProfileUser.querySelectorAll('.profile-username');
+				const connectedPlayer = players[0];
+				const alreadyDisplayed = Array.from(existingProfiles).some(
+					profile => profile.textContent === connectedPlayer.displayName
+				);
+				
+				if (alreadyDisplayed) {
+					return ;
+				}
+				
+				const ply = this.createPlayerElement(connectedPlayer.displayName, 'User Session');
+				this.divProfileUser.appendChild(ply);
+			} else {
+				console.warn('Player connected but not found in manager');
+			}
 		}
 	}
 
@@ -217,9 +291,11 @@ export class PongGameUI extends SecurityUtils {
 	*/
 	private async handleAuthentication() {
 		this.divInterfaceMainMenu.style.display = 'none';
-		this.divInterfaceLogin.style.display = 'block';
+		this.divInterfaceLogin.style.display = 'flex';
 		(document.getElementById('game').querySelector('p') as HTMLElement).style.display = 'none'
-		this.isPlayerActive();
+		
+		// Vérifier et afficher le joueur actif (session) seulement s'il n'est pas déjà affiché
+		await this.isPlayerActive();
 
 		this.updateLaunchButtonVisibility();
 		if (this.inputLoginGM.value)
@@ -228,6 +304,18 @@ export class PongGameUI extends SecurityUtils {
 				return ;
 			
 			const currentManager = this.getCurrentManager();
+			
+			// Vérifier si ce joueur n'est pas déjà dans la liste
+			const existingProfiles = this.divProfileUser.querySelectorAll('.profile-username');
+			const alreadyExists = Array.from(existingProfiles).some(
+				profile => profile.textContent === this.inputLoginGM.value
+			);
+			
+			if (alreadyExists) {
+				this.uiSuccessFullOrError(false, [`username`]);
+				return ;
+			}
+			
 			if (!this.inputPasswordGM.value) {
 				const result = await currentManager.initDataPlayer('Guest', this.inputLoginGM.value);
 				if (!result) {
@@ -295,29 +383,37 @@ export class PongGameUI extends SecurityUtils {
 			matchContainer.className = 'flex items-center justify-center gap-4 p-4 bg-slate-50 rounded-lg border';
 			
 			const firstPly = this.createPlayerElement(match[0].displayName, match[0].type);
+			// Ajouter des contraintes de largeur sans écraser les classes internes
+			firstPly.style.maxWidth = '200px';
+			firstPly.style.minWidth = '150px';
 			
 			// image versus
 			const vsDiv = document.createElement('div');
-			vsDiv.className = 'flex items-center justify-center';
+			vsDiv.className = 'flex items-center justify-center flex-shrink-0';
 			const vsImage = document.createElement('img');
-			vsImage.src = 'src/game/assets/versus.png';
+			vsImage.src = 'assets/versus.png';
 			vsImage.width = 40;
 			vsImage.height = 40;
 			vsImage.alt = 'VS';
 			vsDiv.appendChild(vsImage);
 			
 			const secondPly = this.createPlayerElement(match[1].displayName, match[1].type);
+			// Ajouter des contraintes de largeur sans écraser les classes internes
+			secondPly.style.maxWidth = '200px';
+			secondPly.style.minWidth = '150px';
+			
 			matchContainer.appendChild(firstPly);
 			matchContainer.appendChild(vsDiv);
 			matchContainer.appendChild(secondPly);
 			this.divProfileUser.appendChild(matchContainer);
 		});
-		setTimeout(async () => {
+		const tournamentTimerId = window.setTimeout(async () => {
 			this.divInterfaceLogin.style.display = 'none';
 			this.updateScreen();
 			this.pongGame.setModeGame('gameTournamentGM');
 			await this.tournaments.startTournament(this.pongGame, matches);
 		}, 6000);
+		this.activeTimers.push(tournamentTimerId);
 	}
 
 	/*
@@ -332,7 +428,7 @@ export class PongGameUI extends SecurityUtils {
 		
 		if (players.length !== 2) {
 			console.error('Exactly 2 players required for 1v1 mode');
-			return;
+			return ;
 		}
 
 		(this.divInterfaceLogin.querySelector('.ui-login') as HTMLDivElement).style.display = 'none';
@@ -346,29 +442,38 @@ export class PongGameUI extends SecurityUtils {
 
 		const matchContainer = document.createElement('div');
 		matchContainer.className = 'flex items-center justify-center gap-4 p-4 bg-slate-50 rounded-lg border';
+		
 		const firstPly = this.createPlayerElement(players[0].displayName, players[0].type);
+		// Ajouter des contraintes de largeur sans écraser les classes internes
+		firstPly.style.maxWidth = '200px';
+		firstPly.style.minWidth = '150px';
 		
 		const vsDiv = document.createElement('div');
-		vsDiv.className = 'flex items-center justify-center';
+		vsDiv.className = 'flex items-center justify-center flex-shrink-0';
 		const vsImage = document.createElement('img');
-		vsImage.src = 'src/game/assets/versus.png';
+		vsImage.src = 'assets/versus.png';
 		vsImage.width = 40;
 		vsImage.height = 40;
 		vsImage.alt = 'VS';
 		vsDiv.appendChild(vsImage);
 		
 		const secondPly = this.createPlayerElement(players[1].displayName, players[1].type);
+		// Ajouter des contraintes de largeur sans écraser les classes internes
+		secondPly.style.maxWidth = '200px';
+		secondPly.style.minWidth = '150px';
+		
 		matchContainer.appendChild(firstPly);
 		matchContainer.appendChild(vsDiv);
 		matchContainer.appendChild(secondPly);
 		this.divProfileUser.appendChild(matchContainer);
 
-		setTimeout(async () => {
+		const matchTimerId = window.setTimeout(async () => {
 			this.divInterfaceLogin.style.display = 'none';
 			this.updateScreen();
 			this.pongGame.setModeGame('gameLocalGM');
 			await this.oneVsOne.startMatch(this.pongGame);
 		}, 3000);
+		this.activeTimers.push(matchTimerId);
 	}
 
 	/*
@@ -377,32 +482,50 @@ export class PongGameUI extends SecurityUtils {
 	*/
 	private updateScreen() {
 		this.divInterfaceMainMenu.style.display = 'none';
-		this.pongGame.canvas.style.display = 'block';
-		this.divInterfaceInGame.style.display = 'block';
+		this.canvasContainer.classList.remove('hidden');
+		this.divInterfaceInGame.classList.remove('hidden');
 	}
 
 	/*
 		Configure tous les écouteurs d'événements pour les boutons
 		Gère les clics pour : sélection de mode, authentification, contrôles de jeu
 		Utilise addEventListener() pour chaque bouton de l'interface
+		Utilise des références de fonctions pour pouvoir les supprimer lors du cleanup
 	*/
 	public listenButtons() {
-		this.buttonPractice.addEventListener('click', () => {
-			this.updateScreen();
-			this.pongGame.setModeGame('gameBotGM');
+		this.buttonPractice.addEventListener('click', this.boundHandlePractice);
+		this.buttonPlyLocal.addEventListener('click', this.boundHandleLocal);
+		this.buttonTournament.addEventListener('click', this.boundHandleTournament);
+		this.buttonAddLogin.addEventListener('click', this.boundHandleAddLogin);
+		this.buttonLaunchGame.addEventListener('click', this.boundHandleLaunchGame);
+		this.buttonStart.addEventListener('click', this.boundHandleStart);
+		this.buttonPause.addEventListener('click', this.boundHandlePause);
+	}
+
+	/*
+		Supprime tous les écouteurs d'événements des boutons
+		Appelée lors du cleanup pour éviter les fuites mémoire
+		et l'accumulation de listeners lors des réinitialisations
+	*/
+	private removeEventListeners() {
+		this.buttonPractice.removeEventListener('click', this.boundHandlePractice);
+		this.buttonPlyLocal.removeEventListener('click', this.boundHandleLocal);
+		this.buttonTournament.removeEventListener('click', this.boundHandleTournament);
+		this.buttonAddLogin.removeEventListener('click', this.boundHandleAddLogin);
+		this.buttonLaunchGame.removeEventListener('click', this.boundHandleLaunchGame);
+		this.buttonStart.removeEventListener('click', this.boundHandleStart);
+		this.buttonPause.removeEventListener('click', this.boundHandlePause);
+	}
+
+	/*
+		Annule tous les setTimeout/setInterval actifs
+		Évite que des actions planifiées s'exécutent après la fermeture de la page
+	*/
+	private clearAllTimers() {
+		this.activeTimers.forEach(timerId => {
+			window.clearTimeout(timerId);
 		});
-		this.buttonPlyLocal.addEventListener('click', async () => {
-			this.currentMode = 'local';
-			await this.handleAuthentication();
-		});
-		this.buttonTournament.addEventListener('click', async () => {
-			this.currentMode = 'tournament';
-			await this.handleAuthentication();
-		});
-		this.buttonAddLogin.addEventListener('click', async () => await this.handleAuthentication());
-		this.buttonLaunchGame.addEventListener('click', async () => await this.leaderboardTournament());
-		this.buttonStart.addEventListener('click', () => this.pongGame.startGame());
-		this.buttonPause.addEventListener('click', () => this.pongGame.pauseGame());
+		this.activeTimers = [];
 	}
 
 	/*
@@ -411,11 +534,51 @@ export class PongGameUI extends SecurityUtils {
 		Appelée lors du changement de page ou de mode de jeu
 	*/
 	public getCleanUpGame() {
-		this.divInterfaceLogin.style.display = 'none';
+		// Suppression des event listeners pour éviter les fuites mémoire
+		this.removeEventListeners();
+		this.clearAllTimers();
 		this.pongGame.cleanupGame();
 		this.currentMode = null;
 		if (this.tournaments) this.tournaments.clearPlayers();
 		if (this.oneVsOne) this.oneVsOne.clearPlayers();
-		this.divProfileUser.innerHTML = '';
+		
+		this.divInterfaceLogin.style.display = 'none';
+		this.divInterfaceMainMenu.style.display = 'block';
+		this.divInterfaceInGame.classList.add('hidden');
+		this.canvasContainer.classList.add('hidden');
+		this.divScoreInGame.style.display = 'none';
+		this.divScoreInGame.classList.add('hidden');
+		this.divMessageWinOrLose.classList.add('hidden');
+		
+		this.clearAllProfiles();
+		const profileTitle = this.divProfileUser.querySelector('h3') as HTMLElement;
+		if (profileTitle) {
+			profileTitle.className = 'col-span-2 text-lg text-center font-medium text-slate-800 mb-2';
+			profileTitle.textContent = 'Game room';
+		}
+
+		this.divProfileUser.className = 'grid grid-cols-2 gap-4 p-8 pt-6 place-items-center';
+		const uiLogin = this.divInterfaceLogin.querySelector('.ui-login') as HTMLDivElement;
+		const separator = this.divInterfaceLogin.querySelector('.separator') as HTMLDivElement;
+		if (uiLogin) uiLogin.style.display = '';
+		if (separator) separator.style.display = '';
+		this.inputLoginGM.value = '';
+		this.inputPasswordGM.value = '';
+		
+		// Réinitialisation des styles des champs (en cas d'erreurs précédentes)
+		// Note: on ne peut pas appeler clearStatusVisual ici car ça crée de nouveaux timers
+		const usernameContainer = this.divInterfaceLogin.querySelector('.input-username-ui');
+		const passwordContainer = this.divInterfaceLogin.querySelector('.input-password-ui');
+		if (usernameContainer) {
+			(usernameContainer.querySelector('label') as HTMLLabelElement).style.color = '';
+			(usernameContainer.querySelector('input') as HTMLInputElement).style.borderColor = '';
+			(usernameContainer.querySelector('p') as HTMLElement).textContent = '';
+		}
+		if (passwordContainer) {
+			(passwordContainer.querySelector('label') as HTMLLabelElement).style.color = '';
+			(passwordContainer.querySelector('input') as HTMLInputElement).style.borderColor = '';
+			(passwordContainer.querySelector('p') as HTMLElement).textContent = '';
+		}
+		this.buttonLaunchGame.style.display = 'none';
 	}
 }

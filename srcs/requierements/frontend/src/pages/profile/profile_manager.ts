@@ -213,7 +213,7 @@ export class ProfileManager {
 
     private async loadMatchHistory(): Promise<void> {
         try {
-            const response = await fetch('/api/user/match-history', {
+            const response = await fetch('/api/user/matches', {
                 headers: {
                     'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
                 },
@@ -221,6 +221,9 @@ export class ProfileManager {
 
             if (response.ok) {
                 const data = await response.json();
+                console.log('Match history data received:', data);
+                console.log('Matches array:', data.matches);
+                console.log('Matches length:', data.matches ? data.matches.length : 0);
                 this.displayMatchHistory(data.matches || []);
             } else {
                 console.error('Failed to load match history:', response.status);
@@ -234,18 +237,21 @@ export class ProfileManager {
         const container = document.getElementById('match-history');
         if (!container) return;
 
+        console.log('displayMatchHistory called with', matches.length, 'matches');
+        
         container.innerHTML = '';
 
         if (matches.length === 0) {
             container.innerHTML = '<p class="text-center text-gray-500">Aucun match joué pour le moment.</p>';
             return;
         }
-
-        matches.forEach(match => {
+        
+        matches.forEach((match, index) => {
+            console.log(`Match ${index}:`, match);
             const matchDiv = document.createElement('div');
             matchDiv.className = 'bg-gray-800 p-4 rounded-lg mb-4';
 
-            const date = new Date(match.created_at).toLocaleDateString('fr-FR', {
+            const date = new Date(match.game_date).toLocaleDateString('fr-FR', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
@@ -254,17 +260,25 @@ export class ProfileManager {
             });
 
             const result = match.winner_id === match.player1_id ? 'Victoire' : 'Défaite';
-            const opponent = match.winner_id === match.player1_id ? match.player2_username : match.player1_username;
-            const score = `${match.player1_score}-${match.player2_score}`;
+            const opponent = match.winner_id === match.player1_id 
+                ? (match.player2_username || match.player2_display_name || 'Guest') 
+                : (match.player1_username || match.player1_display_name);
+            const score = `${match.score_player1}-${match.score_player2}`;
+
+            // SECURITY: Escape HTML to prevent XSS
+            const safeResult = SecurityUtils.escapeHTML(result);
+            const safeOpponent = SecurityUtils.escapeHTML(opponent);
+            const safeScore = SecurityUtils.escapeHTML(score);
+            const safeDate = SecurityUtils.escapeHTML(date);
 
             matchDiv.innerHTML = `
                 <div class="flex justify-between items-center">
                     <div>
-                        <p class="font-semibold">${result} contre ${opponent}</p>
-                        <p class="text-sm text-gray-400">${date}</p>
+                        <p class="font-semibold">${safeResult} contre ${safeOpponent}</p>
+                        <p class="text-sm text-gray-400">${safeDate}</p>
                     </div>
                     <div class="text-right">
-                        <p class="font-bold text-lg">${score}</p>
+                        <p class="font-bold text-lg">${safeScore}</p>
                     </div>
                 </div>
             `;
@@ -418,7 +432,7 @@ export class ProfileManager {
 
     private async logout(): Promise<void> {
         try {
-            await fetch('/api/auth/logout', {
+            await fetch('/api/user/logout', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,

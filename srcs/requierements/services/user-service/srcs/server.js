@@ -85,16 +85,19 @@ fastify.post('/api/auth/login', {
 });
 
 // Déconnexion
-fastify.post('/api/auth/logout', {
+fastify.post('/api/user/logout', {
 	preHandler: authenticateToken
 }, async (request, reply) => {
 	try {
+		console.log('📝 Logout requested for userId:', request.user.userId);
 		await userService.logoutUser(request.user.userId, request.token);
+		console.log('✅ Logout successful');
 		reply.send({
 			success: true,
 			message: 'Logout successful'
 		});
 	} catch (error) {
+		console.log('❌ Error during logout:', error.message);
 		reply.code(500).send({
 			success: false,
 			error: error.message
@@ -109,12 +112,16 @@ fastify.get('/api/user/profile', {
 	preHandler: authenticateToken
 }, async (request, reply) => {
 	try {
+		console.log('📝 Getting profile for userId:', request.user.userId);
 		const user = await userService.getUserById(request.user.userId);
+		console.log('✅ Profile retrieved successfully:', user ? 'found' : 'not found');
 		reply.send({
 			success: true,
 			user
 		});
 	} catch (error) {
+		console.log('❌ Error getting profile:', error.message);
+		console.log('🔍 Error stack:', error.stack);
 		reply.code(404).send({
 			success: false,
 			error: error.message
@@ -163,14 +170,19 @@ fastify.put('/api/user/profile', {
 	preHandler: authenticateToken
 }, async (request, reply) => {
 	try {
+		console.log('📝 Updating profile for userId:', request.user.userId);
+		console.log('📦 Updates:', request.body);
 		const updates = request.body;
 		const user = await userService.updateUser(request.user.userId, updates);
+		console.log('✅ Profile updated successfully');
 		reply.send({
 			success: true,
 			message: 'Profile updated successfully',
 			user
 		});
 	} catch (error) {
+		console.log('❌ Error updating profile:', error.message);
+		console.log('🔍 Error stack:', error.stack);
 		reply.code(400).send({
 			success: false,
 			error: error.message
@@ -276,25 +288,41 @@ fastify.get('/api/user/matches/:id', async (request, reply) => {
 // Ajouter un match (pour les autres services)
 fastify.post('/api/user/match', async (request, reply) => {
 	try {
-		const { player1_id, player2_id, winner_id, score_player1, score_player2, game_type } = request.body;
+		const { player1_id, player2_id, winner_id, winner_player, score_player1, score_player2, game_type } = request.body;
 		
-		if (!player1_id || !player2_id || winner_id === undefined) {
+		// Vérification: au moins player1_id doit être présent
+		if (!player1_id) {
 			return reply.code(400).send({
 				success: false,
-				error: 'Missing required fields: player1_id, player2_id, winner_id'
+				error: 'Missing player1_id'
 			});
 		}
 		
+		// Déterminer le winner_id à partir de winner_player (1 ou 2) ou winner_id direct
+		let finalWinnerId;
+		if (winner_id !== undefined) {
+			finalWinnerId = winner_id;
+		} else if (winner_player !== undefined) {
+			// Convertir winner_player (1 ou 2) en winner_id
+			finalWinnerId = winner_player === 1 ? player1_id : player2_id;
+		} else {
+			return reply.code(400).send({
+				success: false,
+				error: 'Missing winner_id or winner_player'
+			});
+		}
+		
+		// Stocker dans match_history (player2_id peut être null pour les Guests)
 		const result = await userService.addMatch(
 			player1_id, 
-			player2_id, 
-			winner_id, 
+			player2_id || null, 
+			finalWinnerId, 
 			score_player1 || 0, 
 			score_player2 || 0, 
-			game_type
+			game_type || 'pong'
 		);
 		
-		reply.code(201).send({
+		return reply.code(201).send({
 			success: true,
 			message: 'Match added successfully',
 			match_id: result.id

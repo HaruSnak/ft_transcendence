@@ -6,7 +6,7 @@
     <title>Transcendance</title>
     <meta name="description" content="Modern Pong Game with Live Chat">
     <link rel="icon" href="data:,">
-    <link href="/public/css/index.css" rel="stylesheet">
+    <link href="/css/index.css" rel="stylesheet">
 </head>
 <body>
 
@@ -77,7 +77,7 @@
 				</button>
 				MENU SI REMOTE FAIT-->
 			</div>
-			<div id= "menu-add-login"class="hidden w-[500px] min-w-[600px] relative flex flex-col rounded-lg border border-slate-200 bg-white shadow-lg mx-auto">
+			<div id="menu-add-login" style="display: none;" class="w-[500px] min-w-[600px] relative flex flex-col rounded-lg border border-slate-200 bg-white shadow-lg mx-auto">
 				<!-- Section Login -->
 				<div class="ui-login flex flex-col items-center gap-4 p-8">
 					<h2 class="text-xl font-semibold text-slate-800 mb-2">Add a user</h2>
@@ -123,10 +123,10 @@
 				</div>
 				
 				<!-- Section Room -->
-				<div id="profile-user" class="grid grid-cols-2 gap-4 p-6 pt-6">
+				<div id="profile-user" class="grid grid-cols-2 gap-4 p-8 pt-6 place-items-center">
 					<h3 class="col-span-2 text-lg text-center font-medium text-slate-800 mb-2">Game room</h3>
 					<template id="profile-template">
-						<div class="text-slate-800 rounded-lg p-2 transition-all hover:bg-slate-50 focus:bg-slate-50 active:bg-slate-100 border border-slate-200 hover:border-slate-300 cursor-pointer flex items-center space-x-3">
+						<div class="text-slate-800 rounded-lg p-3 transition-all hover:bg-slate-50 focus:bg-slate-50 active:bg-slate-100 border-2 border-gray-900 cursor-pointer flex items-center space-x-3 w-48 h-16 min-w-[12rem] max-w-[12rem]">
 							
 							<!-- Image profile -->
 							<div class="profile-img flex-shrink-0">
@@ -159,11 +159,11 @@
 				</div>-->
 			</div>
 			<!-- 						GAMEPLAY INTERFACE						-->
-			<div class="relative p-6 pt-6">
+			<div class="relative p-6 pt-6 hidden" id="canvas-container">
 				<canvas id="pongCanvas" class="bg-emerald-500 border-4 border-black" width="800" height="600"></canvas>
 				<div id="gameMessageWinOrLose" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-4xl font-bold hidden transition-opacity duration-300"></div>
 			</div>
-			<div id="scoreInGame" class="bg-black/70 px-4 py-2 rounded-lg border border-cyan-400/50 mx-auto w-fit">
+			<div id="scoreInGame" class="hidden bg-black/70 px-4 py-2 rounded-lg border border-cyan-400/50 mx-auto w-fit">
 				<span class="text-cyan-400 font-mono text-xl font-bold">0 - 0</span>
 			</div>
 			<div id = "ingame-button" class="text-center mt-4 space-y-0.5 space-x-2 hidden">
@@ -276,10 +276,10 @@
                         <!-- Match history at the bottom -->
                         <div class="mt-xl pt-xl" style="border-top: 1px solid var(--border-primary);">
                             <h3 class="text-lg font-semibold mb-lg">🏆 Recent Matches</h3>
-                            <div class="card text-center p-xl text-muted profile-history-scroll">
+                            <div id="match-history" class="card text-center p-xl text-muted profile-history-scroll">
                                 <div class="text-4xl mb-md">🎮</div>
                                 <p class="mb-md">No matches played yet</p>
-                                <a href="#game-modes" class="text-primary" style="text-decoration: underline;">Start playing</a>
+                                <a href="#games" class="text-primary" style="text-decoration: underline;">Start playing</a>
                             </div>
                         </div>
                     </div>
@@ -410,6 +410,6 @@
         </div>
     </div>
 
-    <script type="module" src="/public/js/index.js"></script>
+    <script type="module" src="/js/index.js"></script>
 </body>
 </html>

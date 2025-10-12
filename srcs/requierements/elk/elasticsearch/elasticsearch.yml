@@ -8,11 +8,11 @@ http.port: 9200
 # discovery
 discovery.type: single-node
 
-# Security
+# Security - Authentication enabled, SSL disabled (not required by subject)
+# SSL for ELK is optional - the subject only mandates HTTPS for the website
 xpack.security.enabled: true
-xpack.security.transport.ssl.enabled: true
-xpack.security.http.ssl.enabled: true
-xpack.security.http.ssl.keystore.path: /usr/share/elasticsearch/config/elasticsearch.keystore
+xpack.security.transport.ssl.enabled: false
+xpack.security.http.ssl.enabled: false
 
 # Monitoring
 xpack.monitoring.collection.enabled: true

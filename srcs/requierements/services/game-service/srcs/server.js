@@ -18,23 +18,23 @@ const fastify = Fastify({
 // Route for testing health
 fastify.get('/health', async (request, reply) => {
 	console.log('health route accessed!');
-	return {
+	return ({
 		status: 'OK',
 		service: 'chat-service',
 		timestamp: new Date().toISOString()
-	};
+	});
 });
 
 fastify.get('/api/game', async (request, reply) => {
 	console.log('frontend route accessed!');
     gameRequests.inc({ method: 'GET' });
-    return { message: 'Game service is running' };
+    return ({ message: 'Game service is running' });
 });
 
 // Endpoint pour Prometheus
 fastify.get('/metrics', async (request, reply) => {
     reply.type('text/plain');
-    return await client.register.metrics();
+    return (await client.register.metrics());
 });
 
 // All interfaces IPV4 (host : '0.0.0.0'), 

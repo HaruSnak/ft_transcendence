@@ -19,6 +19,7 @@ export function initGame()
         gameUIInstance.getCleanUpGame();
     }
 	gameUIInstance = new PongGameUI();
+	gameUIInstance.showMainMenu();
 }
 
 /*
