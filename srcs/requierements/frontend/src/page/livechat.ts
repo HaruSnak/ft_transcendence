@@ -1,6 +1,6 @@
-// src/pages/livechat/index.ts
+// src/page/livechat.ts
 
-import { ChatInterfaceManager } from './chat_ui_manager';
+import { ChatInterfaceManager } from '../utils/livechat_utils';
 
 let chatInterfaceManager: ChatInterfaceManager | null = null;
 

@@ -1,9 +1,9 @@
-// src/pages/profile/profile_manager.ts
+// src/utils/profile_utils.ts
 
-import { User } from '../../utils/data_types';
-import { UserApiService } from '../../services/api/user_api_service';
-import { SecurityUtils } from '../../utils/SecurityUtils';
-import { OnlineFriendsWidget } from '../../components/online_friends_widget';
+import { User } from './data_types';
+import { UserApiService } from '../services/api/user_api_service';
+import { SecurityUtils } from './SecurityUtils';
+import { OnlineFriendsWidget } from '../components/online_friends_widget';
 
 export class ProfileManager {
     private onlineFriendsWidget: OnlineFriendsWidget | null = null;
@@ -130,7 +130,7 @@ export class ProfileManager {
                     if (!this.onlineFriendsWidget) {
                         this.onlineFriendsWidget = new OnlineFriendsWidget('profile-online-friends');
 
-                        import('../../services/socket/index.js').then(({ socketService }) => {
+                        import('../services/socket/index.js').then(({ socketService }) => {
                             const onlineUsers = socketService.getOnlineUsers();
                             if (onlineUsers && onlineUsers.length > 0) {
                                 this.onlineFriendsWidget?.updateOnlineUsers(onlineUsers);

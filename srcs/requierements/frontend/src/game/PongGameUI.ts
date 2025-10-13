@@ -2,9 +2,9 @@
 import { PongGame } from './PongBase.js'
 import { TournamentManager } from './TournamentManager.js'
 import { OneVsOneManager } from './LocalModeManager.js'
-import { SecurityUtils } from '../SecurityUtils.js'
+import { SecurityUtils } from '../utils/SecurityUtils.js'
 
-export class PongGameUI extends SecurityUtils {
+export class PongGameUI {
 	// Gameplay
 	protected buttonStart = document.getElementById('buttonStartGame') as HTMLButtonElement;
 	protected buttonPause = document.getElementById('buttonPauseGame') as HTMLButtonElement;
@@ -39,7 +39,6 @@ export class PongGameUI extends SecurityUtils {
 	]);
 
 	constructor() {
-		super();
 		this.pongGame = new PongGame(
 			this.buttonStart,
 			this.buttonPause,
@@ -110,7 +109,7 @@ export class PongGameUI extends SecurityUtils {
 	}
 
 	private verificationUserName(username: string): boolean {
-		const validationCode = this.validateUsername(username);
+		const validationCode = SecurityUtils.validateUsername(username);
 		if (validationCode === 0) {
 			return (true);
 		}

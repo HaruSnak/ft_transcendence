@@ -98,4 +98,49 @@ export class SecurityUtils {
         
         return null;
     }
+
+    /**
+     * Validate username with error codes
+     * -1: Username too short or too long (min 3, max 10)
+     * -2: Username can only contain letters and numbers
+     * -3: Username forbidden
+     */
+    static validateUsername(username: string): number {
+        if (username.length < 3 || username.length > 10) return -1;
+        if (!/^[a-zA-Z0-9]{3,10}$/.test(username)) return -2;
+        
+        const blacklisted = ['admin', 'administrator', 'root', 'system', 'bot', 'cpu', 'moderator', 'mod', 'staff', 'support', 'owner', 'master', 'player', 'user', 'guest', 'anonymous', 'test', 'demo', 'winner', 'loser', 'champion', 'tournament', 'game'];
+        if (blacklisted.includes(username.toLowerCase())) return -3;
+        return 0;
+    }
+
+    /**
+     * Validate email with error codes
+     * -1: Email too short or too long
+     * -2: Missing @ in email
+     * -3: Missing . in domain extension
+     * -4: Only one @ allowed
+     * -5: Invalid local part
+     * -6: Invalid domain
+     * -7: Invalid extension
+     */
+    static validateEmail(email: string): number {
+        if (email.length < 6 || email.length > 100) return -1;
+        const dotIndex = email.lastIndexOf('.');
+        if (!email.includes('@') || !(dotIndex >= 2 && dotIndex <= 6)) {
+            if (!(dotIndex >= 2 && dotIndex <= 6)) return -2;
+            return -3;
+        }
+        const parts = email.split('@');
+        if (parts.length > 2) return -4;
+        const local = parts[0];
+        const domainParts = parts[1].split('.');
+        if (domainParts.length === 1) return -3;
+        if (!/^[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?$/.test(local)) return -5;
+        for (let i = 0; i < domainParts.length - 1; i++) {
+            if (!/^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$/.test(domainParts[i])) return -6;
+        }
+        if (!/^[a-zA-Z]{2,6}$/.test(domainParts[domainParts.length - 1])) return -7;
+        return 0;
+    }
 }

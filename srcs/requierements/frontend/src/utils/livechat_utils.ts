@@ -1,6 +1,6 @@
-// src/pages/livechat/chatInterface.ts
+// src/utils/livechat_utils.ts
 
-import { socketService } from '../../services/socket';
+import { socketService } from '../services/socket';
 
 export class ChatInterfaceManager {
     private isAuthenticated: boolean = false;

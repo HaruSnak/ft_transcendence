@@ -3,10 +3,10 @@
 import './style.css';
 import { initGame, cleanUpGame, pongGame } from './game/game.js';
 import { socketService } from './services/socket';
-import { initLogin } from './pages/login.js';
-import { initSignup } from './pages/signup.js';
-import { initProfile } from './pages/profile/index.js';
-import { initLiveChat } from './pages/livechat/index.js';
+import { initLogin } from './page/login.js';
+import { initSignup } from './page/creat_account.js';
+import { initProfile } from './page/profile.js';
+import { initLiveChat } from './page/livechat.js';
 
 let tournamentManager: any = null;
 
