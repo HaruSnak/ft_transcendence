@@ -535,7 +535,6 @@ export function initProfile(): void {
         return;
     }
 
-    if (!profileManager) {
-        profileManager = new ProfileManager();
-    }
+    // Always create new manager to handle different profiles correctly
+    profileManager = new ProfileManager();
 }
