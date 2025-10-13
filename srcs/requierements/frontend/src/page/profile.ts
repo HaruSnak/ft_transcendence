@@ -126,6 +126,12 @@ export class ProfileManager {
                     const logoutBtn = document.querySelector('[data-action="logout"]');
                     if (logoutBtn) (logoutBtn as HTMLElement).style.display = 'none';
                 } else {
+                    // Show buttons for own profile
+                    const editBtn = document.querySelector('[data-action="edit"]');
+                    if (editBtn) (editBtn as HTMLElement).style.display = '';
+                    const logoutBtn = document.querySelector('[data-action="logout"]');
+                    if (logoutBtn) (logoutBtn as HTMLElement).style.display = '';
+                    
                     // Initialize online friends widget for own profile
                     if (!this.onlineFriendsWidget) {
                         this.onlineFriendsWidget = new OnlineFriendsWidget('profile-online-friends');
