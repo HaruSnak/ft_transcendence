@@ -21,7 +21,6 @@ export {}; // Force le mode module TS
 
 // Toutes les pages de l'app
 const pages = [
-  'home',
   'game',
   'live-chat',
   'login',
@@ -81,10 +80,10 @@ function initNavigation() {
     } else if (pages.includes(hash as Page)) {
       navigateTo(hash, false);
     } else {
-      navigateTo('home', false);
+      navigateTo('game', false);
     }
   } else {
-    navigateTo('home', false);
+    navigateTo('game', false);
   }
 
   // Handle hash changes
