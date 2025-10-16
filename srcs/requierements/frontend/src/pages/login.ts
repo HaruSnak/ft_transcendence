@@ -1,5 +1,7 @@
 // src/pages/login.ts
 
+import { updateNavbar } from '../index.js';
+
 export function initLogin() {
     const loginForm = document.getElementById('login_form') as HTMLFormElement;
     const signupBtn = document.getElementById('button-signup');
@@ -50,6 +52,8 @@ export function initLogin() {
                     const data = await response.json();
                     sessionStorage.setItem('authToken', data.token);
                     sessionStorage.setItem('user', JSON.stringify(data.user));
+                    // Mettre à jour la navbar immédiatement après le login
+                    updateNavbar();
                     showMsg('Login successful!', true);
                     // Check if first login and show welcome modal
                     if (!data.user.has_seen_welcome) {

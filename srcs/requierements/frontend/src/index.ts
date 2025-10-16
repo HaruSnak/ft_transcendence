@@ -130,6 +130,9 @@ export function navigateTo(page: string, push = true) {
       initGame();
     }, 50); // 50ms devrait être suffisant pour que le DOM soit mis à jour
   }
+
+  // Mettre à jour la navbar après changement de page
+  updateNavbar();
 }
 
 // Démarrage de l'app
@@ -144,12 +147,19 @@ window.addEventListener('DOMContentLoaded', () => {
   initNavigation();
 
   // Check login state and hide login tab if authenticated
+  updateNavbar();
+});
+
+// Fonction pour mettre à jour la navbar selon l'état de connexion
+export function updateNavbar() {
   const authToken = sessionStorage.getItem('authToken');
   const loginLink = document.querySelector('.nav-links [data-page="login"]');
   if (authToken && loginLink) {
     (loginLink as HTMLElement).style.display = 'none';
+  } else if (loginLink) {
+    (loginLink as HTMLElement).style.display = '';
   }
-});
+}
 
 // Remplace window.startPong
 window.startPong = () => {

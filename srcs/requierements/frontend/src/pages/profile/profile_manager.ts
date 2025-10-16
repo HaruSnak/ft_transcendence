@@ -4,6 +4,7 @@ import { User } from '../../utils/data_types';
 import { UserApiService } from '../../services/api/user_api_service';
 import { SecurityUtils } from '../../utils/SecurityUtils';
 import { OnlineFriendsWidget } from '../../components/online_friends_widget';
+import { updateNavbar } from '../../index.js';
 
 export class ProfileManager {
     private onlineFriendsWidget: OnlineFriendsWidget | null = null;
@@ -445,6 +446,8 @@ export class ProfileManager {
         sessionStorage.removeItem('authToken');
         sessionStorage.removeItem('user');
         sessionStorage.removeItem('profileUsername');
+        // Mettre à jour la navbar après le logout
+        updateNavbar();
         window.location.hash = 'login';
     }
 
@@ -465,6 +468,8 @@ export class ProfileManager {
                 sessionStorage.removeItem('authToken');
                 sessionStorage.removeItem('user');
                 sessionStorage.removeItem('profileUsername');
+                // Mettre à jour la navbar après suppression du compte
+                updateNavbar();
                 alert('✅ Compte supprimé.');
                 window.location.hash = 'login';
             } else {
