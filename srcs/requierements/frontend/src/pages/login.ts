@@ -2,6 +2,36 @@
 
 import { updateNavbar } from '../index.js';
 
+// Business logic: Perform login (modifier uniquement ici pour le backend)
+export async function performLogin(identifier: string, password: string): Promise<{ token: string; user: any }> {
+    let response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username: identifier, password }),
+    });
+
+    if (!response.ok) {
+        // Try GET as fallback if POST fails (for debugging)
+        response = await fetch(`/api/auth/login?username=${encodeURIComponent(identifier)}&password=${encodeURIComponent(password)}`);
+    }
+
+    if (!response.ok) {
+        let errorMsg = 'Unknown error';
+        try {
+            const errorData = await response.json();
+            errorMsg = errorData.error || JSON.stringify(errorData);
+        } catch (e) {
+            // ignore
+        }
+        throw new Error(errorMsg);
+    }
+
+    const data = await response.json();
+    return { token: data.token, user: data.user };
+}
+
 export function initLogin() {
     const loginForm = document.getElementById('login_form') as HTMLFormElement;
     const signupBtn = document.getElementById('button-signup');
@@ -35,61 +65,36 @@ export function initLogin() {
             }
 
             try {
-                let response = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ username: identifier, password }),
-                });
-
-                if (!response.ok) {
-                    // Try GET as fallback if POST fails (for debugging)
-                    response = await fetch(`/api/auth/login?username=${encodeURIComponent(identifier)}&password=${encodeURIComponent(password)}`);
-                }
-
-                if (response.ok) {
-                    const data = await response.json();
-                    sessionStorage.setItem('authToken', data.token);
-                    sessionStorage.setItem('user', JSON.stringify(data.user));
-                    // Mettre à jour la navbar immédiatement après le login
-                    updateNavbar();
-                    showMsg('Login successful!', true);
-                    // Check if first login and show welcome modal
-                    if (!data.user.has_seen_welcome) {
-                        const modal = document.getElementById('edit-profile-modal');
-                        modal?.classList.add('show');
-                        modal?.classList.remove('hidden');
-                        // Mark as seen
-                        fetch('/api/user/profile', {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${data.token}`
-                            },
-                            body: JSON.stringify({ has_seen_welcome: true })
-                        }).catch(err => console.error('Failed to update welcome status:', err));
-                        // No auto-redirect; wait for user to click buttons
-                    } else {
-                        setTimeout(() => {
-                            window.location.hash = 'profile';
-                            location.reload();
-                        }, 600);
-                    }
+                const data = await performLogin(identifier, password);
+                sessionStorage.setItem('authToken', data.token);
+                sessionStorage.setItem('user', JSON.stringify(data.user));
+                // Mettre à jour la navbar immédiatement après le login
+                updateNavbar();
+                showMsg('Login successful!', true);
+                // Check if first login and show welcome modal
+                if (!data.user.has_seen_welcome) {
+                    const modal = document.getElementById('edit-profile-modal');
+                    modal?.classList.add('show');
+                    modal?.classList.remove('hidden');
+                    // Mark as seen
+                    fetch('/api/user/profile', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${data.token}`
+                        },
+                        body: JSON.stringify({ has_seen_welcome: true })
+                    }).catch(err => console.error('Failed to update welcome status:', err));
+                    // No auto-redirect; wait for user to click buttons
                 } else {
-                    let errorMsg = 'Unknown error';
-                    try {
-                        const errorData = await response.json();
-                        errorMsg = errorData.error || JSON.stringify(errorData);
-                        console.error('Backend error:', errorData);
-                    } catch (e) {
-                        console.error('Error parsing backend error:', e);
-                    }
-                    showMsg('Login failed: ' + errorMsg, false);
+                    setTimeout(() => {
+                        window.location.hash = 'profile';
+                        location.reload();
+                    }, 600);
                 }
             } catch (error: any) {
                 console.error('Login error:', error);
-                showMsg('Network error: ' + (error?.message || error), false);
+                showMsg('Login failed: ' + (error?.message || error), false);
             }
         });
     }
