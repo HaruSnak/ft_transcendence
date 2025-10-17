@@ -2,6 +2,28 @@
 
 import { socketService } from '../../services/socket';
 
+// Business logic: Chat operations (modifier uniquement ici pour le backend/socket)
+export function performSendMessage(message: string): void {
+    socketService.sendMessage(message);
+}
+
+export function performBlockUser(username: string): void {
+    socketService.blockUser(username);
+}
+
+export function performUnblockUser(username: string): void {
+    socketService.unblockUser(username);
+}
+
+export function getCurrentChatUser(): any {
+    const chat = socketService.getCurrentChat();
+    return chat ? chat.user : null;
+}
+
+export function isUserCurrentlyBlocked(username: string): boolean {
+    return socketService.isUserBlocked(username);
+}
+
 export class ChatInterfaceManager {
     private isAuthenticated: boolean = false;
 
@@ -67,10 +89,10 @@ export class ChatInterfaceManager {
     }
 
     private sendMessage(message: string, inputElement: HTMLInputElement): void {
-        const currentChat = socketService.getCurrentChat();
+        const currentChatUser = getCurrentChatUser();
 
-        if (currentChat) {
-            socketService.sendMessage(message);
+        if (currentChatUser) {
+            performSendMessage(message);
             inputElement.value = '';
         } else {
             alert('Please select a user to start chatting first.');
@@ -82,11 +104,10 @@ export class ChatInterfaceManager {
         if (!blockButton) return;
 
         blockButton.addEventListener('click', () => {
-            const currentChat = socketService.getCurrentChat();
-            if (!currentChat) return;
+            const username = getCurrentChatUser();
+            if (!username) return;
 
-            const username = currentChat.user;
-            const isCurrentlyBlocked = socketService.isUserBlocked(username);
+            const isCurrentlyBlocked = isUserCurrentlyBlocked(username);
 
             if (isCurrentlyBlocked) {
                 this.unblockUser(username, blockButton);
@@ -101,23 +122,23 @@ export class ChatInterfaceManager {
         if (!inviteButton) return;
 
         inviteButton.addEventListener('click', () => {
-            const currentChat = socketService.getCurrentChat();
-            if (!currentChat) return;
+            const username = getCurrentChatUser();
+            if (!username) return;
 
             // Send an invitation message
             const invitationMessage = "Hey! Want to play a game together? 🎮";
-            socketService.sendMessage(invitationMessage);
+            performSendMessage(invitationMessage);
         });
     }
 
     private blockUser(username: string, button: HTMLElement): void {
-        socketService.blockUser(username);
+        performBlockUser(username);
         button.textContent = 'Unblock User';
         button.className = 'btn btn-danger btn-sm';
     }
 
     private unblockUser(username: string, button: HTMLElement): void {
-        socketService.unblockUser(username);
+        performUnblockUser(username);
         button.textContent = 'Block User';
         button.className = 'btn btn-ghost btn-sm';
     }
