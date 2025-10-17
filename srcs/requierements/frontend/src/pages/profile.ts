@@ -1,46 +1,23 @@
 /* eslint-disable no-undef */
 // src/pages/profile.ts
 
-interface UserProfile {
-  avatarUrl: string;
-  username: string;
-  ranking: number;
-  wins: number;
-  losses: number;
-  matches: number;
-}
-
-// Profil de secours si l'API ne répond pas
-const DEMO_PROFILE: UserProfile = {
-  avatarUrl: 'https://api.dicebear.com/7.x/bottts/svg?seed=User42',
-  username: 'User42',
-  ranking: 12,
-  wins: 8,
-  losses: 3,
-  matches: 11,
-};
-
-// Récupère le profil depuis l'API ou renvoie le mode démo
-async function fetchUserProfile(): Promise<UserProfile> {
-  try {
-    const res = await fetch('/api/profile');
-    if (!res.ok) throw new Error();
-    return await res.json();
-  } catch {
-    return DEMO_PROFILE;
+// Business logic: Fetch user profile (modifier uniquement ici pour le backend)
+export async function fetchUserProfile(id?: string): Promise<Profile> {
+  const url = id
+    ? `/api/user/${id}`
+    : '/api/user/me';
+  const res = await fetch(url, {
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch profile: ${res.statusText}`);
   }
+  return await res.json();
 }
 
 // element du profil
-function renderProfile(container: HTMLElement, user: Profile, isDemo: boolean) {
+function renderProfile(container: HTMLElement, user: Profile) {
   container.innerHTML = `
-    ${
-      isDemo
-        ? `<div class="text-center text-yellow-500 mb-4">
-      Mode démo : Backend non disponible
-    </div>`
-        : ''
-    }
     <div class="bg-gray-800 rounded-2xl shadow-xl p-10 flex flex-col items-center gap-8 max-w-md mx-auto">
       <h2 class="text-3xl font-bold text-white">${user.displayName}</h2>
       <img src="${user.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.displayName}`}" alt="Avatar"
@@ -93,20 +70,14 @@ export async function initProfilePage() {
   if (!container) return;
   console.log('Initializing profile page');
 
-  const id = window.location.hash.split('/')[1] || null;
-  const url = id
-    ? `/api/user/${id}`
-    : '/api/user/me';
-  const res = await fetch(url, {
-    credentials: 'include',
-  });
-  if (!res.ok) {
-    // TODO: Redirect to error page
-    console.error('Failed to fetch profile:', res.statusText);
-    return;
-  }
-  const profile: Profile = await res.json();
+  try {
+    const id = window.location.hash.split('/')[1] || null;
+    const profile: Profile = await fetchUserProfile(id);
 
-  // affiche le profil
-  renderProfile(container, profile, false);
+    // affiche le profil
+    renderProfile(container, profile);
+  } catch (error) {
+    console.error('Failed to fetch profile:', error);
+    // TODO: Handle error, perhaps show error message
+  }
 }
