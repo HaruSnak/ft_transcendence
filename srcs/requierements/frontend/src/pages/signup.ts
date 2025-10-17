@@ -1,5 +1,23 @@
 // src/pages/signup.ts
 
+// Business logic: Perform registration
+export async function performRegistration(username: string, display_name: string, email: string, password: string): Promise<void> {
+    const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, display_name, email, password }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Unknown error');
+    }
+
+    // Registration successful, no data needed
+}
+
 export function initSignup() {
     const signupForm = document.getElementById('signup_form') as HTMLFormElement;
     const cancelBtn = document.getElementById('button-cancel-signup');
@@ -38,27 +56,14 @@ export function initSignup() {
             }
 
             try {
-                const response = await fetch('/api/auth/register', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ username, display_name, email, password }),
-                });
-
-                if (response.ok) {
-                    // const data = await response.json();
-                    showMessage('Registration successful! Please log in.', 'success');
-                    setTimeout(() => {
-                        window.location.hash = 'login';
-                    }, 1200);
-                } else {
-                    const errorData = await response.json();
-                    showMessage(`Registration failed: ${errorData.error || 'Unknown error'}`, 'error');
-                }
-            } catch (error) {
+                await performRegistration(username, display_name, email, password);
+                showMessage('Registration successful! Please log in.', 'success');
+                setTimeout(() => {
+                    window.location.hash = 'login';
+                }, 1200);
+            } catch (error: any) {
                 console.error('Registration error:', error);
-                showMessage('Registration failed', 'error');
+                showMessage(`Registration failed: ${error.message || 'Unknown error'}`, 'error');
             }
         });
     }
