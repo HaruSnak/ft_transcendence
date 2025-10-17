@@ -24,7 +24,7 @@ export function isUserCurrentlyBlocked(username: string): boolean {
     return socketService.isUserBlocked(username);
 }
 
-export class ChatInterfaceManager {
+export class LivechatManager {
     private isAuthenticated: boolean = false;
 
     constructor() {

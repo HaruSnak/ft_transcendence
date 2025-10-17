@@ -1,8 +1,8 @@
 // src/pages/livechat/index.ts
 
-import { ChatInterfaceManager } from './chat_ui_manager';
+import { LivechatManager } from './livechat';
 
-let chatInterfaceManager: ChatInterfaceManager | null = null;
+let chatInterfaceManager: LivechatManager | null = null;
 
 export function initLiveChat(): void {
     // Check if user is logged in
@@ -13,6 +13,6 @@ export function initLiveChat(): void {
     }
 
     if (!chatInterfaceManager) {
-        chatInterfaceManager = new ChatInterfaceManager();
+        chatInterfaceManager = new LivechatManager();
     }
 }
