@@ -1,11 +1,116 @@
-// src/pages/profile/profile_manager.ts
+// src/pages/profile/profile.ts
 
 import { User } from '../../utils/data_types';
-import { UserApiService } from '../../services/api/user_api_service';
 import { SecurityUtils } from '../../utils/SecurityUtils';
-import { OnlineFriendsWidget } from '../../components/online_friends_widget';
+import { OnlineFriendsWidget } from './online_friends_widget';
 import { updateNavbar } from '../../index.js';
 
+// Business logic: Profile operations (modifier uniquement ici pour le backend)
+export async function performFetchProfile(profileUsername?: string): Promise<User> {
+  let response;
+  if (profileUsername) {
+    response = await fetch(`/api/user/by-username/${profileUsername}`, {
+      headers: {
+        'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
+      },
+    });
+  } else {
+    response = await fetch('/api/user/profile', {
+      headers: {
+        'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
+      },
+    });
+  }
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch profile: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.user;
+}
+
+export async function performUpdateProfile(displayName: string, email: string, password?: string): Promise<User> {
+  const response = await fetch('/api/user/profile', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
+    },
+    body: JSON.stringify({
+      display_name: displayName,
+      email: email,
+      ...(password && { password: password }),
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to update profile: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.user;
+}
+
+export async function performUploadAvatar(file: File): Promise<{ avatar_url: string }> {
+  const formData = new FormData();
+  formData.append('avatar', file);
+
+  const response = await fetch('/api/user/avatar', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to upload avatar: ${response.statusText}`);
+  }
+
+  return await response.json();
+}
+
+export async function performLogout(): Promise<void> {
+  await fetch('/api/user/logout', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
+    },
+  });
+}
+
+export async function performDeleteUser(): Promise<void> {
+  const response = await fetch('/api/user/profile', {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to delete user: ${response.statusText}`);
+  }
+}
+
+export async function performLoadMatchHistory(): Promise<any[]> {
+  const response = await fetch('/api/user/matches', {
+    headers: {
+      'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to load match history: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.matches || [];
+}
+
+// Business logic END
+
+// UI logic
 export class ProfileManager {
     private onlineFriendsWidget: OnlineFriendsWidget | null = null;
     private isAuthenticated: boolean = false;
@@ -14,10 +119,7 @@ export class ProfileManager {
         this.checkAuthentication();
     }
 
-    // ===========================================
-    // AUTHENTICATION & INITIALIZATION
-    // ===========================================
-
+    // ========================= AUTHENTICATION & INITIALIZATION =========================
     private checkAuthentication(): void {
         const token = sessionStorage.getItem('authToken');
         this.isAuthenticated = !!token;
@@ -49,10 +151,7 @@ export class ProfileManager {
         });
     }
 
-    // ===========================================
-    // EVENT LISTENERS SETUP
-    // ===========================================
-
+    // ========================= EVENT LISTENERS SETUP =========================
     private setupEventListeners(): void {
         // Handle profile actions
         document.addEventListener('click', (e) => {
@@ -88,10 +187,7 @@ export class ProfileManager {
         }
     }
 
-    // ===========================================
-    // PROFILE LOADING & DISPLAY
-    // ===========================================
-
+    // ========================= PROFILE LOADING & DISPLAY =========================
     private async loadProfile(): Promise<void> {
         this.showState('loading');
 
@@ -100,57 +196,38 @@ export class ProfileManager {
         sessionStorage.removeItem('profileUsername');
 
         try {
-            let response;
+            const user = await performFetchProfile(profileUsername);
+            this.populateFields(user, !!profileUsername);
+            this.showState('main');
+
             if (profileUsername) {
-                response = await fetch(`/api/user/by-username/${profileUsername}`, {
-                    headers: {
-                        'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
-                    },
-                });
+                // Hide buttons for other users' profiles
+                const editBtn = document.querySelector('[data-action="edit"]');
+                if (editBtn) (editBtn as HTMLElement).style.display = 'none';
+                const logoutBtn = document.querySelector('[data-action="logout"]');
+                if (logoutBtn) (logoutBtn as HTMLElement).style.display = 'none';
             } else {
-                response = await fetch('/api/user/profile', {
-                    headers: {
-                        'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
-                    },
-                });
-            }
+                // Initialize online friends widget for own profile
+                if (!this.onlineFriendsWidget) {
+                    this.onlineFriendsWidget = new OnlineFriendsWidget('profile-online-friends');
 
-            if (response.ok) {
-                const data = await response.json();
-                this.populateFields(data.user, !!profileUsername);
-                this.showState('main');
-
-                if (profileUsername) {
-                    // Hide buttons for other users' profiles
-                    const editBtn = document.querySelector('[data-action="edit"]');
-                    if (editBtn) (editBtn as HTMLElement).style.display = 'none';
-                    const logoutBtn = document.querySelector('[data-action="logout"]');
-                    if (logoutBtn) (logoutBtn as HTMLElement).style.display = 'none';
-                } else {
-                    // Initialize online friends widget for own profile
-                    if (!this.onlineFriendsWidget) {
-                        this.onlineFriendsWidget = new OnlineFriendsWidget('profile-online-friends');
-
-                        import('../../services/socket/index.js').then(({ socketService }) => {
-                            const onlineUsers = socketService.getOnlineUsers();
-                            if (onlineUsers && onlineUsers.length > 0) {
-                                this.onlineFriendsWidget?.updateOnlineUsers(onlineUsers);
-                            }
-                        }).catch(err => {
-                            console.log('⚠️ Socket service not available yet:', err);
-                        });
-                    }
+                    import('../../services/socket/index.js').then(({ socketService }) => {
+                        const onlineUsers = socketService.getOnlineUsers();
+                        if (onlineUsers && onlineUsers.length > 0) {
+                            this.onlineFriendsWidget?.updateOnlineUsers(onlineUsers);
+                        }
+                    }).catch(err => {
+                        console.log('⚠️ Socket service not available yet:', err);
+                    });
                 }
-            } else {
-                if (response.status === 403) {
-                    sessionStorage.removeItem('authToken');
-                    sessionStorage.removeItem('user');
-                    this.showProfileMsg('Session expirée ou non autorisée. Merci de vous reconnecter.', false);
-                }
-                this.showState('denied');
             }
         } catch (error) {
             console.error('Profile load error:', error);
+            if (error.message.includes('403')) {
+                sessionStorage.removeItem('authToken');
+                sessionStorage.removeItem('user');
+                this.showProfileMsg('Session expirée ou non autorisée. Merci de vous reconnecter.', false);
+            }
             this.showState('denied');
         }
     }
@@ -208,27 +285,11 @@ export class ProfileManager {
         }
     }
 
-    // ===========================================
-    // MATCH HISTORY MANAGEMENT
-    // ===========================================
-
+    // ========================= MATCH HISTORY MANAGEMENT =========================
     private async loadMatchHistory(): Promise<void> {
         try {
-            const response = await fetch('/api/user/matches', {
-                headers: {
-                    'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
-                },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                console.log('Match history data received:', data);
-                console.log('Matches array:', data.matches);
-                console.log('Matches length:', data.matches ? data.matches.length : 0);
-                this.displayMatchHistory(data.matches || []);
-            } else {
-                console.error('Failed to load match history:', response.status);
-            }
+            const matches = await performLoadMatchHistory();
+            this.displayMatchHistory(matches);
         } catch (error) {
             console.error('Error loading match history:', error);
         }
@@ -288,10 +349,7 @@ export class ProfileManager {
         });
     }
 
-    // ===========================================
-    // PROFILE EDITING
-    // ===========================================
-
+    // ========================= PROFILE EDITING =========================
     private showEditForm(): void {
         const mainState = document.querySelector('[data-state="main"]');
         const editState = document.querySelector('[data-state="edit"]');
@@ -350,37 +408,17 @@ export class ProfileManager {
         this.showEditMsg('Mise à jour en cours...', true);
 
         try {
-            const response = await fetch('/api/user/profile', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
-                },
-                body: JSON.stringify({
-                    display_name: displayName,
-                    email: email,
-                    ...(password && { password: password }),
-                }),
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                sessionStorage.setItem('user', JSON.stringify(data.user));
-                this.showEditMsg('Profil mis à jour avec succès!', true);
-                setTimeout(() => this.loadProfile(), 1000);
-            } else {
-                this.showEditMsg('Erreur lors de la mise à jour.', false);
-            }
+            const user = await performUpdateProfile(displayName, email, password || undefined);
+            sessionStorage.setItem('user', JSON.stringify(user));
+            this.showEditMsg('Profil mis à jour avec succès!', true);
+            setTimeout(() => this.loadProfile(), 1000);
         } catch (error) {
             console.error('Profile update error:', error);
-            this.showEditMsg('Erreur réseau.', false);
+            this.showEditMsg('Erreur lors de la mise à jour.', false);
         }
     }
 
-    // ===========================================
-    // AVATAR MANAGEMENT
-    // ===========================================
-
+    // ========================= AVATAR MANAGEMENT =========================
     private async uploadAvatar(): Promise<void> {
         const fileInput = document.querySelector('[data-field="edit-avatar"]') as HTMLInputElement;
         if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
@@ -396,49 +434,27 @@ export class ProfileManager {
 
         this.showEditMsg('Téléchargement en cours...', true);
 
-        const formData = new FormData();
-        formData.append('avatar', file);
-
         try {
-            const response = await fetch('/api/user/avatar', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
-                },
-                body: formData,
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                const avatarImg = document.querySelector('[data-field="avatar"]') as HTMLImageElement;
-                if (avatarImg && data.avatar_url) {
-                    avatarImg.src = data.avatar_url;
-                }
-                const user = JSON.parse(sessionStorage.getItem('user') || '{}');
-                user.avatar_url = data.avatar_url;
-                sessionStorage.setItem('user', JSON.stringify(user));
-                this.showEditMsg('Avatar mis à jour!', true);
-            } else {
-                this.showEditMsg('Erreur lors du téléchargement.', false);
+            const data = await performUploadAvatar(file);
+            const avatarImg = document.querySelector('[data-field="avatar"]') as HTMLImageElement;
+            if (avatarImg && data.avatar_url) {
+                avatarImg.src = data.avatar_url;
             }
+            const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+            user.avatar_url = data.avatar_url;
+            sessionStorage.setItem('user', JSON.stringify(user));
+            this.showEditMsg('Avatar mis à jour!', true);
         } catch (error) {
             console.error('Avatar upload error:', error);
-            this.showEditMsg('Erreur réseau.', false);
+            this.showEditMsg('Erreur lors du téléchargement.', false);
         }
     }
 
-    // ===========================================
-    // ACCOUNT MANAGEMENT
-    // ===========================================
+    // ========================= ACCOUNT REMOVAL =========================
 
     private async logout(): Promise<void> {
         try {
-            await fetch('/api/user/logout', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
-                },
-            });
+            await performLogout();
         } catch (error) {
             console.error('Logout error:', error);
         }
@@ -457,34 +473,21 @@ export class ProfileManager {
         if (!confirmed) return;
 
         try {
-            const response = await fetch('/api/user/profile', {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
-                },
-            });
-
-            if (response.ok) {
-                sessionStorage.removeItem('authToken');
-                sessionStorage.removeItem('user');
-                sessionStorage.removeItem('profileUsername');
-                // Mettre à jour la navbar après suppression du compte
-                updateNavbar();
-                alert('✅ Compte supprimé.');
-                window.location.hash = 'login';
-            } else {
-                alert('❌ Erreur suppression.');
-            }
+            await performDeleteUser();
+            sessionStorage.removeItem('authToken');
+            sessionStorage.removeItem('user');
+            sessionStorage.removeItem('profileUsername');
+            // Mettre à jour la navbar après suppression du compte
+            updateNavbar();
+            alert('✅ Compte supprimé.');
+            window.location.hash = 'login';
         } catch (error) {
             console.error('Delete user error:', error);
-            alert('❌ Erreur réseau.');
+            alert('❌ Erreur suppression.');
         }
     }
 
-    // ===========================================
-    // UI STATE MANAGEMENT
-    // ===========================================
-
+    // ========================= UI STATE MANAGEMENT =========================
     private showState(state: string): void {
         document.querySelectorAll('[data-state]').forEach(el => {
             el.classList.add('hidden');

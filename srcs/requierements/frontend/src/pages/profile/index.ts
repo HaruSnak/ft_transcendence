@@ -1,6 +1,6 @@
 // src/pages/profile/index.ts
 
-import { ProfileManager } from './profile_manager';
+import { ProfileManager } from './profile';
 
 let profileManager: ProfileManager | null = null;
 

@@ -1,7 +1,7 @@
-// src/components/online_friends_widget.ts
+// src/pages/profile/online_friends_widget.ts
 
-import { SocketUser } from '../utils/data_types';
-import { friendsManager } from '../utils/friends_manager';
+import { SocketUser } from '../../utils/data_types';
+import { friendsManager } from './friends_manager';
 
 export class OnlineFriendsWidget {
     private containerId: string;
@@ -12,9 +12,6 @@ export class OnlineFriendsWidget {
         this.setupEventListeners();
     }
 
-    /**
-     * Setup event listeners for friends and user list updates
-     */
     private setupEventListeners(): void {
         // Listen for friends list updates
         document.addEventListener('friendsListUpdated', () => {
@@ -30,17 +27,11 @@ export class OnlineFriendsWidget {
         });
     }
 
-    /**
-     * Update the list of online users
-     */
     public updateOnlineUsers(users: SocketUser[]): void {
         this.onlineUsers = users;
         this.render();
     }
 
-    /**
-     * Render the online friends widget
-     */
     public render(): void {
         const container = document.getElementById(this.containerId);
         if (!container) {
@@ -70,12 +61,9 @@ export class OnlineFriendsWidget {
         console.log(`✅ Rendered ${onlineFriends.length} online friends`);
     }
 
-    /**
-     * Update online users from socket service if available
-     */
     private updateOnlineUsersFromSocket(): void {
         // Dynamically import socket service to avoid circular dependencies
-        import('../services/socket/index.js').then(({ socketService }) => {
+        import('../../services/socket/index.js').then(({ socketService }) => {
             const onlineUsers = socketService.getOnlineUsers();
             if (onlineUsers && onlineUsers.length > 0) {
                 this.onlineUsers = onlineUsers;
@@ -85,9 +73,6 @@ export class OnlineFriendsWidget {
         });
     }
 
-    /**
-     * Render empty state when no friends are online
-     */
     private renderEmptyState(container: HTMLElement): void {
         const emptyDiv = document.createElement('div');
         emptyDiv.className = 'text-muted text-xs text-center py-4';
@@ -95,9 +80,6 @@ export class OnlineFriendsWidget {
         container.appendChild(emptyDiv);
     }
 
-    /**
-     * Render a single friend item
-     */
     private renderFriendItem(friend: SocketUser, container: HTMLElement): void {
         const friendItem = document.createElement('div');
         friendItem.className = 'flex items-center justify-between py-2 px-1 rounded hover:bg-gray-700 cursor-pointer';
@@ -141,9 +123,6 @@ export class OnlineFriendsWidget {
         container.appendChild(friendItem);
     }
 
-    /**
-     * Create remove friend button
-     */
     private createRemoveFriendButton(friend: SocketUser): HTMLButtonElement {
         const button = document.createElement('button');
         button.className = 'text-xs px-1 py-0.5 rounded hover:bg-red-600';
@@ -158,9 +137,6 @@ export class OnlineFriendsWidget {
         return button;
     }
 
-    /**
-     * Create profile button
-     */
     private createProfileButton(friend: SocketUser): HTMLButtonElement {
         const button = document.createElement('button');
         button.className = 'text-xs px-1 py-0.5 rounded hover:bg-gray-600';
@@ -174,9 +150,6 @@ export class OnlineFriendsWidget {
         return button;
     }
 
-    /**
-     * Create message button
-     */
     private createMessageButton(friend: SocketUser): HTMLButtonElement {
         const button = document.createElement('button');
         button.className = 'text-xs px-1 py-0.5 rounded hover:bg-gray-600';

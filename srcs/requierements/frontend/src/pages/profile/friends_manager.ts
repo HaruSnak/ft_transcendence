@@ -11,9 +11,6 @@ export class FriendsManager {
         this.loadFriends();
     }
 
-    /**
-     * Load friends list from localStorage
-     */
     private loadFriends(): void {
         const currentUser = this.getCurrentUsername();
         if (!currentUser) return;
@@ -32,9 +29,6 @@ export class FriendsManager {
         }
     }
 
-    /**
-     * Save friends list to localStorage
-     */
     private saveFriends(): void {
         const currentUser = this.getCurrentUsername();
         if (!currentUser) return;
@@ -44,9 +38,6 @@ export class FriendsManager {
         localStorage.setItem(key, JSON.stringify(friendsArray));
     }
 
-    /**
-     * Get current logged-in username
-     */
     private getCurrentUsername(): string | null {
         const userData = sessionStorage.getItem('user');
         if (userData) {
@@ -60,9 +51,6 @@ export class FriendsManager {
         return null;
     }
 
-    /**
-     * Add a friend to the list
-     */
     public addFriend(username: string): void {
         if (!username) return;
         
@@ -76,9 +64,6 @@ export class FriendsManager {
         document.dispatchEvent(event);
     }
 
-    /**
-     * Remove a friend from the list
-     */
     public removeFriend(username: string): void {
         if (!username) return;
         
@@ -92,30 +77,18 @@ export class FriendsManager {
         document.dispatchEvent(event);
     }
 
-    /**
-     * Check if a user is a friend
-     */
     public isFriend(username: string): boolean {
         return this.friends.has(username);
     }
 
-    /**
-     * Get all friends usernames
-     */
     public getFriends(): string[] {
         return Array.from(this.friends);
     }
 
-    /**
-     * Get online friends from a list of online users
-     */
     public getOnlineFriends(onlineUsers: SocketUser[]): SocketUser[] {
         return onlineUsers.filter(user => this.isFriend(user.username));
     }
 
-    /**
-     * Clear all friends (useful for testing or account deletion)
-     */
     public clearFriends(): void {
         this.friends.clear();
         this.saveFriends();

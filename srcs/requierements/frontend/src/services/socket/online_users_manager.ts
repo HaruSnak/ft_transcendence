@@ -2,7 +2,7 @@
 
 import { SocketUser, SocketConnection } from '../../utils/data_types';
 import { UI_ELEMENTS } from '../../utils/app_constants';
-import { friendsManager } from '../../utils/friends_manager';
+import { friendsManager } from '../../pages/profile/friends_manager';
 
 export class UserManagementService {
     private onlineUsers: SocketUser[] = [];
