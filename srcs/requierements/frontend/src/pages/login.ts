@@ -66,6 +66,7 @@ export function initLogin() {
 
             try {
                 const data = await performLogin(identifier, password);
+                sessionStorage.removeItem('profileUsername'); // Clear any old profile view
                 sessionStorage.setItem('authToken', data.token);
                 sessionStorage.setItem('user', JSON.stringify(data.user));
                 // Mettre à jour la navbar immédiatement après le login

@@ -1,5 +1,4 @@
 import Fastify from 'fastify'
-import client from 'prom-client'
 import userService from './userService.js'
 import { authenticateToken, validateUserData } from './middleware.js'
 import database from './database.js'
@@ -552,5 +551,3 @@ fastify.listen({ port : 3003, host : '0.0.0.0'}, function (err, address) {
 	}
 	fastify.log.info(`[user-service] Server listening on ${address}`);
 });
-
-/*					____METRICS Prometheus____						*/

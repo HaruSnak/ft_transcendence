@@ -119,7 +119,7 @@ echo
 
 # Test logout
 echo "🔍 8. Logout Test:"
-LOGOUT_RESPONSE=$(curl -s -w "\nHTTP:%{http_code}" -X POST http://localhost:3003/api/auth/logout \
+LOGOUT_RESPONSE=$(curl -s -w "\nHTTP:%{http_code}" -X POST http://localhost:3003/api/user/logout \
   -H "Authorization: Bearer $TOKEN")
 
 echo "$LOGOUT_RESPONSE"
