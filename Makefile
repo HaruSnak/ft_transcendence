@@ -5,9 +5,7 @@ DATA_PATH = ./srcs/volumes
 # Chemins des node_modules
 NODE_MODULES_PATHS = \
 	./srcs/requierements/frontend/node_modules \
-	./srcs/requierements/services/auth-service/node_modules \
 	./srcs/requierements/services/chat-service/node_modules \
-	./srcs/requierements/services/game-service/node_modules \
 	./srcs/requierements/services/user-service/node_modules
 
 .PHONY: all build up down clean fclean re logs

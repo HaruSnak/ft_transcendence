@@ -102,8 +102,8 @@ export class PongGame {
 		const player2Name = (this.currentMatch?.[1]?.displayName ? this.currentMatch[1].displayName : 'Bot');
 	    this.divMessageWinOrLose.innerHTML = `
 			<div class="text-center">
-				<div class="text-l font-bold mb-2">${player1Name} vs ${player2Name}</div>
-				<div class="text-xl">Press 'start game' when you are ready!</div>
+				<div class="text-5xl font-bold mb-4 text-white drop-shadow-lg">${player1Name} <span class="text-orange-400">vs</span> ${player2Name}</div>
+				<div class="text-2xl text-gray-100 font-medium">Press 'Start Game' when ready!</div>
 			</div>
     	`;	
 		return ;
@@ -139,14 +139,41 @@ export class PongGame {
 			this.showPreGameMessage();
 			return ;
 		}
-		this.ctx.fillStyle = "white";
+		// Draw background gradient - clearer but professional
+		const gradient = this.ctx.createLinearGradient(0, 0, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
+		gradient.addColorStop(0, '#659999');
+		gradient.addColorStop(1, '#f4791f');
+		this.ctx.fillStyle = gradient;
+		this.ctx.fillRect(0, 0, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
+		
+		// Draw center line - clean white with subtle shadow
+		this.ctx.strokeStyle = '#ffffff';
+		this.ctx.lineWidth = 2;
+		this.ctx.setLineDash([10, 10]);
+		this.ctx.shadowColor = '#ffffff';
+		this.ctx.shadowBlur = 2;
+		this.ctx.beginPath();
+		this.ctx.moveTo(this.CANVAS_WIDTH / 2, 0);
+		this.ctx.lineTo(this.CANVAS_WIDTH / 2, this.CANVAS_HEIGHT);
+		this.ctx.stroke();
+		this.ctx.setLineDash([]);
+		this.ctx.shadowBlur = 0; // Reset shadow
+		
+		this.ctx.fillStyle = "#ffffff"; // White paddles for maximum contrast
+		this.ctx.shadowColor = '#000000';
+		this.ctx.shadowBlur = 2;
 		this.ctx.fillRect(this.leftPaddle.x, this.leftPaddle.y, this.PADDLE_WIDTH, this.PADDLE_HEIGHT);
 		this.ctx.fillRect(this.rightPaddle.x, this.rightPaddle.y, this.PADDLE_WIDTH, this.PADDLE_HEIGHT);
+		this.ctx.shadowBlur = 0; // Reset shadow
 		this.ctx.font = '30px Arial';
+		this.ctx.fillStyle = "#ffffff"; // White text
 		this.drawPlayerNames();
 		this.divScoreInGame.querySelector('span').textContent = `${this.rightPaddle.score} - ${this.leftPaddle.score}`;
-		this.ctx.fillStyle = "red";
+		this.ctx.fillStyle = "#ffffff"; // White ball for visibility
+		this.ctx.shadowColor = '#ffffff';
+		this.ctx.shadowBlur = 3;
 		this.ctx.fillRect(this.ball.x - this.BALL_SIZE / 2, this.ball.y - this.BALL_SIZE / 2, this.BALL_SIZE, this.BALL_SIZE);
+		this.ctx.shadowBlur = 0;
 	}
 
 	/**
@@ -163,14 +190,14 @@ export class PongGame {
 			this.leftPaddle.y += this.PADDLE_SPEED;
 		
 		// Joueur droit (touches fléchées)
-		// En mode Bot, l'IA contrôle le paddle droit via les touches fléchées simulées
 		// En mode Local ou Tournoi (sans Bot), le joueur humain contrôle le paddle droit
-		if ((this.gameLocalGM || this.gameTournamentGM && this.currentMatch[1].displayName != 'Bot' || this.gameBotGM)
-			&& this.keys.has('ArrowUp') && this.rightPaddle.y > 0)
-			this.rightPaddle.y -= this.PADDLE_SPEED;
-		if ((this.gameLocalGM || this.gameTournamentGM && this.currentMatch[1].displayName != 'Bot' || this.gameBotGM)
-			&& this.keys.has('ArrowDown') && this.rightPaddle.y < this.PADDLE_MAX_Y)
-			this.rightPaddle.y += this.PADDLE_SPEED;
+		// En mode Bot, l'IA contrôle le paddle droit via les touches fléchées simulées
+		if ((this.gameLocalGM || this.gameBotGM || (this.gameTournamentGM && this.currentMatch[1].displayName != 'Bot'))) { 
+			if (this.keys.has('ArrowUp') && this.rightPaddle.y > 0)
+				this.rightPaddle.y -= this.PADDLE_SPEED;
+			if (this.keys.has('ArrowDown') && this.rightPaddle.y < this.PADDLE_MAX_Y)
+				this.rightPaddle.y += this.PADDLE_SPEED;
+		}		
 	}
 
 	/**
@@ -388,21 +415,36 @@ export class PongGame {
 	/**
 		Termine la partie et affiche le message de victoire
 		Détermine le gagnant en comparant les scores au WINNING_SCORE
-		Affiche le nom du gagnant ou valeur par défaut ('You'/'Bot')
+		Affiche le nom du gagnant avec le score final de manière professionnelle
 		Efface le canvas avec clearRect()
 	*/
 	private endGame() {
 		this.gameRunning = false;
 		this.divMessageWinOrLose.classList.remove('hidden');
-		this.divMessageWinOrLose.style.color = 'rgba(0, 255, 0, 0.9)';
+		const isPlayerLoss = (this.gameBotGM && this.rightPaddle.score >= this.WINNING_SCORE);
+		this.divMessageWinOrLose.style.color = isPlayerLoss ? 'rgba(239, 10, 10, 0.9)' : 'rgba(0, 255, 0, 0.9)';
+		const finalScore = `${this.leftPaddle.score} - ${this.rightPaddle.score}`;
+		const title = isPlayerLoss ? 'Défaite' : 'Victoire !';
 		if (this.leftPaddle.score >= this.WINNING_SCORE) {
-			const winnerName = this.currentMatch?.[0]?.displayName || 'You';
-			this.divMessageWinOrLose.textContent = `🎉 ${winnerName} WINS!`;
+			const winnerName = this.currentMatch?.[0]?.displayName || 'Vous';
+			this.divMessageWinOrLose.innerHTML = `
+				<div class="text-center">
+					<div class="text-5xl font-bold mb-3">${title}</div>
+					<div class="text-xl">${winnerName} remporte la partie</div>
+					<div class="text-lg opacity-75">Score final : ${finalScore}</div>
+				</div>
+			`;
 			this.whoWin = 'left';
 		}
 		else {
 			const winnerName = this.currentMatch?.[1]?.displayName || 'Bot';
-			this.divMessageWinOrLose.textContent = `🎉 ${winnerName} WINS!`;
+			this.divMessageWinOrLose.innerHTML = `
+				<div class="text-center">
+					<div class="text-5xl font-bold mb-3">${title}</div>
+					<div class="text-xl">${winnerName} remporte la partie</div>
+					<div class="text-lg opacity-75">Score final : ${finalScore}</div>
+				</div>
+			`;
 			this.whoWin = 'right';
 		}
 		this.ctx.clearRect(0, 0, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);

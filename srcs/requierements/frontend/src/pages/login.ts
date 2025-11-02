@@ -4,18 +4,13 @@ import { updateNavbar } from '../index.js';
 
 // Business logic: Perform login (modifier uniquement ici pour le backend)
 export async function performLogin(identifier: string, password: string): Promise<{ token: string; user: any }> {
-    let response = await fetch('/api/auth/login', {
+    const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({ username: identifier, password }),
     });
-
-    if (!response.ok) {
-        // Try GET as fallback if POST fails (for debugging)
-        response = await fetch(`/api/auth/login?username=${encodeURIComponent(identifier)}&password=${encodeURIComponent(password)}`);
-    }
 
     if (!response.ok) {
         let errorMsg = 'Unknown error';

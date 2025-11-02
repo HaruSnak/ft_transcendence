@@ -11,6 +11,11 @@ const msgSentReceived = new client.Counter({
     labelNames: ['status']
 });
 
+const socketConnections = new client.Counter({
+    name: 'socket_connections_total',
+    help: 'Total number of socket connections'
+});
+
 /*					____SERVER Fastify____						*/
 
 const fastify = Fastify({
@@ -33,11 +38,6 @@ fastify.get('/health', async (request, reply) => {
     };
 });
 
-fastify.get('/api/chat', async (request, reply) => {
-    console.log('frontend route accessed!');
-    return ({ message: 'Chat service is running' });
-});
-
 // Endpoint pour Prometheus
 fastify.get('/metrics', async (request, reply) => {
     reply.type('text/plain');
@@ -55,6 +55,8 @@ const io = new Server(fastify.server, {
 io.on('connection', (socket) => {
     const clientId = socket.id;
     console.log('📡 Client connecté:', clientId);
+    
+    socketConnections.inc(); // Incrémenter le compteur de connexions
     
     // STOCKEZ IMMÉDIATEMENT
     clients.set(clientId, socket);

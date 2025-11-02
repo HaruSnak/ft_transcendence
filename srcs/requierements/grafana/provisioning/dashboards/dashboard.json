@@ -5,14 +5,57 @@
     "timezone": "browser",
     "panels": [
       {
-        "title": "HTTP Requests",
+        "id": 1,
+        "title": "Service Up Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job=~\"chat-service|user-service\"}",
+            "legendFormat": "{{job}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {
+                "options": {
+                  "0": {
+                    "text": "DOWN",
+                    "color": "red"
+                  },
+                  "1": {
+                    "text": "UP",
+                    "color": "green"
+                  }
+                },
+                "type": "value"
+              }
+            ]
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "HTTP Requests Rate",
         "type": "graph",
         "targets": [
           {
             "expr": "rate(http_requests_total[5m])",
             "legendFormat": "{{job}}"
           }
-        ]
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        }
       }
     ],
     "time": {

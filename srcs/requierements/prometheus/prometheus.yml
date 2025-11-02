@@ -5,15 +5,9 @@ scrape_configs:
   - job_name: 'chat-service'
     static_configs:
       - targets: ['chat-service:3001']
-  - job_name: 'game-service'
-    static_configs:
-      - targets: ['game-service:3002']
   - job_name: 'user-service'
     static_configs:
       - targets: ['user-service:3003']
-  - job_name: 'auth-service'
-    static_configs:
-      - targets: ['auth-service:3004']
 
 rule_files:
   - "alert_rules.yml"

@@ -28,9 +28,9 @@
 
 <!-- ================================== GAME ================================== -->
 		<section id="game" class="page hidden flex flex-col items-center justify-center pt-17 space-y-6">
-			<h1 class="text-4xl font-bold text-blue-400">Pong Game</h1>
+			<h1 class="text-4xl font-bold text-blue-400">Welcome to Transcendance</h1>
 			<p>Choose a game mode from the following!</p> <!--  Modifier  Controls: W/S for left paddle | Arrow Up/Down for right paddle-->
-			<div id="main-menu-game" class="relative">
+			<div id="main-menu-game" class="relative flex flex-row gap-4">
 				<button id="buttonPracticeGame" class="px-12 py-4 font-semibold text-white rounded-lg bg-gradient-to-r from-purple-600 via-pink-600 to-red-500 shadow-lg
 					hover:from-pink-500 hover:to-yellow-400 hover:scale-110 transform transition duration-400 ease-in-out
 					focus:outline-none focus:ring-4 focus:ring-pink-400">
@@ -133,7 +133,7 @@
 			</div>
 			<!-- 						GAMEPLAY INTERFACE						-->
 			<div class="relative p-6 pt-6 hidden" id="canvas-container">
-				<canvas id="pongCanvas" class="bg-emerald-500 border-4 border-black" width="800" height="600"></canvas>
+				<canvas id="pongCanvas" class="border-4 border-yellow-400 rounded-lg shadow-2xl" width="800" height="600"></canvas>
 				<div id="gameMessageWinOrLose" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-4xl font-bold hidden transition-opacity duration-300"></div>
 			</div>
 			<div id="scoreInGame" class="hidden bg-black/70 px-4 py-2 rounded-lg border border-cyan-400/50 mx-auto w-fit">
@@ -274,7 +274,7 @@
                     <!-- Message area for edit form -->
                     <div id="edit-message" class="mb-lg text-center hidden"></div>
 
-                    <div class="grid grid-1 gap-lg">
+                    <div class="grid grid-2 gap-lg">
                         <div class="form-group">
                             <label class="form-label">Display Name</label>
                             <input type="text" name="name" data-field="edit-name" placeholder="Your display name" class="form-input" />

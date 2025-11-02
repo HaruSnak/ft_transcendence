@@ -8,30 +8,12 @@ services:
             - promgraf_network
         restart: unless-stopped
 
-    game-service:
-        container_name: game-service
-        build: ./requierements/services/game-service
-        env_file: .env
-        networks:
-            - app_network
-            - promgraf_network
-        restart: unless-stopped
-
     user-service:
         container_name: user-service
         build: ./requierements/services/user-service
         env_file: .env
         volumes:
             - user-service-data:/srcs/data
-        networks:
-            - app_network
-            - promgraf_network
-        restart: unless-stopped
-
-    auth-service:
-        container_name: auth-service
-        build: ./requierements/services/auth-service
-        env_file: .env
         networks:
             - app_network
             - promgraf_network
@@ -49,9 +31,7 @@ services:
             - "8443:443"
         depends_on:
             - chat-service
-            - game-service
             - user-service
-            - auth-service
         networks:
             - app_network
         restart: unless-stopped

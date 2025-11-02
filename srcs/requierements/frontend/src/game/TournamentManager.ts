@@ -80,6 +80,7 @@ export class TournamentManager extends PlayerManager {
         try {
             pongGame.setMatchesPlayers([player1, player2]);
             pongGame.cleanupGame();
+			pongGame.setModeGame('gameTournamentGM');
             pongGame.draw();
             
             const winner = await this.waitForMatchResult(pongGame, player1, player2);

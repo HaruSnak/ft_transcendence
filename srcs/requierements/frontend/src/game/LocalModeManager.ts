@@ -40,6 +40,7 @@ export class OneVsOneManager extends PlayerManager {
 		try {
 			pongGame.setMatchesPlayers([player1, player2]);
 			pongGame.cleanupGame();
+			pongGame.setModeGame('gameLocalGM');
 			pongGame.draw();
 			return (await this.waitForMatchResult(pongGame, player1, player2));
 		}

@@ -82,15 +82,18 @@ export class PongGameUI extends SecurityUtils {
 		
 		// Création des références de fonctions pour pouvoir les supprimer plus tard
 		this.boundHandlePractice = () => {
+			this.updateControlsMessage("Controls: W/S for left paddle | Arrow Up/Down for right paddle");
 			this.updateScreen();
 			this.pongGame.setModeGame('gameBotGM');
 		};
 		this.boundHandleLocal = async () => {
+			this.updateControlsMessage("Controls: W/S for left paddle | Arrow Up/Down for right paddle");
 			this.currentMode = 'local';
 			this.clearAllProfiles(); // Nettoyer au changement de mode
 			await this.handleAuthentication();
 		};
 		this.boundHandleTournament = async () => {
+			this.updateControlsMessage("Controls: W/S for left paddle | Arrow Up/Down for right paddle");
 			this.currentMode = 'tournament';
 			this.clearAllProfiles(); // Nettoyer au changement de mode
 			await this.handleAuthentication();
@@ -130,6 +133,19 @@ export class PongGameUI extends SecurityUtils {
 		this.canvasContainer.classList.add('hidden');
 		this.divInterfaceInGame.classList.add('hidden');
 		this.currentMode = null;
+		this.updateControlsMessage("Choose a game mode from the following!");
+	}
+
+	/*
+	Met à jour le message de contrôle affiché dans le paragraphe principal
+	@param message - Le message à afficher
+	*/
+	private updateControlsMessage(message: string) {
+		const pElement = document.getElementById('game').querySelector('p') as HTMLElement;
+		if (pElement) {
+			pElement.textContent = message;
+			pElement.style.display = 'block';
+		}
 	}
 
 	/*
@@ -410,7 +426,6 @@ export class PongGameUI extends SecurityUtils {
 		const tournamentTimerId = window.setTimeout(async () => {
 			this.divInterfaceLogin.style.display = 'none';
 			this.updateScreen();
-			this.pongGame.setModeGame('gameTournamentGM');
 			await this.tournaments.startTournament(this.pongGame, matches);
 		}, 6000);
 		this.activeTimers.push(tournamentTimerId);
@@ -470,7 +485,6 @@ export class PongGameUI extends SecurityUtils {
 		const matchTimerId = window.setTimeout(async () => {
 			this.divInterfaceLogin.style.display = 'none';
 			this.updateScreen();
-			this.pongGame.setModeGame('gameLocalGM');
 			await this.oneVsOne.startMatch(this.pongGame);
 		}, 3000);
 		this.activeTimers.push(matchTimerId);
@@ -580,5 +594,6 @@ export class PongGameUI extends SecurityUtils {
 			(passwordContainer.querySelector('p') as HTMLElement).textContent = '';
 		}
 		this.buttonLaunchGame.style.display = 'none';
+		this.updateControlsMessage("Choose a game mode from the following!");
 	}
 }

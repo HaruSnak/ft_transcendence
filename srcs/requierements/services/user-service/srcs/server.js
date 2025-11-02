@@ -4,6 +4,19 @@ import { authenticateToken, validateUserData } from './middleware.js'
 import database from './database.js'
 import fs from 'fs'
 import path from 'path'
+import client from 'prom-client'
+
+/*					____METRICS Prometheus____						*/
+
+const userRegistrations = new client.Counter({
+    name: 'user_registrations_total',
+    help: 'Total number of user registrations'
+});
+
+const userLogins = new client.Counter({
+    name: 'user_logins_total',
+    help: 'Total number of user logins'
+});
 
 /*					____SERVER Fastify____						*/
 
@@ -32,10 +45,10 @@ fastify.get('/health', async (request, reply) => {
 	};
 });
 
-// Route de test basique
-fastify.get('/api/user', async (request, reply) => {
-	console.log('frontend route accessed!');
-	return { message: 'User service is running' };
+// Endpoint pour Prometheus
+fastify.get('/metrics', async (request, reply) => {
+    reply.type('text/plain');
+    return (await client.register.metrics());
 });
 
 /*					____AUTH ROUTES____						*/
@@ -48,6 +61,8 @@ fastify.post('/api/auth/register', {
 			const { username, email, password, display_name, avatar_url } = request.body;
 			const user = await userService.createUser({ username, email, password, display_name, avatar_url });
         
+			userRegistrations.inc(); // Incrémenter le compteur d'inscriptions
+
 			reply.code(201).send({
 				success: true,
 				message: 'User created successfully',
@@ -69,6 +84,8 @@ fastify.post('/api/auth/login', {
 		const { username, password } = request.body;
 		const result = await userService.authenticateUser(username, password);
 		
+		userLogins.inc(); // Incrémenter le compteur de connexions
+
 		reply.send({
 			success: true,
 			message: 'Login successful',
