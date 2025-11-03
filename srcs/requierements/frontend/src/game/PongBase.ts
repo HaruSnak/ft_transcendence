@@ -328,7 +328,7 @@ export class PongGame {
 		if (this.gameRunning) {
 			if (!this.gamePaused) {
 			this.gamePaused = true;
-			this.buttonPause.textContent = 'Resume';
+			this.buttonPause.textContent = 'Play';
 			}
 			else {
 			this.gamePaused = false;
@@ -406,6 +406,7 @@ export class PongGame {
 			this.buttonStart.removeEventListener('click', this.startGame);
 		}
 		if (this.buttonPause) {
+			this.buttonPause.value = 'Pause';
 			this.buttonPause.disabled = false;
 			this.buttonPause.removeEventListener('click', this.pauseGame);
 		}

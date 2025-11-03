@@ -1,6 +1,6 @@
 // src/utils/friends_manager.ts
 
-import { SocketUser } from './data_types';
+import { SocketUser } from '../../utils/data_types';
 
 const FRIENDS_STORAGE_KEY = 'user_friends';
 

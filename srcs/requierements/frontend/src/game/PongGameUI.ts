@@ -594,6 +594,8 @@ export class PongGameUI extends SecurityUtils {
 			(passwordContainer.querySelector('p') as HTMLElement).textContent = '';
 		}
 		this.buttonLaunchGame.style.display = 'none';
+		console.log("status " + this.buttonPause.value);
+		this.buttonPause.value = 'Pause';
 		this.updateControlsMessage("Choose a game mode from the following!");
 	}
 }
