@@ -15,6 +15,9 @@ all: build up
 build:
 	@echo "Building Docker images..."
 	mkdir -p ./srcs/volumes/es_data ./srcs/volumes/logstash/logs_pipeline ./srcs/volumes/logstash/logs_config ./srcs/volumes/prometheus_db ./srcs/volumes/grafana_db
+	@echo "Building frontend assets locally (Node.js 18)..."
+	@cd ./srcs/requierements/frontend && npm ci && npm run build && npm run build-css
+	@echo "Frontend assets built successfully."
 	$(DOCKER_COMPOSE) -f $(DOCKER_COMPOSE_FILE) build
 
 up:
@@ -34,7 +37,10 @@ fclean: clean
 	@echo "Full cleanup including volumes and node_modules..."
 	cd ./srcs && $(DOCKER_COMPOSE) -f docker-compose.yml down -v
 	docker volume rm -f srcs_es_data srcs_grafana_db srcs_prometheus_db srcs_logs_pipeline srcs_logs_config || true
-	@sudo rm -rf $(DATA_PATH)
+	@echo "Removing volume directories with Docker (no sudo needed)..."
+	@if [ -d "$(DATA_PATH)" ]; then \
+		docker run --rm -v "$$(pwd)/$(DATA_PATH):/data" alpine find /data -mindepth 1 -delete 2>/dev/null || true; \
+	fi
 	@echo "Removing all node_modules directories..."
 	@for dir in $(NODE_MODULES_PATHS); do \
 		if [ -d "$$dir" ]; then \
@@ -42,6 +48,8 @@ fclean: clean
 			rm -rf "$$dir"; \
 		fi; \
 	done
+	@echo "Removing frontend builder image..."
+	@docker rmi frontend-builder 2>/dev/null || true
 	@echo "Full cleanup complete. Run 'make' to rebuild from scratch."
 
 re: fclean all

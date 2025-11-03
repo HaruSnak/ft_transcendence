@@ -1,0 +1,18 @@
+# Dockerfile to build frontend assets (JS + CSS)
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy source files
+COPY . .
+
+# Build JavaScript bundle and CSS
+RUN npm run build && npm run build-css
+
+# Output is in /app/public/js and /app/public/css
