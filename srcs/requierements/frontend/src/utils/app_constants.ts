@@ -2,7 +2,10 @@
 
 // CRITICAL SECURITY: Must use HTTPS for secure WebSocket (wss://)
 // Frontend connects through nginx reverse proxy (port 8443), not directly to services
-export const SERVER_URL = 'https://localhost:8443/api/chat';
+// Socket.IO should connect to the nginx root where /socket.io/ is proxied.
+// Using the root URL ensures the client connects to /socket.io via the default path
+// and matches the nginx proxy config which forwards /socket.io/ to the chat service.
+export const SERVER_URL = 'https://localhost:8443';
 export const API_BASE_URL = '/api';
 
 export const STORAGE_KEYS = {
