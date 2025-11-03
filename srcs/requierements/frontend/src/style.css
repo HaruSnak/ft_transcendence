@@ -63,7 +63,8 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  overflow: hidden;
+  /* allow page to scroll when content is taller than viewport (fix mobile/smaller windows) */
+  overflow-y: auto;
   margin: 0;
   padding: 0;
   background: var(--bg-primary);
@@ -436,7 +437,10 @@ body {
 
 /* Chat styles */
 .chat-container {
-  height: 600px;
+  /* avoid fixed heights so the chat layout can adapt on smaller screens
+     use a max-height relative to viewport so inner areas can scroll */
+  height: auto;
+  max-height: calc(100vh - 140px);
   display: flex;
   gap: var(--space-lg);
 }
@@ -449,6 +453,8 @@ body {
   padding: var(--space-lg);
   display: flex;
   flex-direction: column;
+  /* allow sidebar to shrink on very small screens */
+  min-width: 0;
 }
 
 .chat-main {
@@ -459,16 +465,22 @@ body {
   padding: var(--space-lg);
   display: flex;
   flex-direction: column;
+  /* make children able to shrink (fix overflowing content) */
+  min-height: 0;
+  position: relative;
 }
 
 .chat-messages {
-  flex: 1;
+  /* fill available space and scroll internally */
+  flex: 1 1 auto;
+  min-height: 0; /* IMPORTANT for flex children to allow shrinking */
   overflow-y: auto;
   padding: var(--space-lg);
   background: var(--bg-tertiary);
   border-radius: var(--radius-md);
-  margin-bottom: var(--space-lg);
-  min-height: 400px;
+  margin-bottom: 0; /* form is sticky now */
+  /* max height keeps messages box reasonable on small screens */
+  max-height: calc(100% - 72px);
 }
 
 .chat-message {
@@ -494,10 +506,29 @@ body {
 .chat-form {
   display: flex;
   gap: var(--space-md);
+  align-items: center;
+  /* keep the form at the bottom of the chat area and avoid shrinking issues */
+  flex-shrink: 0;
 }
 
 .chat-input {
   flex: 1;
+  /* allow the input to shrink properly inside a flex container (prevents overflow)
+     important for long fixed-size children (buttons) next to it */
+  min-width: 0;
+}
+
+/* ensure send button doesn't stretch the input or the form */
+.chat-form button {
+  flex: 0 0 auto;
+}
+
+/* Make the form sticky so input is always visible at bottom */
+.chat-form {
+  position: sticky;
+  bottom: 0;
+  padding-top: var(--space-md);
+  background: linear-gradient(180deg, transparent 0%, rgba(15,15,16,0.7) 100%);
 }
 
 /* Modal styles */
@@ -896,4 +927,41 @@ body {
   white-space: pre-wrap;
   scrollbar-width: thin;
   scrollbar-color: var(--border-primary) var(--bg-tertiary);
+}
+
+/* Very small screens: stack input and send button to avoid button taking all space */
+@media (max-width: 420px) {
+  .chat-form {
+    flex-direction: column;
+    gap: var(--space-sm);
+    align-items: stretch;
+  }
+
+  .chat-input {
+    order: 1;
+    width: 100%;
+  }
+
+  .chat-form button {
+    order: 2;
+    width: 100%;
+  }
+}
+
+/* Narrow screens but not ultra-small: keep button inline but limit its width so input keeps space */
+@media (min-width: 421px) and (max-width: 767px) {
+  .chat-form {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .chat-form .btn {
+    width: auto !important;
+    max-width: 180px;
+    align-self: center;
+  }
+
+  .chat-input {
+    flex: 1 1 auto;
+  }
 }
