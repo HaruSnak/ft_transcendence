@@ -188,7 +188,7 @@ export class ProfileManager {
     }
 
     // ========================= PROFILE LOADING & DISPLAY =========================
-    private async loadProfile(): Promise<void> {
+    public async loadProfile(): Promise<void> {
         this.showState('loading');
 
         // Check if viewing another user's profile

@@ -14,5 +14,7 @@ export function initProfile(): void {
 
     if (!profileManager) {
         profileManager = new ProfileManager();
+    } else {
+        profileManager.loadProfile();
     }
 }
