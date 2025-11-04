@@ -260,12 +260,7 @@ export class ProfileManager {
         }
 
         if (!isOtherUser) {
-            const winsElements = document.querySelectorAll('.text-2xl.font-bold.mb-sm');
-            const winsElement = winsElements[0] as HTMLElement;
-            const lossesElement = winsElements[1] as HTMLElement;
-
-            if (winsElement) winsElement.textContent = (user.wins || 0).toString();
-            if (lossesElement) lossesElement.textContent = (user.losses || 0).toString();
+            // Stats are now calculated from matches in loadMatchHistory
 
             // Update edit form fields
             const editName = document.querySelector('[data-field="edit-name"]') as HTMLInputElement;
@@ -274,7 +269,7 @@ export class ProfileManager {
             if (editName) editName.value = user.display_name || user.username || '';
             if (editEmail) editEmail.value = user.email || '';
 
-            // Load match history
+            // Load match history (which also calculates stats)
             this.loadMatchHistory();
         }
 
@@ -295,9 +290,68 @@ export class ProfileManager {
         try {
             const matches = await performLoadMatchHistory();
             this.displayMatchHistory(matches);
+            // Also calculate stats from matches
+            this.calculateStatsFromMatches(matches);
         } catch (error) {
             console.error('Error loading match history:', error);
         }
+    }
+
+    private calculateStatsFromMatches(matches: any[]): void {
+        // Get current user username
+        const userData = sessionStorage.getItem('user');
+        if (!userData) return;
+        const user = JSON.parse(userData);
+        const userUsername = user.username;
+
+        // Separate tournament and non-tournament matches
+        const tournamentMatches: any[] = [];
+        const otherMatches: any[] = [];
+
+        matches.forEach((match) => {
+            if ((match.game_type || '').toLowerCase().includes('tournament')) {
+                tournamentMatches.push(match);
+            } else {
+                otherMatches.push(match);
+            }
+        });
+
+        // For tournaments, sort by date descending and take only the most recent (final) match
+        tournamentMatches.sort((a, b) => new Date(b.game_date).getTime() - new Date(a.game_date).getTime());
+        const finalTournamentMatches = tournamentMatches.slice(0, 1); // Only the most recent
+
+        // Combine: final tournament match + all other matches
+        const matchesForStats = [...finalTournamentMatches, ...otherMatches];
+
+        let wins = 0;
+        let losses = 0;
+
+        matchesForStats.forEach((match) => {
+            let userScore: number;
+            let opponentScore: number;
+
+            if (match.player1_username === userUsername) {
+                userScore = match.score_player1;
+                opponentScore = match.score_player2;
+            } else {
+                userScore = match.score_player2;
+                opponentScore = match.score_player1;
+            }
+
+            if (userScore > opponentScore) {
+                wins++;
+            } else {
+                losses++;
+            }
+        });
+
+        // Update the stats display
+        const winsElements = document.querySelectorAll('.text-2xl.font-bold.mb-sm');
+        const winsElement = winsElements[0] as HTMLElement;
+        const lossesElement = winsElements[1] as HTMLElement;
+
+        if (winsElement) winsElement.textContent = wins.toString();
+        if (lossesElement) lossesElement.textContent = losses.toString();
     }
 
     private displayMatchHistory(matches: any[]): void {
@@ -319,8 +373,27 @@ export class ProfileManager {
         const user = JSON.parse(userData);
         const userId = user.id;
         const userUsername = user.username;
-        
-        matches.forEach((match, index) => {
+
+        // Separate tournament and non-tournament matches
+        const tournamentMatches: any[] = [];
+        const otherMatches: any[] = [];
+
+        matches.forEach((match) => {
+            if ((match.game_type || '').toLowerCase() === 'tournament') {
+                tournamentMatches.push(match);
+            } else {
+                otherMatches.push(match);
+            }
+        });
+
+        // For tournaments, sort by date descending and take only the most recent (final) match
+        tournamentMatches.sort((a, b) => new Date(b.game_date).getTime() - new Date(a.game_date).getTime());
+        const finalTournamentMatches = tournamentMatches.slice(0, 1); // Only the most recent
+
+        // Combine: final tournament match + all other matches
+        const matchesToDisplay = [...finalTournamentMatches, ...otherMatches];
+
+        matchesToDisplay.forEach((match, index) => {
             console.log(`Match ${index}:`, match);
             const matchDiv = document.createElement('div');
             matchDiv.className = 'bg-gray-800 p-4 rounded-lg mb-4';
@@ -361,10 +434,17 @@ export class ProfileManager {
             const safeScore = SecurityUtils.escapeHTML(score);
             const safeDate = SecurityUtils.escapeHTML(date);
 
+            let displayText: string;
+            if (gameType && gameType.toLowerCase().includes('tournament')) {
+                displayText = `${safeResult} - Tournament - ${safeDate}`;
+            } else {
+                displayText = `${safeResult} - ${safeGameType} - ${safeOpponent} - ${safeScore} - ${safeDate}`;
+            }
+
             matchDiv.innerHTML = `
                 <div class="flex justify-between items-center">
                     <div>
-                        <p class="font-semibold">${safeResult} - ${safeGameType} - ${safeOpponent} - ${safeScore} - ${safeDate}</p>
+                        <p class="font-semibold">${displayText}</p>
                     </div>
                 </div>
             `;
