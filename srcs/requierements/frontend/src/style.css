@@ -7,6 +7,7 @@
    ================================ */
 
 :root {
+  /* Variables CSS pour couleurs, espacement, typographie, etc. */
   /* Colors - Palette moderne et épurée */
   --bg-primary: #0a0a0b;
   --bg-secondary: #141517;
@@ -56,6 +57,7 @@
 }
 
 body {
+  /* Style de base pour toute la page */
   background: var(--bg-primary);
   color: var(--text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
@@ -75,6 +77,7 @@ body {
 
 /* Layout utilitaires */
 .container {
+  /* Conteneur principal centré */
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
@@ -94,6 +97,7 @@ body {
 }
 
 .page {
+  /* Chaque page (login, game, etc.) */
   display: flex;
   flex-direction: column;
   display: flex;
@@ -117,6 +121,7 @@ body {
 
 /* Navigation moderne */
 .nav {
+  /* Barre de navigation fixe en haut */
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-primary);
   position: fixed;
@@ -177,6 +182,7 @@ body {
 
 /* Cards et containers */
 .card {
+  /* Boîtes de contenu stylées */
   background: var(--bg-secondary);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
@@ -204,6 +210,7 @@ body {
 
 /* Boutons modernes */
 .btn {
+  /* Styles de base des boutons */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -290,6 +297,7 @@ body {
 
 /* Forms modernes */
 .form-group {
+  /* Groupe de formulaire */
   margin-bottom: var(--space-lg);
 }
 
@@ -302,6 +310,7 @@ body {
 }
 
 .form-input {
+  /* Champs de saisie */
   width: 100%;
   padding: var(--space-md);
   font-size: var(--text-base);
@@ -324,6 +333,7 @@ body {
 
 /* Grid layouts */
 .grid {
+  /* Grilles flexibles */
   display: grid;
   gap: var(--space-lg);
 }
@@ -429,6 +439,7 @@ body {
 
 /* Game canvas */
 .game-canvas {
+  /* Style pour le canvas du jeu */
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   background: var(--bg-secondary);
@@ -437,6 +448,7 @@ body {
 
 /* Chat styles */
 .chat-container {
+  /* Conteneur du chat */
   /* avoid fixed heights so the chat layout can adapt on smaller screens
      use a max-height relative to viewport so inner areas can scroll */
   height: auto;
@@ -446,6 +458,7 @@ body {
 }
 
 .chat-sidebar {
+  /* Barre latérale du chat */
   width: 200px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border-primary);
@@ -458,6 +471,7 @@ body {
 }
 
 .chat-main {
+  /* Zone principale du chat */
   flex: 1;
   background: var(--bg-secondary);
   border: 1px solid var(--border-primary);
@@ -471,6 +485,7 @@ body {
 }
 
 .chat-messages {
+  /* Zone des messages */
   /* fill available space and scroll internally */
   flex: 1 1 auto;
   min-height: 0; /* IMPORTANT for flex children to allow shrinking */
@@ -484,6 +499,7 @@ body {
 }
 
 .chat-message {
+  /* Style d'un message */
   padding: var(--space-md);
   margin-bottom: var(--space-sm);
   border-radius: var(--radius-md);
@@ -504,6 +520,7 @@ body {
 }
 
 .chat-form {
+  /* Formulaire d'envoi de message */
   display: flex;
   gap: var(--space-md);
   align-items: center;
@@ -533,6 +550,7 @@ body {
 
 /* Modal styles */
 .modal-overlay {
+  /* Overlay pour modales */
   position: fixed;
   top: 0;
   left: 0;
@@ -554,6 +572,7 @@ body {
 }
 
 .modal {
+  /* Fenêtre modale */
   background: var(--bg-secondary);
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
@@ -612,6 +631,7 @@ body {
 
 /* Large screens (Desktop > 1200px) */
 @media (min-width: 1200px) {
+  /* Adaptations pour écrans larges */
   .container {
     max-width: 1400px;
   }
@@ -627,6 +647,7 @@ body {
 
 /* Medium screens (Tablet 768px - 1199px) */
 @media (min-width: 768px) and (max-width: 1199px) {
+  /* Adaptations pour tablettes */
   .container {
     max-width: 960px;
     padding: 0 var(--space-md);
@@ -660,6 +681,7 @@ body {
 
 /* Small screens (Mobile < 768px) */
 @media (max-width: 767px) {
+  /* Adaptations pour mobiles */
   :root {
     --space-md: 0.75rem;
     --space-lg: 1rem;
@@ -798,6 +820,7 @@ body {
 
 /* Extra small screens (< 375px) */
 @media (max-width: 374px) {
+  /* Adaptations pour très petits écrans */
   .nav {
     height: 50px;
   }
@@ -823,6 +846,7 @@ body {
 
 /* Landscape mode (Mobile horizontal) */
 @media (max-width: 900px) and (orientation: landscape) {
+  /* Adaptations pour mobiles en paysage */
   .page {
     min-height: auto;
     overflow-y: auto;
@@ -846,6 +870,7 @@ body {
 
 /* High DPI screens (Retina) */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Améliorations pour écrans haute résolution */
   .card,
   .btn,
   .form-input {
@@ -856,6 +881,7 @@ body {
 
 /* Print styles */
 @media print {
+  /* Styles pour l'impression */
   .nav,
   .btn,
   .chat-sidebar {
@@ -892,6 +918,7 @@ body {
 
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
+  /* Désactive les animations pour accessibilité */
   *,
   *::before,
   *::after {
@@ -903,6 +930,7 @@ body {
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
+  /* Style des barres de défilement */
   width: 6px;
 }
 
@@ -921,6 +949,7 @@ body {
 
 /* Edit message styling */
 #edit-message {
+  /* Style pour les messages d'édition */
   max-height: 120px;
   overflow-y: auto;
   word-wrap: break-word;
@@ -931,6 +960,7 @@ body {
 
 /* Very small screens: stack input and send button to avoid button taking all space */
 @media (max-width: 420px) {
+  /* Adaptations pour écrans très étroits */
   .chat-form {
     flex-direction: column;
     gap: var(--space-sm);
@@ -950,6 +980,7 @@ body {
 
 /* Narrow screens but not ultra-small: keep button inline but limit its width so input keeps space */
 @media (min-width: 421px) and (max-width: 767px) {
+  /* Adaptations pour écrans étroits moyens */
   .chat-form {
     flex-direction: row;
     align-items: center;
