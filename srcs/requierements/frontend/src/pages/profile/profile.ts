@@ -307,6 +307,13 @@ export class ProfileManager {
             container.innerHTML = '<p class="text-center text-gray-500">Aucun match joué pour le moment.</p>';
             return;
         }
+
+        // Get current user ID and username
+        const userData = sessionStorage.getItem('user');
+        if (!userData) return;
+        const user = JSON.parse(userData);
+        const userId = user.id;
+        const userUsername = user.username;
         
         matches.forEach((match, index) => {
             console.log(`Match ${index}:`, match);
@@ -321,14 +328,30 @@ export class ProfileManager {
                 minute: '2-digit'
             });
 
-            const result = match.winner_id === match.player1_id ? 'Victoire' : 'Défaite';
-            const opponent = match.winner_id === match.player1_id 
-                ? (match.player2_username || match.player2_display_name || 'Guest') 
-                : (match.player1_username || match.player1_display_name);
-            const score = `${match.score_player1}-${match.score_player2}`;
+            // Determine opponent and scores
+            let opponent: string;
+            let userScore: number;
+            let opponentScore: number;
+
+            if (match.player1_username === userUsername) {
+                opponent = match.player2_username || match.player2_display_name || 'Guest';
+                userScore = match.score_player1;
+                opponentScore = match.score_player2;
+            } else {
+                opponent = match.player1_username || match.player1_display_name || 'Guest';
+                userScore = match.score_player2;
+                opponentScore = match.score_player1;
+            }
+
+            const isWin = userScore > opponentScore;
+
+            const result = isWin ? 'Win' : 'Lose';
+            const gameType = match.game_type || 'Unknown';
+            const score = `${userScore}-${opponentScore}`;
 
             // SECURITY: Escape HTML to prevent XSS
             const safeResult = SecurityUtils.escapeHTML(result);
+            const safeGameType = SecurityUtils.escapeHTML(gameType);
             const safeOpponent = SecurityUtils.escapeHTML(opponent);
             const safeScore = SecurityUtils.escapeHTML(score);
             const safeDate = SecurityUtils.escapeHTML(date);
@@ -336,11 +359,7 @@ export class ProfileManager {
             matchDiv.innerHTML = `
                 <div class="flex justify-between items-center">
                     <div>
-                        <p class="font-semibold">${safeResult} contre ${safeOpponent}</p>
-                        <p class="text-sm text-gray-400">${safeDate}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-bold text-lg">${safeScore}</p>
+                        <p class="font-semibold">${safeResult} - ${safeGameType} - ${safeOpponent} - ${safeScore} - ${safeDate}</p>
                     </div>
                 </div>
             `;
