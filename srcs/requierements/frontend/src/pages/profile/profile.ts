@@ -398,7 +398,8 @@ export class ProfileManager {
             const matchDiv = document.createElement('div');
             matchDiv.className = 'bg-gray-800 p-4 rounded-lg mb-4';
 
-            const date = new Date(match.game_date).toLocaleDateString('fr-FR', {
+            // Add 'Z' if missing to indicate UTC time, fixing 1-hour time difference
+            const date = new Date(match.game_date + (match.game_date.includes('Z') ? '' : 'Z')).toLocaleString('fr-FR', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
