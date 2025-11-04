@@ -379,7 +379,7 @@ export class ProfileManager {
         const otherMatches: any[] = [];
 
         matches.forEach((match) => {
-            if ((match.game_type || '').toLowerCase() === 'tournament') {
+            if ((match.game_type || '').toLowerCase().includes('tournament')) {
                 tournamentMatches.push(match);
             } else {
                 otherMatches.push(match);
