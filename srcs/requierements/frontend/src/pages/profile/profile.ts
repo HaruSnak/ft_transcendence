@@ -169,6 +169,11 @@ export class ProfileManager {
             }
         });
 
+        // Handle openProfileEdit event from login modal
+        window.addEventListener('openProfileEdit', () => {
+            this.showEditForm();
+        });
+
         // Handle avatar upload
         document.addEventListener('change', (e) => {
             const target = e.target as HTMLInputElement;
