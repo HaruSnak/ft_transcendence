@@ -38,7 +38,6 @@ class Database {
 				avatar_url VARCHAR(255) DEFAULT '/assets/default-avatar.png',
 				is_online BOOLEAN DEFAULT 0,
 				is_user BOOLEAN DEFAULT 1,
-				has_seen_welcome BOOLEAN DEFAULT 0,
 				created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 				updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 			)`,
@@ -122,13 +121,6 @@ class Database {
 					console.log('Table créée ou déjà existante');
 				}
 			});
-		});
-
-		// Add new columns if they don't exist
-		this.db.run(`ALTER TABLE users ADD COLUMN has_seen_welcome BOOLEAN DEFAULT 0`, (err) => {
-			if (err && !err.message.includes('duplicate column name')) {
-				console.error('Error adding has_seen_welcome column:', err.message);
-			}
 		});
 	}
 

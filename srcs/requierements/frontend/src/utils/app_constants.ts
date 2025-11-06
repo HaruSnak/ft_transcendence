@@ -17,7 +17,6 @@ export const STORAGE_KEYS = {
 export const SOCKET_EVENTS = {
     CONNECT: 'connect',
     DISCONNECT: 'disconnect',
-    WELCOME: 'welcome',
     MESSAGE: 'message',
     USER_LIST: 'user_list',
     ACK: 'ack',

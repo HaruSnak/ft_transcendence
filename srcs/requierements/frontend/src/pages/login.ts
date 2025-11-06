@@ -1,7 +1,5 @@
 // src/pages/login.ts
 
-import { updateNavbar } from '../index.js';
-
 // Business logic: Perform login (modifier uniquement ici pour le backend)
 export async function performLogin(identifier: string, password: string): Promise<{ token: string; user: any }> {
     const response = await fetch('/api/auth/login', {
@@ -64,30 +62,10 @@ export function initLogin() {
                 sessionStorage.removeItem('profileUsername'); // Clear any old profile view
                 sessionStorage.setItem('authToken', data.token);
                 sessionStorage.setItem('user', JSON.stringify(data.user));
-                // Mettre à jour la navbar immédiatement après le login
-                updateNavbar();
                 showMsg('Login successful!', true);
-                // Check if first login and show welcome modal
-                if (!data.user.has_seen_welcome) {
-                    const modal = document.getElementById('edit-profile-modal');
-                    modal?.classList.add('show');
-                    modal?.classList.remove('hidden');
-                    // Mark as seen
-                    fetch('/api/user/profile', {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${data.token}`
-                        },
-                        body: JSON.stringify({ has_seen_welcome: true })
-                    }).catch(err => console.error('Failed to update welcome status:', err));
-                    // No auto-redirect; wait for user to click buttons
-                } else {
-                    setTimeout(() => {
-                        window.location.hash = 'profile';
-                        location.reload();
-                    }, 600);
-                }
+                
+                // Redirection immédiate vers le profil
+                window.location.hash = 'profile';
             } catch (error: any) {
                 console.error('Login error:', error);
                 showMsg('Login failed: ' + (error?.message || error), false);
@@ -98,41 +76,6 @@ export function initLogin() {
     if (signupBtn) {
         signupBtn.addEventListener('click', () => {
             window.location.hash = 'signup';
-        });
-    }
-
-    // Modal event listeners
-    const modal = document.getElementById('edit-profile-modal');
-    const editBtn = document.getElementById('edit-profile-btn');
-    const skipBtn = document.getElementById('skip-edit-btn');
-
-    if (modal) {
-        // Close modal when clicking outside
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.classList.remove('show');
-                modal.classList.add('hidden');
-            }
-        });
-    }
-
-    if (editBtn) {
-        editBtn.addEventListener('click', () => {
-            modal?.classList.remove('show');
-            modal?.classList.add('hidden');
-            window.location.hash = 'profile';
-            setTimeout(() => {
-                const evt = new CustomEvent('openProfileEdit');
-                window.dispatchEvent(evt);
-            }, 100);
-        });
-    }
-
-    if (skipBtn) {
-        skipBtn.addEventListener('click', () => {
-            modal?.classList.remove('show');
-            modal?.classList.add('hidden');
-            window.location.hash = 'profile';
         });
     }
 }

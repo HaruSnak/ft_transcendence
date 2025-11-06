@@ -44,10 +44,6 @@ export class SocketConnectionService {
             console.log('❌ Socket.IO disconnected');
         });
 
-        this.socket.on(SOCKET_EVENTS.WELCOME, (data) => {
-            console.log('👋 Welcome message received:', data.message);
-        });
-
         this.socket.on(SOCKET_EVENTS.ACK, (data) => {
             console.log('✅ Acknowledgment received:', data);
         });

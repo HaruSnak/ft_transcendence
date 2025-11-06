@@ -80,7 +80,7 @@ class UserService {
 	async authenticateUser(username, password) {
 		try {
 			const user = await database.get(
-				'SELECT id, username, email, password_hash, display_name, avatar_url, has_seen_welcome FROM users WHERE username = ? OR email = ?',
+				'SELECT id, username, email, password_hash, display_name, avatar_url FROM users WHERE username = ? OR email = ?',
 				[username, username]
 			);
 
@@ -114,8 +114,7 @@ class UserService {
 					username: user.username,
 					email: user.email,
 					display_name: user.display_name,
-					avatar_url: user.avatar_url,
-					has_seen_welcome: user.has_seen_welcome
+					avatar_url: user.avatar_url
 				}
 			};
 		} catch (error) {
@@ -127,7 +126,7 @@ class UserService {
 	async getUserById(userId) {
 		try {
 			const user = await database.get(
-				`SELECT u.id, u.username, u.email, u.display_name, u.avatar_url, u.is_online, u.has_seen_welcome, u.created_at,
+				`SELECT u.id, u.username, u.email, u.display_name, u.avatar_url, u.is_online, u.created_at,
 						s.wins, s.losses, s.games_played
 				 FROM users u
 				 LEFT JOIN user_stats s ON u.id = s.user_id
@@ -149,7 +148,7 @@ class UserService {
 	async getUserByUsername(username) {
 		try {
 			const user = await database.get(
-				`SELECT u.id, u.username, u.display_name, u.avatar_url, u.is_online, u.has_seen_welcome, u.created_at,
+				`SELECT u.id, u.username, u.display_name, u.avatar_url, u.is_online, u.created_at,
 						s.wins, s.losses, s.games_played
 				 FROM users u
 				 LEFT JOIN user_stats s ON u.id = s.user_id
@@ -170,7 +169,7 @@ class UserService {
 	// Mettre à jour le profil utilisateur
 	async updateUser(userId, updates) {
 		try {
-			const { display_name, email, password, avatar_url, has_seen_welcome } = updates;
+			const { display_name, email, password, avatar_url } = updates;
 			
 			// Préparer les valeurs pour la requête
 			let updateFields = [];
@@ -196,11 +195,6 @@ class UserService {
 			if (avatar_url !== undefined) {
 				updateFields.push('avatar_url = ?');
 				updateValues.push(avatar_url);
-			}
-			
-			if (has_seen_welcome !== undefined) {
-				updateFields.push('has_seen_welcome = ?');
-				updateValues.push(has_seen_welcome);
 			}
 			
 			// Ajouter updated_at et WHERE clause
