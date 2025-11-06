@@ -569,7 +569,7 @@ export class ProfileManager {
         sessionStorage.removeItem('profileUsername');
         // Mettre à jour la navbar après le logout
         updateNavbar();
-        window.location.hash = 'login';
+        window.location.reload();
     }
 
     private async deleteUser(): Promise<void> {
