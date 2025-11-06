@@ -64,8 +64,8 @@ export function initLogin() {
                 sessionStorage.setItem('user', JSON.stringify(data.user));
                 showMsg('Login successful!', true);
                 
-                // Redirection immédiate vers le profil
-                window.location.hash = 'profile';
+                // Refresh the browser to show the logged-in user
+                window.location.reload();
             } catch (error: any) {
                 console.error('Login error:', error);
                 showMsg('Login failed: ' + (error?.message || error), false);

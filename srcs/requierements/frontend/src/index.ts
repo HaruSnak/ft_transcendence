@@ -72,7 +72,10 @@ function initNavigation() {
 
   // Handle initial page based on hash
   const hash = window.location.hash.substring(1);
-  if (hash) {
+  const authToken = sessionStorage.getItem('authToken');
+  if (hash === 'login' && authToken) {
+    navigateTo('profile', false);
+  } else if (hash) {
     if (hash.startsWith('profile-')) {
       const username = hash.substring(8);
       sessionStorage.setItem('profileUsername', username);
@@ -89,7 +92,10 @@ function initNavigation() {
   // Handle hash changes
   window.addEventListener('hashchange', () => {
     const hash = window.location.hash.substring(1);
-    if (hash) {
+    const authToken = sessionStorage.getItem('authToken');
+    if (hash === 'login' && authToken) {
+      navigateTo('profile', false);
+    } else if (hash) {
       if (hash.startsWith('profile-')) {
         const username = hash.substring(8);
         sessionStorage.setItem('profileUsername', username);
