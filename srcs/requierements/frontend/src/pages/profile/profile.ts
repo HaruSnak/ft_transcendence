@@ -555,7 +555,7 @@ export class ProfileManager {
         }
     }
 
-    // ========================= ACCOUNT REMOVAL =========================
+    // ========================= ACCOUNT LOGOUT & REMOVAL =========================
 
     private async logout(): Promise<void> {
         try {
