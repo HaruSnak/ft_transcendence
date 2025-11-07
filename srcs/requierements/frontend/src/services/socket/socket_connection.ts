@@ -12,17 +12,20 @@ export class SocketConnectionService {
         this.loadCurrentUser();
     }
 
+    // 1. recupere et load le user avec son token et ses user data
     private loadCurrentUser(): void {
         const token = sessionStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
         const userData = sessionStorage.getItem(STORAGE_KEYS.USER_DATA);
 
         if (token && userData) {
+            // sert a convertir la string stockee en objet User
             this.currentUser = JSON.parse(userData);
         }
     }
 
+    // 2. connexion avec socket.io (bi-directionnel) et au cas ou le server bloque le websocket, utilise polling (HTTP)
     public connect(): Socket {
-        console.log('🔌 Establishing Socket.IO connection...');
+        console.log('Establishing Socket.IO connection...');
 
         this.socket = io(SERVER_URL, {
             transports: ['websocket', 'polling']
@@ -36,16 +39,16 @@ export class SocketConnectionService {
         if (!this.socket) return;
 
         this.socket.on(SOCKET_EVENTS.CONNECT, () => {
-            console.log('✅ Socket.IO connected successfully');
+            console.log('Socket.IO connected successfully');
             this.registerUser();
         });
 
         this.socket.on(SOCKET_EVENTS.DISCONNECT, () => {
-            console.log('❌ Socket.IO disconnected');
+            console.log('Socket.IO disconnected');
         });
 
         this.socket.on(SOCKET_EVENTS.ACK, (data) => {
-            console.log('✅ Acknowledgment received:', data);
+            console.log('Acknowledgment received:', data);
         });
     }
 
@@ -55,7 +58,7 @@ export class SocketConnectionService {
                 username: this.currentUser.username,
                 display_name: this.currentUser.display_name || this.currentUser.username
             });
-            console.log('✅ User registered on socket:', this.currentUser.username);
+            console.log('User registered on socket:', this.currentUser.username);
         }
     }
 

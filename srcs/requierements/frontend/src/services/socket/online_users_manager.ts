@@ -34,7 +34,7 @@ export class UserManagementService {
     private renderUserList(): void {
         const userListContainer = document.getElementById(UI_ELEMENTS.USER_LIST);
         if (!userListContainer) {
-            console.error('❌ User list container not found');
+            console.error('User list container not found');
             return;
         }
 

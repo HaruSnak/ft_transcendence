@@ -21,7 +21,7 @@ export class BlockingSystemService {
             // Update message service with blocked users
             this.messageService.updateBlockedUsers(this.blockedUsers);
         } catch (error) {
-            console.error('❌ Failed to load blocked users:', error);
+            console.error('Failed to load blocked users:', error);
         }
     }
 
@@ -41,7 +41,7 @@ export class BlockingSystemService {
             // Note: Previous messages remain visible, only new messages are blocked
 
         } catch (error) {
-            console.error('❌ Error blocking user:', error);
+            console.error('Error blocking user:', error);
             const errorMsg = (error as Error).message.includes('Failed to fetch user by username') 
                 ? 'Utilisateur non trouvé ou inexistant.' 
                 : (error as Error).message;
@@ -80,13 +80,13 @@ export class BlockingSystemService {
             // Note: Previous messages were never hidden, so no need to show them
 
         } catch (error) {
-            console.error('❌ Error unblocking user:', error);
+            console.error('Error unblocking user:', error);
 
             // Reload blocked users list to ensure local state is in sync
             try {
                 await this.loadBlockedUsers();
             } catch (reloadError) {
-                console.error('❌ Failed to reload blocked users:', reloadError);
+                console.error('Failed to reload blocked users:', reloadError);
             }
 
             alert('Error unblocking user: ' + (error as Error).message);

@@ -10,17 +10,17 @@ export class MessageHandlingService {
     private blockedUsers: Set<string> = new Set();
 
     constructor(private socketConnection: SocketConnection) {
+        // met en ecoute l'interface chat
         this.setupUIListeners();
-        // Socket listeners will be set up after connection
     }
 
     public setupSocketListeners(): void {
         const socket = this.socketConnection.getSocket();
         if (!socket) {
-            console.error('❌ Cannot setup message listeners: socket not available');
+            console.error('Cannot setup message listeners: socket not available');
             return;
         }
-
+        // socket.on = attend qu'un message arrive du server (ecoute) et execute une fois qu'il arrive
         socket.on(SOCKET_EVENTS.MESSAGE, (messageData: ChatMessage) => {
             this.handleIncomingMessage(messageData);
         });
@@ -32,9 +32,10 @@ export class MessageHandlingService {
             this.startDirectMessage(username, displayName);
         });
     }
-
+    // verifie si bloquer ou message a double
     private handleIncomingMessage(message: ChatMessage): void {
         const currentUser = this.socketConnection.getCurrentUser();
+        // masque si c'est moi meme
         if (!currentUser) return;
 
         // Check if sender is blocked
@@ -43,7 +44,7 @@ export class MessageHandlingService {
             return;
         }
 
-        // Skip messages that we already displayed locally (avoid duplicates)
+        // Si message deja emit, il l'ignore pour eviter les duplications
         if (this.isDuplicateMessage(message)) {
             return;
         }
@@ -90,7 +91,7 @@ export class MessageHandlingService {
         this.showChatInterface();
         this.markConversationAsRead(username);
     }
-
+    // Historique, attention, pas historique database, mais historique de la map
     private loadConversationHistory(username: string): void {
         const messagesContainer = document.getElementById(UI_ELEMENTS.CHAT_MESSAGES);
         if (!messagesContainer) return;
@@ -104,11 +105,11 @@ export class MessageHandlingService {
             }
         });
     }
-
+    // affiche le message dans la fenetre de chat
     private displayMessageInChat(message: ChatMessage): void {
         const messagesContainer = document.getElementById(UI_ELEMENTS.CHAT_MESSAGES);
         if (!messagesContainer) {
-            console.error('❌ Chat messages container not found');
+            console.error('Chat messages container not found');
             return;
         }
 
@@ -123,7 +124,7 @@ export class MessageHandlingService {
         const displayName = message.from_display_name || message.from;
 
         // Check if this is a game invitation message
-        const isGameInvitation = message.text === "Hey! Want to play a game together? 🎮";
+        const isGameInvitation = message.text === "Hey! Want to play a game together?";
 
         if (isGameInvitation) {
             // Create message with join button
@@ -164,7 +165,7 @@ export class MessageHandlingService {
         messagesContainer.appendChild(messageElement);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
-
+    // ajoute le message a la map
     private addMessageToHistory(message: ChatMessage): void {
         const conversationKey = message.from === this.socketConnection.getCurrentUser()?.username
             ? message.to
@@ -176,7 +177,7 @@ export class MessageHandlingService {
 
         this.messageHistory.get(conversationKey)!.push(message);
     }
-
+    // ajoute un element dans la liste de gauche des dm
     private addToDirectMessageList(username: string, displayName: string): void {
         const dmList = document.getElementById(UI_ELEMENTS.DM_LIST);
         if (!dmList) return;
@@ -195,7 +196,7 @@ export class MessageHandlingService {
 
         dmList.appendChild(conversationElement);
     }
-
+    // affiche le marqueur rouge de la notif si pas sur la conversation 
     private markConversationAsUnread(username: string): void {
         const dmList = document.getElementById(UI_ELEMENTS.DM_LIST);
         if (!dmList) return;
@@ -211,7 +212,7 @@ export class MessageHandlingService {
             conversationElement.appendChild(indicator);
         }
     }
-
+    // supprime le marqueur rouge de la notif de nouveau message si la conversation n'est pas ouverte
     private markConversationAsRead(username: string): void {
         const dmList = document.getElementById(UI_ELEMENTS.DM_LIST);
         if (!dmList) return;
@@ -226,7 +227,7 @@ export class MessageHandlingService {
             indicator.remove();
         }
     }
-
+    // update le header de la conversation (nom du user target)
     private updateChatHeader(title: string): void {
         const header = document.getElementById(UI_ELEMENTS.CHAT_TITLE);
         if (header) {
