@@ -4,6 +4,7 @@ import { ChatMessage, DirectMessage, SocketUser, SocketConnection } from '../../
 import { UI_ELEMENTS, SOCKET_EVENTS } from '../../utils/app_constants';
 import { SecurityUtils } from '../../utils/SecurityUtils';
 
+// Classe qui gere tous les messages du chat : reception, envoi, historique, blocage, invitations de jeu
 export class MessageHandlingService {
     private currentChat: DirectMessage | null = null;
     private messageHistory: Map<string, ChatMessage[]> = new Map();
@@ -14,6 +15,8 @@ export class MessageHandlingService {
         this.setupUIListeners();
     }
 
+    // ========================= INITIALISATION & ECOUTEURS =========================
+    // Met en place les ecouteurs pour les evenements socket (messages entrants du serveur)
     public setupSocketListeners(): void {
         const socket = this.socketConnection.getSocket();
         if (!socket) {
@@ -26,13 +29,16 @@ export class MessageHandlingService {
         });
     }
 
+    // Met en place les ecouteurs pour les evenements de l'interface utilisateur (demarrage de conversation)
     private setupUIListeners(): void {
         document.addEventListener('initiateDirectMessage', (event: any) => {
             const { username, displayName } = event.detail;
             this.startDirectMessage(username, displayName);
         });
     }
-    // verifie si bloquer ou message a double
+
+    // ========================= GESTION DES MESSAGES ENTRANTS =========================
+    // Traite un message entrant : verifie si bloquer ou message a double, puis gere selon le type
     private handleIncomingMessage(message: ChatMessage): void {
         const currentUser = this.socketConnection.getCurrentUser();
         // masque si c'est moi meme
@@ -57,6 +63,7 @@ export class MessageHandlingService {
         }
     }
 
+    // Gere un message direct recu : ajoute a la liste DM, marque comme non lu si besoin, affiche si conversation active
     private handleDirectMessage(message: ChatMessage): void {
         // Add to DM list if not exists
         this.addToDirectMessageList(message.from, message.from_display_name || message.from);
@@ -74,6 +81,7 @@ export class MessageHandlingService {
         this.addMessageToHistory(message);
     }
 
+    // Gere un message que l'utilisateur a envoye : affiche si conversation active, ajoute a l'historique
     private handleOwnMessage(message: ChatMessage): void {
         // Display if currently viewing this conversation
         if (this.currentChat && this.currentChat.user === message.to) {
@@ -83,6 +91,8 @@ export class MessageHandlingService {
         this.addMessageToHistory(message);
     }
 
+    // ========================= GESTION DES CONVERSATIONS =========================
+    // Demarre une nouvelle conversation directe avec un utilisateur : met a jour l'interface et charge l'historique
     public startDirectMessage(username: string, displayName: string): void {
         this.currentChat = { type: 'dm', user: username, displayName: displayName };
 
@@ -91,7 +101,8 @@ export class MessageHandlingService {
         this.showChatInterface();
         this.markConversationAsRead(username);
     }
-    // Historique, attention, pas historique database, mais historique de la map
+
+    // Charge l'historique des messages d'une conversation depuis la Map locale (pas la base de donnees)
     private loadConversationHistory(username: string): void {
         const messagesContainer = document.getElementById(UI_ELEMENTS.CHAT_MESSAGES);
         if (!messagesContainer) return;
@@ -105,7 +116,9 @@ export class MessageHandlingService {
             }
         });
     }
-    // affiche le message dans la fenetre de chat
+
+    // ========================= AFFICHAGE DES MESSAGES =========================
+    // Affiche un message dans la fenetre de chat avec echappement HTML pour la securite, gere les invitations de jeu
     private displayMessageInChat(message: ChatMessage): void {
         const messagesContainer = document.getElementById(UI_ELEMENTS.CHAT_MESSAGES);
         if (!messagesContainer) {
@@ -165,7 +178,9 @@ export class MessageHandlingService {
         messagesContainer.appendChild(messageElement);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
-    // ajoute le message a la map
+
+    // ========================= GESTION DE L'HISTORIQUE =========================
+    // Ajoute un message a l'historique local (Map) pour pouvoir le retrouver plus tard
     private addMessageToHistory(message: ChatMessage): void {
         const conversationKey = message.from === this.socketConnection.getCurrentUser()?.username
             ? message.to
@@ -177,7 +192,9 @@ export class MessageHandlingService {
 
         this.messageHistory.get(conversationKey)!.push(message);
     }
-    // ajoute un element dans la liste de gauche des dm
+
+    // ========================= GESTION DE L'INTERFACE UTILISATEUR =========================
+    // Ajoute un element dans la liste de gauche des conversations directes (DM)
     private addToDirectMessageList(username: string, displayName: string): void {
         const dmList = document.getElementById(UI_ELEMENTS.DM_LIST);
         if (!dmList) return;
@@ -196,7 +213,8 @@ export class MessageHandlingService {
 
         dmList.appendChild(conversationElement);
     }
-    // affiche le marqueur rouge de la notif si pas sur la conversation 
+
+    // Affiche un indicateur rouge de notification pour une conversation non lue
     private markConversationAsUnread(username: string): void {
         const dmList = document.getElementById(UI_ELEMENTS.DM_LIST);
         if (!dmList) return;
@@ -212,7 +230,8 @@ export class MessageHandlingService {
             conversationElement.appendChild(indicator);
         }
     }
-    // supprime le marqueur rouge de la notif de nouveau message si la conversation n'est pas ouverte
+
+    // Supprime l'indicateur de notification non lue d'une conversation
     private markConversationAsRead(username: string): void {
         const dmList = document.getElementById(UI_ELEMENTS.DM_LIST);
         if (!dmList) return;
@@ -227,7 +246,8 @@ export class MessageHandlingService {
             indicator.remove();
         }
     }
-    // update le header de la conversation (nom du user target)
+
+    // Met a jour le titre de la conversation dans le header du chat
     private updateChatHeader(title: string): void {
         const header = document.getElementById(UI_ELEMENTS.CHAT_TITLE);
         if (header) {
@@ -235,6 +255,7 @@ export class MessageHandlingService {
         }
     }
 
+    // Montre l'interface de chat : boutons bloquer/inviter, active le champ de saisie
     private showChatInterface(): void {
         // Show block button
         const blockButton = document.getElementById(UI_ELEMENTS.BLOCK_BUTTON);
@@ -265,6 +286,8 @@ export class MessageHandlingService {
         }
     }
 
+    // ========================= ENVOI DE MESSAGES =========================
+    // Envoie un message a l'utilisateur actuel de la conversation via le socket
     public sendMessage(messageText: string): void {
         if (!this.currentChat) {
             alert('Please select a user to start chatting first.');
@@ -289,18 +312,23 @@ export class MessageHandlingService {
         }
     }
 
+    // ========================= GETTERS & UTILITIES =========================
+    // Retourne la conversation actuelle (utilisateur avec qui on discute)
     public getCurrentChat(): DirectMessage | null {
         return this.currentChat;
     }
 
+    // Met a jour la liste des utilisateurs bloques
     public updateBlockedUsers(blockedUsernames: Set<string>): void {
         this.blockedUsers = blockedUsernames;
     }
 
+    // Verifie si un utilisateur est bloque
     public isUserBlocked(username: string): boolean {
         return this.blockedUsers.has(username);
     }
 
+    // Cache tous les messages d'un utilisateur bloque dans l'interface
     public hideMessagesFromUser(username: string): void {
         const messagesContainer = document.getElementById(UI_ELEMENTS.CHAT_MESSAGES);
         if (!messagesContainer) return;
@@ -314,6 +342,7 @@ export class MessageHandlingService {
         });
     }
 
+    // Verifie si un message est un duplicata (pour eviter les envois multiples accidentels)
     private isDuplicateMessage(message: ChatMessage): boolean {
         const currentUser = this.socketConnection.getCurrentUser();
         if (!currentUser || message.from !== currentUser.username) {
@@ -339,6 +368,7 @@ export class MessageHandlingService {
         );
     }
 
+    // Remontre les messages d'un utilisateur qui a ete debloque
     public showMessagesFromUser(username: string): void {
         const messagesContainer = document.getElementById(UI_ELEMENTS.CHAT_MESSAGES);
         if (!messagesContainer) return;

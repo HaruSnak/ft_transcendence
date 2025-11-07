@@ -3,11 +3,14 @@
 import { UserApiService } from '../api/user_api_service';
 import { BlockedUser, MessageService } from '../../utils/data_types';
 
+// classe qui gere le systeme de blocage des utilisateurs : permet de bloquer/debloquer des users, charge la liste des bloques, verifie si un user est bloque
 export class BlockingSystemService {
     private blockedUsers: Set<string> = new Set();
 
     constructor(private messageService: MessageService) {}
 
+    // ========================= CHARGEMENT DES DONNEES =========================
+    // charge la liste des utilisateurs bloques depuis l'API
     public async loadBlockedUsers(): Promise<void> {
         const token = sessionStorage.getItem('authToken');
         if (!token) {
@@ -25,6 +28,8 @@ export class BlockingSystemService {
         }
     }
 
+    // ========================= BLOCAGE D'UTILISATEUR =========================
+    // bloque un utilisateur via l'API
     public async blockUser(username: string): Promise<void> {
         try {
             // Get user ID first
@@ -49,6 +54,8 @@ export class BlockingSystemService {
         }
     }
 
+    // ========================= DEBLOCAGE D'UTILISATEUR =========================
+    // debloque un utilisateur via l'API
     public async unblockUser(username: string): Promise<void> {
         try {
             // Check if user is actually blocked locally
@@ -93,10 +100,13 @@ export class BlockingSystemService {
         }
     }
 
+    // ========================= VERIFICATION D'ETAT =========================
+    // verifie si un utilisateur est bloque
     public isUserBlocked(username: string): boolean {
         return this.blockedUsers.has(username);
     }
 
+    // retourne la liste des utilisateurs bloques
     public getBlockedUsers(): Set<string> {
         return new Set(this.blockedUsers);
     }

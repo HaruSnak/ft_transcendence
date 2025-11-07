@@ -6,6 +6,7 @@ import { OnlineFriendsWidget } from './online_friends_widget';
 import { updateNavbar } from '../../index.js';
 
 // Business logic: Profile operations (modifier uniquement ici pour le backend)
+// recupere les donnees du profil d'un utilisateur (soi-meme ou un autre) via une requete API
 export async function performFetchProfile(profileUsername?: string): Promise<User> {
   let response;
   if (profileUsername) {
@@ -30,6 +31,7 @@ export async function performFetchProfile(profileUsername?: string): Promise<Use
   return data.user;
 }
 
+// met a jour le profil de l'utilisateur (nom, email, mot de passe) via une requete PUT
 export async function performUpdateProfile(displayName: string, email: string, password?: string): Promise<User> {
   const response = await fetch('/api/user/profile', {
     method: 'PUT',
@@ -52,6 +54,7 @@ export async function performUpdateProfile(displayName: string, email: string, p
   return data.user;
 }
 
+// telecharge un nouvel avatar pour l'utilisateur via une requete POST avec FormData
 export async function performUploadAvatar(file: File): Promise<{ avatar_url: string }> {
   const formData = new FormData();
   formData.append('avatar', file);
@@ -71,6 +74,7 @@ export async function performUploadAvatar(file: File): Promise<{ avatar_url: str
   return await response.json();
 }
 
+// deconnecte l'utilisateur via une requete POST
 export async function performLogout(): Promise<void> {
   await fetch('/api/user/logout', {
     method: 'POST',
@@ -80,6 +84,7 @@ export async function performLogout(): Promise<void> {
   });
 }
 
+// supprime definitivement le compte de l'utilisateur via une requete DELETE
 export async function performDeleteUser(): Promise<void> {
   const response = await fetch('/api/user/profile', {
     method: 'DELETE',
@@ -93,6 +98,7 @@ export async function performDeleteUser(): Promise<void> {
   }
 }
 
+// charge l'historique des matches de l'utilisateur via une requete GET
 export async function performLoadMatchHistory(): Promise<any[]> {
   const response = await fetch('/api/user/matches', {
     headers: {
@@ -111,6 +117,7 @@ export async function performLoadMatchHistory(): Promise<any[]> {
 // Business logic END
 
 // UI logic
+// Classe qui gere l'interface du profil : chargement, edition, avatar, historique des matches, amis en ligne, etc.
 export class ProfileManager {
     private onlineFriendsWidget: OnlineFriendsWidget | null = null;
     private isAuthenticated: boolean = false;
@@ -120,6 +127,7 @@ export class ProfileManager {
     }
 
     // ========================= AUTHENTICATION & INITIALIZATION =========================
+    // Au demarrage : verifie si l'utilisateur est connecte, sinon affiche un message d'acces refuse
     private checkAuthentication(): void {
         const token = sessionStorage.getItem('authToken');
         this.isAuthenticated = !!token;
@@ -133,6 +141,7 @@ export class ProfileManager {
         this.setupEventListeners();
     }
 
+    // Affiche un message d'acces refuse avec un bouton pour aller au login
     private showAccessDenied(): void {
         const profileSection = document.getElementById('profile');
         if (!profileSection) return;
@@ -152,6 +161,7 @@ export class ProfileManager {
     }
 
     // ========================= EVENT LISTENERS SETUP =========================
+    // Met en place tous les ecouteurs d'evenements : clics sur boutons, soumission de formulaires, etc.
     private setupEventListeners(): void {
         // Handle profile actions
         document.addEventListener('click', (e) => {
@@ -193,6 +203,7 @@ export class ProfileManager {
     }
 
     // ========================= PROFILE LOADING & DISPLAY =========================
+    // Charge les donnees du profil (soi ou un autre utilisateur) et affiche l'interface
     public async loadProfile(): Promise<void> {
         this.showState('loading');
 
@@ -237,6 +248,7 @@ export class ProfileManager {
         }
     }
 
+    // Remplit les champs de l'interface avec les donnees du profil (nom, email, avatar, stats)
     private populateFields(user: User, isOtherUser: boolean = false): void {
         const nameField = document.querySelector('[data-field="name"]') as HTMLElement;
         const infoField = document.querySelector('[data-field="info"]') as HTMLElement;
@@ -286,6 +298,7 @@ export class ProfileManager {
     }
 
     // ========================= MATCH HISTORY MANAGEMENT =========================
+    // Charge l'historique des matches et calcule les stats (victoires/defaites)
     private async loadMatchHistory(): Promise<void> {
         try {
             const matches = await performLoadMatchHistory();
@@ -297,6 +310,7 @@ export class ProfileManager {
         }
     }
 
+    // Calcule les stats (wins/losses) a partir des matches, en gerant les tournois separement
     private calculateStatsFromMatches(matches: any[]): void {
         // Get current user username
         const userData = sessionStorage.getItem('user');
@@ -354,6 +368,7 @@ export class ProfileManager {
         if (lossesElement) lossesElement.textContent = losses.toString();
     }
 
+    // Affiche l'historique des matches dans l'interface, avec echappement HTML pour la securite
     private displayMatchHistory(matches: any[]): void {
         const container = document.getElementById('match-history');
         if (!container) return;
@@ -455,6 +470,7 @@ export class ProfileManager {
     }
 
     // ========================= PROFILE EDITING =========================
+    // Montre le formulaire d'edition du profil
     private showEditForm(): void {
         const mainState = document.querySelector('[data-state="main"]');
         const editState = document.querySelector('[data-state="edit"]');
@@ -463,6 +479,7 @@ export class ProfileManager {
         this.clearEditMsg();
     }
 
+    // Cache le formulaire d'edition et revient a la vue principale
     private hideEditForm(): void {
         const mainState = document.querySelector('[data-state="main"]');
         const editState = document.querySelector('[data-state="edit"]');
@@ -471,6 +488,7 @@ export class ProfileManager {
         this.clearEditMsg();
     }
 
+    // Soumet le formulaire d'edition, valide les donnees, met a jour le profil via API
     private async updateProfile(): Promise<void> {
         const editName = document.querySelector('[data-field="edit-name"]') as HTMLInputElement;
         const editEmail = document.querySelector('[data-field="edit-email"]') as HTMLInputElement;
@@ -524,6 +542,7 @@ export class ProfileManager {
     }
 
     // ========================= AVATAR MANAGEMENT =========================
+    // Gere le telechargement d'un nouvel avatar : validation, upload, mise a jour de l'affichage
     private async uploadAvatar(): Promise<void> {
         const fileInput = document.querySelector('[data-field="edit-avatar"]') as HTMLInputElement;
         if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
@@ -556,7 +575,7 @@ export class ProfileManager {
     }
 
     // ========================= ACCOUNT LOGOUT & REMOVAL =========================
-
+    // Deconnecte l'utilisateur : appel API, nettoyage du stockage, rechargement de la page
     private async logout(): Promise<void> {
         try {
             await performLogout();
@@ -565,6 +584,7 @@ export class ProfileManager {
         }
 
         sessionStorage.removeItem('authToken');
+        sessionStorage.removeItem('authToken');
         sessionStorage.removeItem('user');
         sessionStorage.removeItem('profileUsername');
         // Mettre à jour la navbar après le logout
@@ -572,6 +592,7 @@ export class ProfileManager {
         window.location.reload();
     }
 
+    // Supprime definitivement le compte : confirmation, appel API, nettoyage, redirection
     private async deleteUser(): Promise<void> {
         const confirmed = confirm('⚠️ ATTENTION ⚠️\n\nVous êtes sur le point de supprimer définitivement votre compte.\n\nCette action est IRRÉVERSIBLE.\n\nÊtes-vous sûr ?');
 
@@ -593,6 +614,7 @@ export class ProfileManager {
     }
 
     // ========================= UI STATE MANAGEMENT =========================
+    // Change l'etat visible de l'interface (loading, main, edit, denied)
     private showState(state: string): void {
         document.querySelectorAll('[data-state]').forEach(el => {
             el.classList.add('hidden');
@@ -607,6 +629,7 @@ export class ProfileManager {
         });
     }
 
+    // Affiche un message general dans le profil (succes ou erreur)
     private showProfileMsg(msg: string, ok: boolean): void {
         let msgDiv = document.getElementById('profile-message');
         if (!msgDiv) {
@@ -622,6 +645,7 @@ export class ProfileManager {
         msgDiv.style.color = ok ? 'var(--success, #22c55e)' : 'var(--danger, #ef4444)';
     }
 
+    // Affiche un message dans le formulaire d'edition
     private showEditMsg(msg: string, isSuccess: boolean = false): void {
         const msgDiv = document.getElementById('edit-message');
         if (!msgDiv) return;
@@ -643,6 +667,7 @@ export class ProfileManager {
         }, isSuccess ? 5000 : 10000);
     }
 
+    // Efface le message d'edition
     private clearEditMsg(): void {
         const msgDiv = document.getElementById('edit-message');
         if (msgDiv) {
