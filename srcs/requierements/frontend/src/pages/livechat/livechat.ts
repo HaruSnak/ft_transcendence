@@ -126,7 +126,7 @@ export class LivechatManager {
             if (!username) return;
 
             // Send an invitation message
-            const invitationMessage = "Hey! Want to play a game together? 🎮";
+            const invitationMessage = "Hey! Want to play a game together?";
             performSendMessage(invitationMessage);
         });
     }
