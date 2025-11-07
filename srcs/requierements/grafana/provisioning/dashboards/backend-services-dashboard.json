@@ -1,0 +1,234 @@
+{
+  "title": "Backend Services Metrics",
+  "tags": ["transcendence", "backend", "services"],
+  "timezone": "browser",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Chat Service - Messages Sent/Received",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "rate(msg_send_received_total[5m])",
+          "legendFormat": "Messages {{status}} rate"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": 2,
+      "title": "Chat Service - Total Messages",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "msg_send_received_total",
+          "legendFormat": "Total messages"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      }
+    },
+    {
+      "id": 3,
+      "title": "Chat Service - Socket Connections",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "rate(socket_connections_total[5m])",
+          "legendFormat": "Socket connections rate"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      }
+    },
+    {
+      "id": 4,
+      "title": "Chat Service - Total Socket Connections",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "socket_connections_total",
+          "legendFormat": "Total connections"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 8
+      }
+    },
+    {
+      "id": 5,
+      "title": "User Service - User Registrations Rate",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "rate(user_registrations_total[5m])",
+          "legendFormat": "Registration rate"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      }
+    },
+    {
+      "id": 6,
+      "title": "User Service - Total Registrations",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "user_registrations_total",
+          "legendFormat": "Total users"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 16
+      }
+    },
+    {
+      "id": 7,
+      "title": "User Service - User Logins Rate",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "rate(user_logins_total[5m])",
+          "legendFormat": "Login rate"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      }
+    },
+    {
+      "id": 8,
+      "title": "User Service - Total Logins",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "user_logins_total",
+          "legendFormat": "Total logins"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 24
+      }
+    },
+    {
+      "id": 9,
+      "title": "Service Health Overview",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "up{job=~\"chat-service|user-service\"}",
+          "legendFormat": "{{job}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "text": "DOWN",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "UP",
+                  "color": "green"
+                }
+              },
+              "type": "value"
+            }
+          ]
+        }
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 18,
+        "x": 0,
+        "y": 32
+      }
+    }
+  ],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "refresh": "30s",
+  "schemaVersion": 27,
+  "version": 0,
+  "links": []
+}

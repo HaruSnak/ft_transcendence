@@ -110,11 +110,24 @@ services:
     prometheus:
         container_name: prometheus
         image: prom/prometheus:latest
+        command:
+          - '--config.file=/etc/prometheus/prometheus.yml'
+          - '--storage.tsdb.retention.time=30d'
         ports:
             - "9090:9090"
         volumes:
             - prometheus_db:/prometheus
             - ./requierements/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+            - ./requierements/prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+        networks:
+            - promgraf_network
+        restart: unless-stopped
+
+    node-exporter:
+        container_name: node-exporter
+        image: prom/node-exporter:latest
+        ports:
+            - "9100:9100"
         networks:
             - promgraf_network
         restart: unless-stopped
