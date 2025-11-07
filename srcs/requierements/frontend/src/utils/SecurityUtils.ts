@@ -132,10 +132,11 @@ export class SecurityUtils {
 
     /**
         Valide le format d'un username
-        Retourne true si le username contient 3-20 caractères alphanumériques, _ ou -
+        Retourne true si le username contient 3-20 caractères alphanumériques, _ ou - et n'est pas dans la liste noire
     */
     static isValidUsername(username: string): boolean {
         if (!username) return false;
+        if (this.BLACKLISTED_WORDS.includes(username.toLowerCase())) return false;
         return this.USERNAME_REGEX.test(username);
     }
 

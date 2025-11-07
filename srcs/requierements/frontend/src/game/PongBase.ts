@@ -84,8 +84,14 @@ export class PongGame {
 		this.ctx = this.canvas.getContext('2d') as CanvasRenderingContext2D;
 		this.whoWin = 'null';
 		
-		window.addEventListener('keydown', (e) => this.keys.add(e.key));
-		window.addEventListener('keyup', (e) => this.keys.delete(e.key));
+		window.addEventListener('keydown', (e) => {
+			if ((this.gameBotGM || (this.gameTournamentGM && this.currentMatch?.[1]?.displayName === 'Bot')) && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) return;
+			this.keys.add(e.key);
+		});
+		window.addEventListener('keyup', (e) => {
+			if ((this.gameBotGM || (this.gameTournamentGM && this.currentMatch?.[1]?.displayName === 'Bot')) && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) return;
+			this.keys.delete(e.key);
+		});
 	}
 
 	// ==================== START and PAUSE ====================
@@ -168,11 +174,13 @@ export class PongGame {
 		this.ctx.font = '30px Arial';
 		this.ctx.fillStyle = "#ffffff"; // White text
 		this.drawPlayerNames();
-		this.divScoreInGame.querySelector('span').textContent = `${this.rightPaddle.score} - ${this.leftPaddle.score}`;
+		this.divScoreInGame.querySelector('span').textContent = `${this.leftPaddle.score} - ${this.rightPaddle.score}`;
 		this.ctx.fillStyle = "#ffffff"; // White ball for visibility
 		this.ctx.shadowColor = '#ffffff';
 		this.ctx.shadowBlur = 3;
-		this.ctx.fillRect(this.ball.x - this.BALL_SIZE / 2, this.ball.y - this.BALL_SIZE / 2, this.BALL_SIZE, this.BALL_SIZE);
+		this.ctx.beginPath();
+		this.ctx.arc(this.ball.x, this.ball.y, this.BALL_SIZE / 2, 0, 2 * Math.PI);
+		this.ctx.fill();
 		this.ctx.shadowBlur = 0;
 	}
 
@@ -192,12 +200,10 @@ export class PongGame {
 		// Joueur droit (touches fléchées)
 		// En mode Local ou Tournoi (sans Bot), le joueur humain contrôle le paddle droit
 		// En mode Bot, l'IA contrôle le paddle droit via les touches fléchées simulées
-		if ((this.gameLocalGM || this.gameBotGM || (this.gameTournamentGM && this.currentMatch[1].displayName != 'Bot'))) { 
-			if (this.keys.has('ArrowUp') && this.rightPaddle.y > 0)
-				this.rightPaddle.y -= this.PADDLE_SPEED;
-			if (this.keys.has('ArrowDown') && this.rightPaddle.y < this.PADDLE_MAX_Y)
-				this.rightPaddle.y += this.PADDLE_SPEED;
-		}		
+		if (this.keys.has('ArrowUp') && this.rightPaddle.y > 0)
+			this.rightPaddle.y -= this.PADDLE_SPEED;
+		if (this.keys.has('ArrowDown') && this.rightPaddle.y < this.PADDLE_MAX_Y)
+			this.rightPaddle.y += this.PADDLE_SPEED;	
 	}
 
 	/**
@@ -259,11 +265,8 @@ export class PongGame {
 		}
 
 		this.handleInput(); // Joueur
-		if (this.gameBotGM)	// Bot Gamemode
+		if (this.gameBotGM || (this.gameTournamentGM && this.currentMatch?.[1]?.displayName === 'Bot'))
 			this.updateAI();
-		if (this.gameTournamentGM)
-			console.log('GameTournament');
-			//this.moveBot();
 		this.draw();
 		this.animationFrameId = requestAnimationFrame(() => this.update());
 	}
@@ -313,6 +316,7 @@ export class PongGame {
 				this.gamePaused = false;
 				this.divScoreInGame.style.display = 'block';
 				this.ball.speed_y = Math.random() > 0.5 ? this.BALL_SPEED : -this.BALL_SPEED;
+				this.buttonStart.classList.add('hidden');
 				this.update();
 				this.buttonPause.disabled = false;
 			});
@@ -406,10 +410,11 @@ export class PongGame {
 			this.buttonStart.removeEventListener('click', this.startGame);
 		}
 		if (this.buttonPause) {
-			this.buttonPause.value = 'Pause';
 			this.buttonPause.disabled = false;
+			this.buttonPause.textContent = 'Pause';
 			this.buttonPause.removeEventListener('click', this.pauseGame);
 		}
+		this.buttonStart.classList.remove('hidden');
 		this.divScoreInGame.querySelector('span').textContent = `0 - 0`;
 	}
 
@@ -449,6 +454,11 @@ export class PongGame {
 			this.whoWin = 'right';
 		}
 		this.ctx.clearRect(0, 0, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
+		if (this.gameBotGM || this.gameLocalGM) {
+			setTimeout(() => {
+				window.location.reload();
+			}, 3000);
+		}
 	}
 
 	// ==================== INTELLIGENCE ARTIFICIELLE ====================
@@ -463,7 +473,7 @@ export class PongGame {
 			this.aiTargetY = Math.max(0, Math.min(this.PADDLE_MAX_Y, this.aiTargetY));
 		}
 		const paddleCenter = this.rightPaddle.y + this.PADDLE_HEIGHT / 2;
-		const tolerance = 5; // Zone morte pour éviter les oscillations
+		const tolerance = 2; // Zone morte pour éviter les oscillations
 
 		if (paddleCenter > this.aiTargetY + tolerance) {
 			if (!this.keys.has('ArrowUp')) {

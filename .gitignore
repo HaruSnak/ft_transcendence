@@ -38,3 +38,4 @@ build/
 *.tsbuildinfo
 srcs/requierements/frontend/public/js/
 srcs/requierements/frontend/public/css/
+sujet.md

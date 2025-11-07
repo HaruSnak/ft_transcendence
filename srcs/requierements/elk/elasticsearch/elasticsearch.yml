@@ -23,3 +23,7 @@ path.logs: /usr/share/elasticsearch/logs
 
 # Memory
 bootstrap.memory_lock: false
+
+# Index settings for lower memory usage
+index.number_of_shards: 1
+index.number_of_replicas: 0

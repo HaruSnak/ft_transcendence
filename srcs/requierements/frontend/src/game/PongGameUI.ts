@@ -1,9 +1,9 @@
 import { PongGame } from './PongBase.js'
 import { TournamentManager } from './TournamentManager.js'
 import { OneVsOneManager } from './LocalModeManager.js'
-import { SecurityUtils } from '../SecurityUtils.js'
+import { SecurityUtils } from '../utils/SecurityUtils'
 
-export class PongGameUI extends SecurityUtils {
+export class PongGameUI {
 	// ==================== Éléments d'interface - Gameplay ====================
 	// Boutons de contrôle du jeu pendant la partie
 	protected buttonStart = document.getElementById('buttonStartGame') as HTMLButtonElement;
@@ -56,21 +56,12 @@ export class PongGameUI extends SecurityUtils {
 	private boundHandleStart: () => void;
 	private boundHandlePause: () => void;
 
-	// ==================== Messages d'erreur ====================
-	// Map des codes d'erreur pour la validation des noms d'utilisateur
-	private static readonly USERNAME_ERROR_MESSAGES = new Map([
-		[-1, 'Username trop court ou trop long (min 3 caractères et max 10 caractères)'],
-		[-2, 'Username ne peut contenir que des lettres et chiffres'],
-		[-3, 'Username interdit']
-	]);
-
 	/*
 	Constructeur - Initialise tous les composants du jeu
 	Crée l'instance du jeu Pong et les gestionnaires de modes
 	Configure les écouteurs d'événements et affiche le menu principal
 	*/
 	constructor() {
-		super();
 		this.pongGame = new PongGame(
 			this.buttonStart,
 			this.buttonPause,
@@ -212,13 +203,12 @@ export class PongGameUI extends SecurityUtils {
 
 	/*
 		Valide le nom d'utilisateur selon les règles définies
-		Utilise validateUsername() de SecurityUtils (classe parente)
-		Affiche les messages d'erreur appropriés en cas d'échec
+		Utilise isValidUsername() de SecurityUtils
+		Affiche un message d'erreur générique en cas d'échec
 	*/
 	private verificationUserName(username: string): boolean {
-		const validationCode = this.validateUsername(username);
-		if (validationCode === 0) {
-			return (true);
+		if (SecurityUtils.isValidUsername(username)) {
+			return true;
 		}
 		const inputPassword = this.divInterfaceLogin.querySelector('.input-password-ui p') as HTMLElement;
 		if (inputPassword) {
@@ -227,10 +217,9 @@ export class PongGameUI extends SecurityUtils {
 		this.clearStatusVisual(['password']);
 		const errorMsg = this.divInterfaceLogin.querySelector('.input-username-ui p') as HTMLElement;
 		if (errorMsg) {
-			const message = PongGameUI.USERNAME_ERROR_MESSAGES.get(validationCode) || 'Erreur inconnue';
-			errorMsg.textContent = message;
+			errorMsg.textContent = 'Invalid username';
 		}
-		return (false);
+		return false;
 	}
 
 	/*
@@ -594,8 +583,6 @@ export class PongGameUI extends SecurityUtils {
 			(passwordContainer.querySelector('p') as HTMLElement).textContent = '';
 		}
 		this.buttonLaunchGame.style.display = 'none';
-		console.log("status " + this.buttonPause.value);
-		this.buttonPause.value = 'Pause';
 		this.updateControlsMessage("Choose a game mode from the following!");
 	}
 }

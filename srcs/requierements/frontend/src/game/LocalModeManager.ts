@@ -13,16 +13,14 @@ export class OneVsOneManager extends PlayerManager {
 			throw new Error('Exactly 2 players required for 1v1 match');
 		}
 		const [player1, player2] = this.players;
-		console.log(`1v1 Match: ${player1.displayName} vs ${player2.displayName}`);
+		//console.log(`1v1 Match: ${player1.displayName} vs ${player2.displayName}`);
 		const winner = await this.playSingleMatch(pongGame, player1, player2);
 		
 		if (winner === 'left') {
 			this.addMatchHistory(player1, player2, player1, '1v1');
-			await this.showMatchResult(player1);
 		}
 		else if (winner === 'right') {
 			this.addMatchHistory(player1, player2, player2, '1v1');
-			await this.showMatchResult(player2);
 		}
 		else
 			console.warn('Match ended in error');
@@ -69,39 +67,6 @@ export class OneVsOneManager extends PlayerManager {
 					resolve(null);
 			};
 			checkWinner();
-		});
-	}
-
-	/*
-		Affiche l'écran de résultat du match avec le gagnant
-		Crée dynamiquement les éléments DOM avec les classes Tailwind CSS
-		Recharge la page après 3 secondes via window.location.reload()
-	*/
-	private async showMatchResult(winner: TournamentPlayer): Promise<void> {
-		return new Promise(resolve => {
-			const MsgWinOrLose = document.getElementById('gameMessageWinOrLose');
-			if (!MsgWinOrLose) {
-				resolve();
-				return ;
-			}
-
-			MsgWinOrLose.classList.remove('hidden');
-			MsgWinOrLose.innerHTML = '';
-			
-			const container = document.createElement('div');
-			container.className = 'text-center';
-
-			const title = document.createElement('div');
-			title.className = 'text-2xl font-bold text-green-400 mb-4';
-			title.textContent = `🎉 ${winner.displayName} WINS! 🎉`;
-
-			container.appendChild(title);
-			MsgWinOrLose.appendChild(container);
-			
-			setTimeout(() => {
-				resolve();
-				window.location.reload();
-			}, 3000);
 		});
 	}
 }
