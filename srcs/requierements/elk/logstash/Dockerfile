@@ -1,5 +1,5 @@
 # Logstash collecte, transforme et envoie les logs vers Elasticsearch
-FROM docker.elastic.co/logstash/logstash:8.15.0
+FROM docker.elastic.co/logstash/logstash:9.2.0
 
 # Copie des fichiers de pipeline avec permissions correctes
 # Pipeline : définit les sources (input), filtres (filter) et destinations (output) des logs
