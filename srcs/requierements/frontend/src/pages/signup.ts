@@ -1,6 +1,8 @@
 // src/pages/signup.ts
 
 // Business logic: Perform registration
+
+// ========================= APPEL API POUR CREER UN COMPTE =========================
 export async function performRegistration(username: string, display_name: string, email: string, password: string): Promise<void> {
     const response = await fetch('/api/auth/register', {
         method: 'POST',
@@ -18,6 +20,7 @@ export async function performRegistration(username: string, display_name: string
     // Registration successful, no data needed
 }
 
+// ========================= INTERFACE UTILISATEUR =========================
 export function initSignup() {
     const signupForm = document.getElementById('signup_form') as HTMLFormElement;
     const cancelBtn = document.getElementById('button-cancel-signup');

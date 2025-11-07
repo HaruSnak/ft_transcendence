@@ -11,6 +11,7 @@ export class FriendsManager {
         this.loadFriends();
     }
 
+    // ========================= CHARGEMENT DES AMIS DEPUIS LOCALSTORAGE =========================
     private loadFriends(): void {
         const currentUser = this.getCurrentUsername();
         if (!currentUser) return;
@@ -29,6 +30,7 @@ export class FriendsManager {
         }
     }
 
+    // ========================= SAUVEGARDE DES AMIS EN LOCALSTORAGE =========================
     private saveFriends(): void {
         const currentUser = this.getCurrentUsername();
         if (!currentUser) return;
@@ -38,6 +40,7 @@ export class FriendsManager {
         localStorage.setItem(key, JSON.stringify(friendsArray));
     }
 
+    // ========================= RECUPERATION DU NOM D'UTILISATEUR ACTUEL =========================
     private getCurrentUsername(): string | null {
         const userData = sessionStorage.getItem('user');
         if (userData) {
@@ -51,6 +54,7 @@ export class FriendsManager {
         return null;
     }
 
+    // ========================= AJOUTER, SUPPRIMER, VERIFIER =========================
     public addFriend(username: string): void {
         if (!username) return;
         
@@ -81,6 +85,7 @@ export class FriendsManager {
         return this.friends.has(username);
     }
 
+    // ========================= LISTE DES AMIS ET AMIS EN LIGNE =========================
     public getFriends(): string[] {
         return Array.from(this.friends);
     }
@@ -89,6 +94,7 @@ export class FriendsManager {
         return onlineUsers.filter(user => this.isFriend(user.username));
     }
 
+    // ========================= SUPPRESSION DE TOUS LES AMIS =========================
     public clearFriends(): void {
         this.friends.clear();
         this.saveFriends();

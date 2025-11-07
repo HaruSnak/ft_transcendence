@@ -1,6 +1,8 @@
 // src/pages/login.ts
 
 // Business logic: Perform login (modifier uniquement ici pour le backend)
+
+// ========================= APPEL API POUR SE CONNECTER =========================
 export async function performLogin(identifier: string, password: string): Promise<{ token: string; user: any }> {
     const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -25,6 +27,7 @@ export async function performLogin(identifier: string, password: string): Promis
     return { token: data.token, user: data.user };
 }
 
+// ========================= INTERFACE UTILISATEUR =========================
 export function initLogin() {
     const loginForm = document.getElementById('login_form') as HTMLFormElement;
     const signupBtn = document.getElementById('button-signup');
