@@ -1,5 +1,5 @@
 # Image officielle Elasticsearch 8.15.0 avec support SSL/TLS et X-Pack Security
-FROM docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+FROM docker.elastic.co/elasticsearch/elasticsearch:9.2.0-amd64
 
 # Copie du fichier de configuration personnalisé pour le cluster
 COPY elasticsearch.yml /usr/share/elasticsearch/config/elasticsearch.yml
@@ -16,11 +16,12 @@ USER root
 RUN chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/data && \
     chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/logs && \
     chown -R elasticsearch:elasticsearch /usr/share/elasticsearch/config && \
-    chmod +x /usr/share/elasticsearch/init-ilm.sh
+    chmod +x /usr/share/elasticsearch/init-ilm.sh && \
+	/usr/share/elasticsearch/bin/elasticsearch-keystore create
 
 # Génération du keystore pour sécuriser les mots de passe
 # Le keystore chiffre les credentials sensibles (API keys, etc.)
-RUN /usr/share/elasticsearch/bin/elasticsearch-keystore create
+# /usr/share/elasticsearch/bin/elasticsearch-keystore create
 
 # Retour à l'utilisateur elasticsearch (sécurité)
 USER elasticsearch
