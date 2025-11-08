@@ -153,12 +153,12 @@ export class MessageHandlingService {
             joinButton.className = 'bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs ml-2 font-medium';
             joinButton.textContent = 'Join Game';
             joinButton.addEventListener('click', () => {
-                const socket = this.socketConnection.getSocket();
-                if (socket) {
-                    socket.emit(SOCKET_EVENTS.JOIN_GAME_REQUEST, {
-                        inviter: message.from
-                    });
-                }
+                // Redirection vers la page du jeu et ouverture automatique du mode 1vs1
+                window.location.hash = 'game';
+                setTimeout(() => {
+                    const button = document.getElementById('buttonPlyLocalGame') as HTMLButtonElement;
+                    if (button) button.click();
+                }, 100);
             });
 
             const timeSmall = document.createElement('small');
