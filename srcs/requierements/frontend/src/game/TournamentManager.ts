@@ -1,5 +1,6 @@
 import { PlayerManager, TournamentPlayer } from './PlayerManager.js';
 import { PongGame } from './PongBase.js';
+import { TournamentPingService } from '../services/tournament_ping_service.js';
 
 export class TournamentManager extends PlayerManager {
 	
@@ -39,11 +40,19 @@ export class TournamentManager extends PlayerManager {
 		Utilise window.location.reload() pour retourner au menu après
 	*/
 	public async startTournament(pongGame: PongGame, playerMatch: Array<[TournamentPlayer, TournamentPlayer]>): Promise<void> {
+		// Activer les pings pour ce tournoi
+		const tournamentId = `tournament_${Date.now()}`;
+		TournamentPingService.enableTournamentPings(tournamentId);
+		
         while (playerMatch.length > 0) {
             const nextRoundPlayers: TournamentPlayer[] = [];
             
             for (const [player1, player2] of playerMatch) {
                 console.log(`${player1.displayName} vs ${player2.displayName}`);
+                
+                // Envoyer les pings aux joueurs de ce match
+                this.sendTurnNotifications(player1, player2, tournamentId);
+                
                 const winner = await this.playSingleMatch(pongGame, player1, player2);
                 
                 if (winner === 'left') {
@@ -63,6 +72,7 @@ export class TournamentManager extends PlayerManager {
             if (nextRoundPlayers.length === 1) {
                 await this.showChampion(nextRoundPlayers[0]);
                 pongGame.cleanupGame();
+                TournamentPingService.disableTournamentPings();
                 window.location.reload();
                 return ;
             }
@@ -159,4 +169,30 @@ export class TournamentManager extends PlayerManager {
             setTimeout(resolve, 5000);
         });
     }
+
+	/*
+		Envoie les notifications de tour aux joueurs participants au match
+		Pour joueur vs bot : ping seulement le joueur humain
+		Pour joueur vs joueur : ping les deux joueurs
+	*/
+	private sendTurnNotifications(player1: TournamentPlayer, player2: TournamentPlayer, tournamentId: string): void {
+		const isPlayer1Bot = player1.displayName === 'Bot' || player1.type === 'Guest' && !player1.isAuthenticated;
+		const isPlayer2Bot = player2.displayName === 'Bot' || player2.type === 'Guest' && !player2.isAuthenticated;
+		
+		if (isPlayer1Bot && !isPlayer2Bot) {
+			// Joueur vs Bot : ping seulement le joueur humain (player2)
+			const targetUser = player2.username || String(player2.userId);
+			TournamentPingService.sendPing(targetUser, tournamentId);
+		} else if (!isPlayer1Bot && isPlayer2Bot) {
+			// Joueur vs Bot : ping seulement le joueur humain (player1)
+			const targetUser = player1.username || String(player1.userId);
+			TournamentPingService.sendPing(targetUser, tournamentId);
+		} else if (!isPlayer1Bot && !isPlayer2Bot) {
+			// Joueur vs Joueur : ping les deux
+			const targetUser1 = player1.username || String(player1.userId);
+			const targetUser2 = player2.username || String(player2.userId);
+			TournamentPingService.sendPingToMultiple([targetUser1, targetUser2], tournamentId);
+		}
+		// Si Bot vs Bot, pas de ping
+	}
 }
