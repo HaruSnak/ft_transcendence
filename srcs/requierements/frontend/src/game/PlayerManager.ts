@@ -69,23 +69,58 @@ export abstract class PlayerManager {
         return (true);
     }
 
-	/*
-		Crée un joueur authentifié depuis la base de données
-		Utilise userApiService.getUser() pour récupérer les données utilisateur
+	/**
+		Crée un joueur authentifié depuis la base de données sans changer la session
+		Utilise l'API pour récupérer les données utilisateur avec le token actuel
 		Ajoute le joueur authentifié au tableau players
 	*/
     private async createUserPlayer(username: string, password: string): Promise<boolean> {
-        const plyData = await this.userApiService.getUser(username, password);
-        const userPlayer: TournamentPlayer = {
-            userId: plyData.user.id,
-            displayName: plyData.user.display_name,
-            type: 'User',
-            username: plyData.user.username,
-            isAuthenticated: true,
-            tournamentStats: { score: 0 }
-        };
-        this.players.push(userPlayer);
-        return (true);
+        try {
+            const token = sessionStorage.getItem('authToken');
+            if (!token) return false;
+
+            // First, verify the password by attempting login, but don't store the token
+            const loginResponse = await fetch(`/api/auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+            if (!loginResponse.ok) {
+                console.log(`Invalid credentials for ${username}`);
+                return false;
+            }
+
+            // If login successful, fetch user data with current token
+            const profileResponse = await fetch(`/api/user/by-username/${username}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (profileResponse.ok) {
+                const data = await profileResponse.json();
+                const userPlayer: TournamentPlayer = {
+                    userId: data.user.id,
+                    displayName: data.user.display_name,
+                    type: 'User',
+                    username: data.user.username,
+                    isAuthenticated: true,
+                    tournamentStats: { score: 0 }
+                };
+                this.players.push(userPlayer);
+                return true;
+            } else {
+                console.log(`Error fetching user ${username}:`, profileResponse.status);
+                return false;
+            }
+        } catch (error) {
+            console.log(`Error creating user player ${username}:`, error.message);
+            return false;
+        }
     }
 
 	/*
