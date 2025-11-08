@@ -9,8 +9,9 @@ export class UserManagementService {
     private onlineUsers: SocketUser[] = [];
     private currentUsername: string = '';
 
-    constructor(private socketConnection: SocketConnection) {
-        this.currentUsername = socketConnection.getCurrentUser()?.username || '';
+    // @ts-ignore - Property used to initialize currentUsername in constructor
+    constructor(private _socketConnection: SocketConnection) {
+        this.currentUsername = _socketConnection.getCurrentUser()?.username || '';
         this.setupEventListeners();
     }
 

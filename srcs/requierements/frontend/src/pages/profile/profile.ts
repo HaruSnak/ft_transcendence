@@ -386,7 +386,6 @@ export class ProfileManager {
         const userData = sessionStorage.getItem('user');
         if (!userData) return;
         const user = JSON.parse(userData);
-        const userId = user.id;
         const userUsername = user.username;
 
         // Separate tournament and non-tournament matches

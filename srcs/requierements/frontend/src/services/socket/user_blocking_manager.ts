@@ -1,7 +1,7 @@
 // src/services/socket/blockingSystem.ts
 
 import { UserApiService } from '../api/user_api_service';
-import { BlockedUser, MessageService } from '../../utils/data_types';
+import { MessageService } from '../../utils/data_types';
 
 // classe qui gere le systeme de blocage des utilisateurs : permet de bloquer/debloquer des users, charge la liste des bloques, verifie si un user est bloque
 export class BlockingSystemService {

@@ -76,7 +76,7 @@ export class OnlineFriendsWidget {
             if (onlineUsers && onlineUsers.length > 0) {
                 this.onlineUsers = onlineUsers;
             }
-        }).catch(err => {
+        }).catch(_err => {
             // Socket service not available yet, keep existing onlineUsers
         });
     }

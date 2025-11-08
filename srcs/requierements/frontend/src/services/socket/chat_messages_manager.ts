@@ -1,6 +1,6 @@
 // src/services/socket/messageHandling.ts
 
-import { ChatMessage, DirectMessage, SocketUser, SocketConnection } from '../../utils/data_types';
+import { ChatMessage, DirectMessage, SocketConnection } from '../../utils/data_types';
 import { UI_ELEMENTS, SOCKET_EVENTS } from '../../utils/app_constants';
 import { SecurityUtils } from '../../utils/SecurityUtils';
 

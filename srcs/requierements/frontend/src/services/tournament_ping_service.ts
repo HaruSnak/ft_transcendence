@@ -51,7 +51,7 @@ export class TournamentPingService {
     }
 
     // gere la reception d'un ping (pour extension future si besoin)
-    static receivePing(fromUserId: string, tournamentId: string, message: string): void {
+    static receivePing(_fromUserId: string, tournamentId: string, _message: string): void {
         if (!this.isEnabled || this.currentTournamentId !== tournamentId) {
             return;
         }
