@@ -131,38 +131,38 @@ class UserService {
 	async updateUser(userId, updates) {
 		try {
 			const { display_name, email, password, avatar_url, has_seen_welcome } = updates;
-			
+
 			// Préparer les valeurs pour la requête
 			let updateFields = [];
 			let updateValues = [];
-			
+
 			if (display_name !== undefined) {
 				updateFields.push('display_name = ?');
 				updateValues.push(display_name);
 			}
-			
+
 			if (email !== undefined) {
 				updateFields.push('email = ?');
 				updateValues.push(email);
 			}
-			
+
 			if (password !== undefined) {
 				// Hasher le nouveau mot de passe
 				const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
 				updateFields.push('password_hash = ?');
 				updateValues.push(password_hash);
 			}
-			
+
 			if (avatar_url !== undefined) {
 				updateFields.push('avatar_url = ?');
 				updateValues.push(avatar_url);
 			}
-			
+
 			if (has_seen_welcome !== undefined) {
 				updateFields.push('has_seen_welcome = ?');
 				updateValues.push(has_seen_welcome);
 			}
-			
+
 			// Ajouter WHERE clause
 			updateValues.push(userId);
 			
@@ -170,9 +170,9 @@ class UserService {
 				// Rien à mettre à jour
 				return await this.getUserById(userId);
 			}
-			
+
 			const sql = `UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`;
-			
+
 			const result = await database.run(sql, updateValues);
 
 			if (result.changes === 0) {
@@ -192,10 +192,10 @@ class UserService {
 			await database.run('DELETE FROM blocked_users WHERE user_id = ? OR blocked_user_id = ?', [userId, userId]);
 			await database.run('DELETE FROM match_history WHERE player1_id = ? OR player2_id = ?', [userId, userId]);
 			await database.run('DELETE FROM blacklisted_tokens WHERE user_id = ?', [userId]);
-			
+
 			// Supprimer l'utilisateur
 			const result = await database.run('DELETE FROM users WHERE id = ?', [userId]);
-			
+
 			if (result.changes === 0) {
 				throw new Error('User not found');
 			}
@@ -287,19 +287,19 @@ class UserService {
 		try {
 			// Décoder et vérifier le token
 			const decoded = jwt.verify(token, JWT_SECRET);
-			
+
 			// Vérifier si le token est blacklisté
 			if (decoded.jti) {
 				const blacklisted = await database.get(
 					'SELECT id FROM blacklisted_tokens WHERE token_jti = ? AND expires_at > datetime("now")',
 					[decoded.jti]
 				);
-				
+
 				if (blacklisted) {
 					throw new Error('Token has been invalidated');
 				}
 			}
-			
+
 			return decoded;
 		} catch (error) {
 			throw new Error('Invalid token');
@@ -327,7 +327,7 @@ class UserService {
 		if (userId === parseInt(blockedUserId)) {
 			throw new Error('Cannot block yourself');
 		}
-		
+
 		try {
 			await database.run(
 				'INSERT INTO blocked_users (user_id, blocked_user_id) VALUES (?, ?)',

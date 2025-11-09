@@ -6,8 +6,6 @@ import fs from 'fs'
 import path from 'path'
 import client from 'prom-client'
 
-/*					____METRICS Prometheus____						*/
-
 const userRegistrations = new client.Counter({
 	name: 'user_registrations_total',
 	help: 'Total number of user registrations'
@@ -17,8 +15,6 @@ const userLogins = new client.Counter({
 	name: 'user_logins_total',
 	help: 'Total number of user logins'
 });
-
-/*					____SERVER Fastify____						*/
 
 const fastify = Fastify({
 	logger: true
@@ -51,8 +47,6 @@ fastify.get('/metrics', async (request, reply) => {
 	return (await client.register.metrics());
 });
 
-/*					____AUTH ROUTES____						*/
-
 // Inscription
 fastify.post('/api/auth/register', {
 	preHandler: validateUserData({ username: true, email: true, password: true })
@@ -60,7 +54,7 @@ fastify.post('/api/auth/register', {
 		try {
 			const { username, email, password, display_name, avatar_url } = request.body;
 			const user = await userService.createUser({ username, email, password, display_name, avatar_url });
-        
+
 			userRegistrations.inc(); // Incrémenter le compteur d'inscriptions
 
 			reply.code(201).send({
@@ -311,7 +305,7 @@ fastify.post('/api/user/match', async (request, reply) => {
 				error: 'Missing player1_id'
 			});
 		}
-		
+
 		// Déterminer le winner_id à partir de winner_player (1 ou 2) ou winner_id direct
 		let finalWinnerId;
 		if (winner_id !== undefined) {
@@ -325,7 +319,7 @@ fastify.post('/api/user/match', async (request, reply) => {
 				error: 'Missing winner_id or winner_player'
 			});
 		}
-		
+
 		// Stocker dans match_history (player2_id peut être null pour les Guests)
 		const result = await userService.addMatch(
 			player1_id, 
@@ -335,7 +329,7 @@ fastify.post('/api/user/match', async (request, reply) => {
 			score_player2 || 0, 
 			game_type || 'pong'
 		);
-		
+
 		return reply.code(201).send({
 			success: true,
 			message: 'Match added successfully',
@@ -379,7 +373,7 @@ fastify.post('/api/user/block', {
 				error: 'blocked_user_id is required'
 			});
 		}
-		
+
 		await userService.blockUser(request.user.userId, blocked_user_id);
 		reply.send({
 			success: true,
