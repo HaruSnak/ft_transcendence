@@ -1,6 +1,36 @@
 import jwt from 'jsonwebtoken';
 import userService from './userService.js';
 
+// Détecte les tentatives d'injection SQL
+function detectSQLInjection(input) {
+	const sqlPatterns = [
+		/(\bUNION\b|\bSELECT\b|\bDROP\b|\bINSERT\b|\bUPDATE\b|\bDELETE\b)/i,
+		/(\-\-|;|\/\*|\*\/)/,
+		/(\bOR\b|\bAND\b)\s+[\w\d]+\s*=\s*[\w\d]+/i,
+		/'(\s*OR\s*'?\d+)?=/i
+	];
+	return sqlPatterns.some(pattern => pattern.test(input));
+}
+
+// Sanitise un username (retire XSS et caractères dangereux)
+function sanitizeUsername(username) {
+	if (!username) return '';
+	let sanitized = username.replace(/<[^>]*>/g, ''); // retire HTML tags
+	sanitized = sanitized.replace(/javascript:/gi, '');
+	sanitized = sanitized.replace(/on\w+\s*=/gi, ''); // retire event handlers
+	sanitized = sanitized.replace(/[^a-zA-Z0-9_-]/g, ''); // uniquement alphanum + _ -
+	return sanitized.substring(0, 20).trim(); // max 20 chars
+}
+
+//Sanitise un email
+function sanitizeEmail(email) {
+	if (!email) return '';
+	let sanitized = email.trim().toLowerCase();
+	sanitized = sanitized.replace(/javascript:/gi, '');
+	sanitized = sanitized.replace(/on\w+\s*=/gi, '');
+	return sanitized;
+}
+
 // Middleware d'authentification
 export async function authenticateToken(request, reply) {
 	console.log('🔐 Authentication middleware called');
@@ -42,38 +72,91 @@ export async function authenticateToken(request, reply) {
 export function validateUserData(schema) {
 	return async function(request, reply) {
 		try {
-			// Validation basique
-			if (schema.username && (!request.body.username || typeof request.body.username !== 'string' || request.body.username.trim().length < 3)) {
-				reply.code(400).send({ error: 'Le nom d\'utilisateur doit contenir au moins 3 caractères.' });
-				return;
-			}
-			if (schema.email && (!request.body.email || typeof request.body.email !== 'string')) {
-				reply.code(400).send({ error: 'Email requis.' });
-				return;
-			}
-			if (schema.password && (!request.body.password || typeof request.body.password !== 'string')) {
-				reply.code(400).send({ error: 'Mot de passe requis.' });
-				return;
+			// Validation username
+			if (schema.username) {
+				const username = request.body.username;
+				
+				if (!username || typeof username !== 'string' || username.trim().length < 3) {
+					reply.code(400).send({ error: 'Le nom d\'utilisateur doit contenir au moins 3 caractères.' });
+					return;
+				}
+
+				// Détection SQL injection
+				if (detectSQLInjection(username)) {
+					reply.code(400).send({ error: 'Caractères dangereux détectés dans le nom d\'utilisateur.' });
+					return;
+				}
+
+				// Sanitisation
+				const sanitized = sanitizeUsername(username);
+				if (sanitized.length < 3 || sanitized.length > 20) {
+					reply.code(400).send({ error: 'Le nom d\'utilisateur doit contenir entre 3 et 20 caractères alphanumériques.' });
+					return;
+				}
+
+				request.body.username = sanitized;
 			}
 
-			// Validation du format email
-			if (schema.email && request.body.email) {
+			// Validation email
+			if (schema.email) {
+				const email = request.body.email;
+
+				if (!email || typeof email !== 'string') {
+					reply.code(400).send({ error: 'Email requis.' });
+					return;
+				}
+
+				// Détection SQL injection
+				if (detectSQLInjection(email)) {
+					reply.code(400).send({ error: 'Caractères dangereux détectés dans l\'email.' });
+					return;
+				}
+
+				// Sanitisation et validation format
+				const sanitized = sanitizeEmail(email);
 				const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-				if (!emailRegex.test(request.body.email)) {
+				if (!emailRegex.test(sanitized)) {
 					reply.code(400).send({ error: 'Format d\'email invalide.' });
+					return;
+				}
+
+				request.body.email = sanitized;
+			}
+
+			// Validation password
+			if (schema.password) {
+				const password = request.body.password;
+
+				if (!password || typeof password !== 'string') {
+					reply.code(400).send({ error: 'Mot de passe requis.' });
+					return;
+				}
+
+				// Renforcement: min 8 caractères (au lieu de 6)
+				if (password.length < 8) {
+					reply.code(400).send({ error: 'Le mot de passe doit contenir au moins 8 caractères.' });
 					return;
 				}
 			}
 
-			// Validation de la longueur du mot de passe
-			if (schema.password && request.body.password && request.body.password.length < 6) {
-				reply.code(400).send({ error: 'Le mot de passe doit contenir au moins 6 caractères.' });
-				return;
+			// Validation display_name si présent
+			if (request.body.display_name) {
+				const displayName = request.body.display_name;
+
+				if (detectSQLInjection(displayName)) {
+					reply.code(400).send({ error: 'Caractères dangereux détectés dans le nom d\'affichage.' });
+					return;
+				}
+
+				// Sanitisation légère (retire HTML mais garde espaces pour noms composés)
+				let sanitized = displayName.replace(/<[^>]*>/g, '');
+				sanitized = sanitized.replace(/javascript:/gi, '');
+				sanitized = sanitized.replace(/on\w+\s*=/gi, '');
+				sanitized = sanitized.substring(0, 50).trim(); // max 50 chars
+
+				request.body.display_name = sanitized;
 			}
 
-			// Sanitisation : trim les chaînes
-			if (request.body.username) request.body.username = request.body.username.trim();
-			if (request.body.email) request.body.email = request.body.email.trim().toLowerCase();
 		} catch (error) {
 			reply.code(400).send({ error: 'Erreur de validation.' });
 		}

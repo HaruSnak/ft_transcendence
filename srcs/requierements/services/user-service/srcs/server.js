@@ -9,13 +9,13 @@ import client from 'prom-client'
 /*					____METRICS Prometheus____						*/
 
 const userRegistrations = new client.Counter({
-    name: 'user_registrations_total',
-    help: 'Total number of user registrations'
+	name: 'user_registrations_total',
+	help: 'Total number of user registrations'
 });
 
 const userLogins = new client.Counter({
-    name: 'user_logins_total',
-    help: 'Total number of user logins'
+	name: 'user_logins_total',
+	help: 'Total number of user logins'
 });
 
 /*					____SERVER Fastify____						*/
@@ -47,8 +47,8 @@ fastify.get('/health', async (request, reply) => {
 
 // Endpoint pour Prometheus
 fastify.get('/metrics', async (request, reply) => {
-    reply.type('text/plain');
-    return (await client.register.metrics());
+	reply.type('text/plain');
+	return (await client.register.metrics());
 });
 
 /*					____AUTH ROUTES____						*/
@@ -120,8 +120,6 @@ fastify.post('/api/user/logout', {
 		});
 	}
 });
-
-/*					____USER ROUTES____						*/
 
 // Obtenir le profil de l'utilisateur connecté
 fastify.get('/api/user/profile', {
@@ -351,8 +349,6 @@ fastify.post('/api/user/match', async (request, reply) => {
 	}
 });
 
-/*					____BLOCKED USERS ROUTES____						*/
-
 // Obtenir les utilisateurs bloqués
 fastify.get('/api/user/blocked', {
 	preHandler: authenticateToken
@@ -409,151 +405,6 @@ fastify.delete('/api/user/unblock/:blocked_user_id', {
 		});
 	} catch (error) {
 		reply.code(400).send({
-			success: false,
-			error: error.message
-		});
-	}
-});
-
-/*					____GAME INVITATIONS ROUTES____						*/
-
-// Obtenir les invitations de jeu
-fastify.get('/api/user/game-invitations', {
-	preHandler: authenticateToken
-}, async (request, reply) => {
-	try {
-		const invitations = await userService.getGameInvitations(request.user.userId);
-		reply.send({
-			success: true,
-			invitations: invitations
-		});
-	} catch (error) {
-		reply.code(500).send({
-			success: false,
-			error: error.message
-		});
-	}
-});
-
-// Créer une invitation de jeu
-fastify.post('/api/user/game-invitation', {
-	preHandler: authenticateToken
-}, async (request, reply) => {
-	try {
-		const { to_user_id, game_type } = request.body;
-		if (!to_user_id) {
-			return reply.code(400).send({
-				success: false,
-				error: 'to_user_id is required'
-			});
-		}
-		
-		const invitation = await userService.createGameInvitation(
-			request.user.userId, 
-			to_user_id, 
-			game_type || 'pong'
-		);
-		reply.code(201).send({
-			success: true,
-			message: 'Game invitation sent',
-			invitation
-		});
-	} catch (error) {
-		reply.code(400).send({
-			success: false,
-			error: error.message
-		});
-	}
-});
-
-// Répondre à une invitation
-fastify.put('/api/user/game-invitation/:id', {
-	preHandler: authenticateToken
-}, async (request, reply) => {
-	try {
-		const { status } = request.body;
-		if (!['accepted', 'declined'].includes(status)) {
-			return reply.code(400).send({
-				success: false,
-				error: 'Status must be "accepted" or "declined"'
-			});
-		}
-		
-		await userService.respondToGameInvitation(
-			request.params.id, 
-			request.user.userId, 
-			status
-		);
-		reply.send({
-			success: true,
-			message: `Invitation ${status} successfully`
-		});
-	} catch (error) {
-		reply.code(400).send({
-			success: false,
-			error: error.message
-		});
-	}
-});
-
-// Vérifier la disponibilité du display name
-fastify.post('/api/user/check-display-name', {
-	preHandler: authenticateToken
-}, async (request, reply) => {
-	try {
-		const { display_name } = request.body;
-		if (!display_name) {
-			return reply.code(400).send({
-				success: false,
-				error: 'display_name is required'
-			});
-		}
-
-		// Vérifier si le display name existe déjà (en excluant l' utilisateur actuel)
-		const existingUser = await database.get(
-			'SELECT id FROM users WHERE display_name = ? AND id != ?',
-			[display_name, request.user.userId]
-		);
-
-		const available = !existingUser;
-		reply.send({
-			success: true,
-			available
-		});
-	} catch (error) {
-		reply.code(500).send({
-			success: false,
-			error: error.message
-		});
-	}
-});
-
-// Vérifier la disponibilité de l'email
-fastify.post('/api/user/check-email', {
-	preHandler: authenticateToken
-}, async (request, reply) => {
-	try {
-		const { email } = request.body;
-		if (!email) {
-			return reply.code(400).send({
-				success: false,
-				error: 'email is required'
-			});
-		}
-
-		// Vérifier si l'email existe déjà (en excluant l' utilisateur actuel)
-		const existingUser = await database.get(
-			'SELECT id FROM users WHERE email = ? AND id != ?',
-			[email, request.user.userId]
-		);
-
-		const available = !existingUser;
-		reply.send({
-			success: true,
-			available
-		});
-	} catch (error) {
-		reply.code(500).send({
 			success: false,
 			error: error.message
 		});

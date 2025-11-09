@@ -1,26 +1,29 @@
 #!/bin/bash
 
+# Base URL - passe par nginx en HTTPS
+BASE_URL="https://localhost:8443"
+# Options curl pour ignorer le certificat self-signed
+CURL_OPTS="-k -s"
+
 echo "🧪 === User Service Complete Test Suite ==="
+echo "📡 Testing via nginx: $BASE_URL"
 echo
 
 # Check if service is running
 echo "🔍 1. Service Health Check:"
-HEALTH_RESPONSE=$(curl -s -w "HTTP:%{http_code}" http://localhost:3003/health)
+HEALTH_RESPONSE=$(curl $CURL_OPTS -w "HTTP:%{http_code}" ${BASE_URL}/health)
 echo "$HEALTH_RESPONSE"
 echo
 
 if [[ "$HEALTH_RESPONSE" == *"HTTP:200"* ]]; then
 	echo "✅ Service is running properly"
 else
-	echo "❌ Service not responding. Make sure it's running:"
-	echo "   node srcs/server.js"
+	echo "❌ Service not responding. Make sure Docker containers are running:"
+	echo "   docker ps"
+	echo "   docker logs nginx"
+	echo "   docker logs user-service"
 	exit 1
 fi
-echo
-
-# Test basic API
-echo "🔍 2. Basic API Test:"
-curl -s -w "HTTP:%{http_code}\n" http://localhost:3003/api/user
 echo
 
 # Generate unique test user
@@ -31,9 +34,9 @@ TEST_PASSWORD="password123"
 TEST_DISPLAY="Test User $TIMESTAMP"
 
 # Test user registration
-echo "🔍 3. User Registration Test:"
+echo "🔍 2. User Registration Test:"
 echo "Creating user: $TEST_USER"
-REGISTER_RESPONSE=$(curl -s -w "\nHTTP:%{http_code}" -X POST http://localhost:3003/api/auth/register \
+REGISTER_RESPONSE=$(curl $CURL_OPTS -w "\nHTTP:%{http_code}" -X POST ${BASE_URL}/api/auth/register \
   -H "Content-Type: application/json" \
   -d "{\"username\":\"$TEST_USER\",\"email\":\"$TEST_EMAIL\",\"password\":\"$TEST_PASSWORD\",\"display_name\":\"$TEST_DISPLAY\"}")
 
@@ -48,8 +51,8 @@ fi
 echo
 
 # Test user login
-echo "🔍 4. User Login Test:"
-LOGIN_RESPONSE=$(curl -s -w "\nHTTP:%{http_code}" -X POST http://localhost:3003/api/auth/login \
+echo "🔍 3. User Login Test:"
+LOGIN_RESPONSE=$(curl $CURL_OPTS -w "\nHTTP:%{http_code}" -X POST ${BASE_URL}/api/auth/login \
   -H "Content-Type: application/json" \
   -d "{\"username\":\"$TEST_USER\",\"password\":\"$TEST_PASSWORD\"}")
 
@@ -70,8 +73,8 @@ fi
 echo
 
 # Test profile access
-echo "🔍 5. Profile Access Test:"
-PROFILE_RESPONSE=$(curl -s -w "\nHTTP:%{http_code}" -X GET http://localhost:3003/api/user/profile \
+echo "🔍 4. Profile Access Test:"
+PROFILE_RESPONSE=$(curl $CURL_OPTS -w "\nHTTP:%{http_code}" -X GET ${BASE_URL}/api/user/profile \
   -H "Authorization: Bearer $TOKEN")
 
 echo "$PROFILE_RESPONSE"
@@ -85,9 +88,9 @@ fi
 echo
 
 # Test profile update
-echo "🔍 6. Profile Update Test:"
+echo "🔍 5. Profile Update Test:"
 NEW_DISPLAY="Updated $TEST_DISPLAY"
-UPDATE_RESPONSE=$(curl -s -w "\nHTTP:%{http_code}" -X PUT http://localhost:3003/api/user/profile \
+UPDATE_RESPONSE=$(curl $CURL_OPTS -w "\nHTTP:%{http_code}" -X PUT ${BASE_URL}/api/user/profile \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d "{\"display_name\":\"$NEW_DISPLAY\",\"avatar_url\":\"/assets/test-avatar.png\"}")
@@ -103,8 +106,8 @@ fi
 echo
 
 # Test match history
-echo "🔍 7. Match History Test:"
-MATCHES_RESPONSE=$(curl -s -w "\nHTTP:%{http_code}" -X GET http://localhost:3003/api/user/matches \
+echo "🔍 6. Match History Test:"
+MATCHES_RESPONSE=$(curl $CURL_OPTS -w "\nHTTP:%{http_code}" -X GET ${BASE_URL}/api/user/matches \
   -H "Authorization: Bearer $TOKEN")
 
 echo "$MATCHES_RESPONSE"
@@ -118,8 +121,8 @@ fi
 echo
 
 # Test logout
-echo "🔍 8. Logout Test:"
-LOGOUT_RESPONSE=$(curl -s -w "\nHTTP:%{http_code}" -X POST http://localhost:3003/api/user/logout \
+echo "🔍 7. Logout Test:"
+LOGOUT_RESPONSE=$(curl $CURL_OPTS -w "\nHTTP:%{http_code}" -X POST ${BASE_URL}/api/user/logout \
   -H "Authorization: Bearer $TOKEN")
 
 echo "$LOGOUT_RESPONSE"
@@ -133,8 +136,8 @@ fi
 echo
 
 # Test invalid token (after logout)
-echo "🔍 9. Token Validation Test (should fail):"
-INVALID_RESPONSE=$(curl -s -w "\nHTTP:%{http_code}" -X GET http://localhost:3003/api/user/profile \
+echo "🔍 8. Token Validation Test (should fail):"
+INVALID_RESPONSE=$(curl $CURL_OPTS -w "\nHTTP:%{http_code}" -X GET ${BASE_URL}/api/user/profile \
   -H "Authorization: Bearer $TOKEN")
 
 echo "$INVALID_RESPONSE"

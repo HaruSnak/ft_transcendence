@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Base URL - passe par nginx en HTTPS
+BASE_URL="https://localhost:8443"
+# Options curl pour ignorer le certificat self-signed
+CURL_OPTS="-k"
+
 # Script pour créer un utilisateur personnalisé
 # Usage: ./create-user.sh [username] [email] [password] [display_name]
 
@@ -13,7 +18,7 @@ if [ $# -eq 0 ]; then
 	echo "  ./create-user.sh john john@example.com mypassword 'John Doe'"
 	echo
 	echo "Ou utilisez la commande curl directement:"
-	echo "curl -X POST http://localhost:3003/api/auth/register \\"
+	echo "curl -k -X POST ${BASE_URL}/api/auth/register \\"
 	echo "  -H 'Content-Type: application/json' \\"
 	echo "  -d '{\"username\":\"VOTRE_USERNAME\",\"email\":\"VOTRE_EMAIL\",\"password\":\"VOTRE_PASSWORD\",\"display_name\":\"VOTRE_NOM\"}'"
 	exit 1
@@ -32,7 +37,7 @@ echo
 
 # Créer l'utilisateur
 echo "🚀 Création en cours..."
-RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST http://localhost:3003/api/auth/register \
+RESPONSE=$(curl $CURL_OPTS -s -w "\nHTTP_STATUS:%{http_code}" -X POST ${BASE_URL}/api/auth/register \
   -H "Content-Type: application/json" \
   -d "{\"username\":\"$USERNAME\",\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\",\"display_name\":\"$DISPLAY_NAME\"}")
 
@@ -46,7 +51,7 @@ if [ "$HTTP_STATUS" = "201" ]; then
 	echo "✅ Utilisateur créé avec succès!"
 	echo
 	echo "Vous pouvez maintenant vous connecter avec:"
-	echo "curl -X POST http://localhost:3003/api/auth/login \\"
+	echo "curl -k -X POST ${BASE_URL}/api/auth/login \\"
 	echo "  -H 'Content-Type: application/json' \\"
 	echo "  -d '{\"username\":\"$USERNAME\",\"password\":\"$PASSWORD\"}'"
 else
