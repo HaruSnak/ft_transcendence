@@ -46,9 +46,9 @@
   --radius-lg: 0.75rem;
 
   /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --shadow-sm: 0 1px 2px 0 #0000000D;
+  --shadow-md: 0 4px 6px -1px #0000001A;
+  --shadow-lg: 0 10px 15px -3px #0000001A;
 }
 
 /* Reset et base */
