@@ -177,7 +177,7 @@ body {
 
 .nav-link.active {
   color: var(--accent-blue);
-  background: rgba(59, 130, 246, 0.1);
+  background: #3B82F61A;
 }
 
 /* Cards et containers */
@@ -267,14 +267,14 @@ body {
 }
 
 .btn-danger {
-  background: rgba(239, 68, 68, 0.1);
+  background: #EF44441A;
   color: var(--accent-danger);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid #EF44444D;
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.5);
+  background: #EF444433;
+  border-color: #EF444480;
 }
 
 .btn-lg {
@@ -324,7 +324,7 @@ body {
 
 .form-input:focus {
   border-color: var(--accent-blue);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px #3B82F61A;
 }
 
 .form-input::placeholder {
@@ -545,7 +545,7 @@ body {
   position: sticky;
   bottom: 0;
   padding-top: var(--space-md);
-  background: linear-gradient(180deg, transparent 0%, rgba(15,15,16,0.7) 100%);
+  background: linear-gradient(180deg, transparent 0%, #0F0F10B3 100%);
 }
 
 /* Modal styles */
@@ -556,7 +556,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: #000000CC;
   display: flex;
   align-items: center;
   justify-content: center;
