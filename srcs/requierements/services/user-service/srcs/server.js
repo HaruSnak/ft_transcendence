@@ -22,9 +22,6 @@ await fastify.register(import('@fastify/cors'), {
 	origin: true
 });
 
-// Enregistrer le support pour les formulaires
-await fastify.register(import('@fastify/formbody'));
-
 // Enregistrer le support pour les fichiers multipart
 await fastify.register(import('@fastify/multipart'));
 
