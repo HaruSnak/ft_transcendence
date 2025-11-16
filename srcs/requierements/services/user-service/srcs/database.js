@@ -79,14 +79,12 @@ class Database {
 		tables.forEach(tableSQL => {
 			this.db.run(tableSQL, (err) => {
 				if (err) {
-					console.error('Erreur lors de la création des tables:', err.message);
-				} else {
-					console.log('Table créée ou déjà existante');
+					console.error('Error creating tables:', err.message);
 				}
 
-				// Créer les indexes une fois que toutes les tables sont créées
 				tablesCreated++;
 				if (tablesCreated === totalTables) {
+					console.log('Database tables initialized');
 					this.createIndexes();
 				}
 			});
@@ -95,25 +93,23 @@ class Database {
 
 	createIndexes() {
 		const indexes = [
-			// Index pour accélérer les recherches par username (login, recherche users)
 			`CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)`,
-			// Index pour accélérer les recherches par email (register - check duplicates)
 			`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`,
-			// Index pour accélérer la vérification de blacklist (à chaque requête authentifiée)
 			`CREATE INDEX IF NOT EXISTS idx_blacklist_jti ON blacklisted_tokens(token_jti)`,
-			// Index pour le nettoyage automatique des tokens expirés
 			`CREATE INDEX IF NOT EXISTS idx_blacklist_expires ON blacklisted_tokens(expires_at)`,
-			// Index pour l'historique des matches par joueur
 			`CREATE INDEX IF NOT EXISTS idx_match_player1 ON match_history(player1_id)`,
 			`CREATE INDEX IF NOT EXISTS idx_match_player2 ON match_history(player2_id)`
 		];
 
+		let indexesCreated = 0;
 		indexes.forEach(indexSQL => {
 			this.db.run(indexSQL, (err) => {
 				if (err) {
-					console.error('Erreur lors de la création des indexes:', err.message);
-				} else {
-					console.log('Index créé ou déjà existant');
+					console.error('Error creating indexes:', err.message);
+				}
+				indexesCreated++;
+				if (indexesCreated === indexes.length) {
+					console.log('Database indexes created');
 				}
 			});
 		});
@@ -165,7 +161,6 @@ class Database {
 				if (err) {
 					reject(err);
 				} else {
-					console.log('Connexion à la base de données fermée');
 					resolve();
 				}
 			});
