@@ -5,6 +5,7 @@ import database from './database.js'
 import fs from 'fs'
 import path from 'path'
 import client from 'prom-client'
+import { sendToLogstash } from './logstashLogger.js'
 
 /*					____METRICS Prometheus____						*/
 
@@ -63,12 +64,33 @@ fastify.post('/api/auth/register', {
         
 			userRegistrations.inc(); // Incrémenter le compteur d'inscriptions
 
+			// Log successful registration
+			sendToLogstash('info', 'User registered successfully', {
+				event: 'user_register',
+				username: username,
+				email: email,
+				display_name: display_name || username,
+				userId: user.id,
+				ip_address: request.ip,
+				user_agent: request.headers['user-agent']
+			});
+
 			reply.code(201).send({
 				success: true,
 				message: 'User created successfully',
 				user
 			});
 		} catch (error) {
+			// Log failed registration
+			sendToLogstash('warn', 'User registration failed', {
+				event: 'user_register_failed',
+				username: request.body.username,
+				email: request.body.email,
+				error: error.message,
+				ip_address: request.ip,
+				user_agent: request.headers['user-agent']
+			});
+
 			reply.code(400).send({
 				success: false,
 				error: error.message
@@ -86,6 +108,15 @@ fastify.post('/api/auth/login', {
 		
 		userLogins.inc(); // Incrémenter le compteur de connexions
 
+		// Send log to Logstash
+		sendToLogstash('info', 'User login successful', {
+			event: 'user_login',
+			username: username,
+			userId: result.userId,
+			ip_address: request.ip,
+			user_agent: request.headers['user-agent']
+		});
+
 		reply.send({
 			success: true,
 			message: 'Login successful',
@@ -93,6 +124,15 @@ fastify.post('/api/auth/login', {
 		});
 		//localStorage.setItem('authToken', result.token);
 	} catch (error) {
+		// Send failed login attempt to Logstash
+		sendToLogstash('warn', 'User login failed', {
+			event: 'user_login_failed',
+			username: request.body.username,
+			error: error.message,
+			ip_address: request.ip,
+			user_agent: request.headers['user-agent']
+		});
+
 		reply.code(401).send({
 			success: false,
 			error: error.message
@@ -108,6 +148,16 @@ fastify.post('/api/user/logout', {
 		console.log('📝 Logout requested for userId:', request.user.userId);
 		await userService.logoutUser(request.user.userId, request.token);
 		console.log('✅ Logout successful');
+
+		// Log successful logout
+		sendToLogstash('info', 'User logged out', {
+			event: 'user_logout',
+			userId: request.user.userId,
+			username: request.user.username,
+			ip_address: request.ip,
+			user_agent: request.headers['user-agent']
+		});
+
 		reply.send({
 			success: true,
 			message: 'Logout successful'
@@ -191,6 +241,17 @@ fastify.put('/api/user/profile', {
 		const updates = request.body;
 		const user = await userService.updateUser(request.user.userId, updates);
 		console.log('✅ Profile updated successfully');
+
+		// Log profile update
+		sendToLogstash('info', 'User profile updated', {
+			event: 'user_profile_update',
+			userId: request.user.userId,
+			username: request.user.username,
+			updated_fields: Object.keys(updates),
+			ip_address: request.ip,
+			user_agent: request.headers['user-agent']
+		});
+
 		reply.send({
 			success: true,
 			message: 'Profile updated successfully',
@@ -252,6 +313,17 @@ fastify.post('/api/user/avatar', {
 		// Update user avatar_url with data URL
 		await userService.updateUser(userId, { avatar_url: dataUrl });
 		console.log('Avatar upload: updated user');
+
+		// Log avatar upload
+		sendToLogstash('info', 'User avatar uploaded', {
+			event: 'user_avatar_upload',
+			userId: userId,
+			username: request.user.username,
+			file_size: buffer.length,
+			mime_type: mimeType,
+			ip_address: request.ip,
+			user_agent: request.headers['user-agent']
+		});
 
 		reply.send({
 			success: true,
@@ -338,6 +410,18 @@ fastify.post('/api/user/match', async (request, reply) => {
 			game_type || 'pong'
 		);
 		
+		// Log game match creation
+		sendToLogstash('info', 'Game match recorded', {
+			event: 'game_match_created',
+			match_id: result.id,
+			player1_id: player1_id,
+			player2_id: player2_id || null,
+			winner_id: finalWinnerId,
+			score: `${score_player1 || 0} - ${score_player2 || 0}`,
+			game_type: game_type || 'pong',
+			ip_address: request.ip
+		});
+		
 		return reply.code(201).send({
 			success: true,
 			message: 'Match added successfully',
@@ -385,6 +469,17 @@ fastify.post('/api/user/block', {
 		}
 		
 		await userService.blockUser(request.user.userId, blocked_user_id);
+		
+		// Log user block action
+		sendToLogstash('info', 'User blocked another user', {
+			event: 'user_block',
+			blocker_userId: request.user.userId,
+			blocker_username: request.user.username,
+			blocked_userId: blocked_user_id,
+			ip_address: request.ip,
+			user_agent: request.headers['user-agent']
+		});
+		
 		reply.send({
 			success: true,
 			message: 'User blocked successfully'
@@ -403,6 +498,17 @@ fastify.delete('/api/user/unblock/:blocked_user_id', {
 }, async (request, reply) => {
 	try {
 		await userService.unblockUser(request.user.userId, request.params.blocked_user_id);
+		
+		// Log user unblock action
+		sendToLogstash('info', 'User unblocked another user', {
+			event: 'user_unblock',
+			unblocker_userId: request.user.userId,
+			unblocker_username: request.user.username,
+			unblocked_userId: request.params.blocked_user_id,
+			ip_address: request.ip,
+			user_agent: request.headers['user-agent']
+		});
+		
 		reply.send({
 			success: true,
 			message: 'User unblocked successfully'
@@ -453,6 +559,19 @@ fastify.post('/api/user/game-invitation', {
 			to_user_id, 
 			game_type || 'pong'
 		);
+		
+		// Log game invitation sent
+		sendToLogstash('info', 'Game invitation sent', {
+			event: 'game_invitation_sent',
+			invitation_id: invitation.id,
+			from_userId: request.user.userId,
+			from_username: request.user.username,
+			to_userId: to_user_id,
+			game_type: game_type || 'pong',
+			ip_address: request.ip,
+			user_agent: request.headers['user-agent']
+		});
+		
 		reply.code(201).send({
 			success: true,
 			message: 'Game invitation sent',
@@ -484,6 +603,18 @@ fastify.put('/api/user/game-invitation/:id', {
 			request.user.userId, 
 			status
 		);
+		
+		// Log game invitation response
+		sendToLogstash('info', `Game invitation ${status}`, {
+			event: 'game_invitation_response',
+			invitation_id: request.params.id,
+			responder_userId: request.user.userId,
+			responder_username: request.user.username,
+			response_status: status,
+			ip_address: request.ip,
+			user_agent: request.headers['user-agent']
+		});
+		
 		reply.send({
 			success: true,
 			message: `Invitation ${status} successfully`

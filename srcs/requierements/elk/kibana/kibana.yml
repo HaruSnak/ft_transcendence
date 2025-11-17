@@ -1,0 +1,11 @@
+server.name: kibana
+server.host: "0.0.0.0"
+server.port: 5601
+
+elasticsearch.hosts: ["${ELASTICSEARCH_HOSTS}"]
+elasticsearch.username: "${ELASTICSEARCH_USERNAME}"
+elasticsearch.password: "${ELASTICSEARCH_PASSWORD}"
+
+elasticsearch.ssl.verificationMode: none
+
+xpack.monitoring.enabled: false

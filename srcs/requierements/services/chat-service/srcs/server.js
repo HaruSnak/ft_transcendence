@@ -2,6 +2,7 @@ import Fastify from 'fastify'
 import client from 'prom-client'
 import { Server } from 'socket.io'
 import { SecurityUtils } from './security.js'
+import { sendToLogstash } from './logstashLogger.js'
 
 /*					____METRICS Prometheus____						*/
 
@@ -58,6 +59,13 @@ io.on('connection', (socket) => {
     
     socketConnections.inc(); // Incrémenter le compteur de connexions
     
+    // Log chat connection
+    sendToLogstash('info', 'Chat client connected', {
+        event: 'chat_connection',
+        socket_id: clientId,
+        client_address: socket.handshake.address
+    });
+    
     // STOCKEZ IMMÉDIATEMENT
     clients.set(clientId, socket);
     console.log('✅ Connexion stockée pour', clientId);
@@ -73,6 +81,14 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log('❌ Client déconnecté:', clientId);
         const username = socketToUsername.get(clientId);
+        
+        // Log chat disconnection
+        sendToLogstash('info', 'Chat client disconnected', {
+            event: 'chat_disconnection',
+            socket_id: clientId,
+            username: username || 'anonymous'
+        });
+        
         if (username) {
             clients.delete(username);
             clientUsernames.delete(username);
@@ -92,12 +108,31 @@ io.on('connection', (socket) => {
         // Validation
         if (!SecurityUtils.isValidUsername(username)) {
             console.log('⚠️ Username invalide:', username);
+            
+            // Log failed registration
+            sendToLogstash('warn', 'Chat registration failed - invalid username', {
+                event: 'chat_register_failed',
+                username: msg.username,
+                reason: 'invalid_username_format',
+                socket_id: clientId
+            });
+            
             socket.emit('error', { message: 'Invalid username format' });
             return ;
         }
         
         if (!SecurityUtils.isValidDisplayName(display_name)) {
             console.log('⚠️ Display name invalide:', display_name);
+            
+            // Log failed registration
+            sendToLogstash('warn', 'Chat registration failed - invalid display name', {
+                event: 'chat_register_failed',
+                username: username,
+                display_name: msg.display_name,
+                reason: 'invalid_display_name_format',
+                socket_id: clientId
+            });
+            
             socket.emit('error', { message: 'Invalid display name format' });
             return ;
         }
@@ -105,6 +140,16 @@ io.on('connection', (socket) => {
         // Détection d'injection SQL
         if (SecurityUtils.detectSQLInjection(username) || SecurityUtils.detectSQLInjection(display_name)) {
             console.log('🚨 Tentative d\'injection SQL détectée!');
+            
+            // Log SQL injection attempt
+            sendToLogstash('error', 'SQL injection attempt blocked in chat registration', {
+                event: 'sql_injection_blocked',
+                username: msg.username,
+                display_name: msg.display_name,
+                socket_id: clientId,
+                attack_type: 'sql_injection'
+            });
+            
             socket.emit('error', { message: 'Malicious input detected' });
             return ;
         }
@@ -117,6 +162,15 @@ io.on('connection', (socket) => {
             clients.set(username, socket);
             clients.delete(clientId);
             console.log('✅ Client enregistré:', username, display_name);
+            
+            // Log successful registration
+            sendToLogstash('info', 'Chat user registered successfully', {
+                event: 'chat_register',
+                username: username,
+                display_name: display_name,
+                socket_id: clientId
+            });
+            
             broadcastUserList();
         }
     });
@@ -137,6 +191,19 @@ io.on('connection', (socket) => {
         // Détection d'injection SQL
         if (SecurityUtils.detectSQLInjection(sanitizedText)) {
             console.log('🚨 Tentative d\'injection SQL dans le message!');
+            
+            const fromUsername = socketToUsername.get(clientId) || clientId;
+            
+            // Log SQL injection attempt in message
+            sendToLogstash('error', 'SQL injection attempt blocked in chat message', {
+                event: 'sql_injection_blocked',
+                username: fromUsername,
+                message_text: msg.text.substring(0, 100), // First 100 chars for analysis
+                target_user: msg.to,
+                socket_id: clientId,
+                attack_type: 'sql_injection'
+            });
+            
             socket.emit('error', { message: 'Malicious content detected' });
             return ;
         }
@@ -159,8 +226,26 @@ io.on('connection', (socket) => {
             targetSocket.emit('message', broadcastMessage);
             console.log('✅ Message privé envoyé de', fromUsername, 'vers', msg.to);
             msgSentReceived.inc({status: 'sent'});
+            
+            // Log successful message
+            sendToLogstash('info', 'Chat message sent successfully', {
+                event: 'message_sent',
+                from_username: fromUsername,
+                to_username: msg.to,
+                message_length: sanitizedText.length,
+                socket_id: clientId
+            });
         } else {
             console.log('⚠️ Destinataire introuvable:', msg.to);
+            
+            // Log failed message delivery
+            sendToLogstash('warn', 'Chat message delivery failed - recipient not found', {
+                event: 'message_failed',
+                from_username: fromUsername,
+                to_username: msg.to,
+                reason: 'recipient_not_found',
+                socket_id: clientId
+            });
         }
         
         // Envoyer aussi à l'expéditeur pour qu'il voie son message

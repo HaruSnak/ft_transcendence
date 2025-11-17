@@ -6,6 +6,7 @@ services:
         networks:
             - app_network
             - promgraf_network
+            - elk_network
         restart: unless-stopped
 
     user-service:
@@ -17,6 +18,7 @@ services:
         networks:
             - app_network
             - promgraf_network
+            - elk_network
         restart: unless-stopped
 
     nginx:
@@ -39,73 +41,78 @@ services:
     elasticsearch:
         container_name: elasticsearch
         build: ./requierements/elk/elasticsearch
-        env_file: .env
         environment:
+            - discovery.type=single-node
             - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-            - ES_JAVA_OPTS=-Xms128m -Xmx128m
-        deploy:
-            resources:
-                limits:
-                    memory: 512M
-        ulimits:
-            nofile:
-                soft: 65536
-                hard: 65536
+            - ES_JAVA_OPTS=-Xms256m -Xmx256m
+            - xpack.security.enabled=true
+            - xpack.security.transport.ssl.enabled=false
+            - xpack.security.http.ssl.enabled=false
         volumes:
             - es_data:/usr/share/elasticsearch/data
         ports:
             - "9200:9200"
-            - "9300:9300"
         networks:
             - elk_network
         restart: unless-stopped
+        healthcheck:
+            test: ["CMD-SHELL", "curl -u elastic:${ELASTIC_PASSWORD} -f http://localhost:9200/_cluster/health || exit 1"]
+            interval: 10s
+            timeout: 5s
+            retries: 30
+            start_period: 60s
 
     logstash:
         container_name: logstash
         build: ./requierements/elk/logstash
-        env_file: .env
-        volumes:
-            - logs_pipeline:/usr/share/logstash/pipeline
-            - logs_config:/usr/share/logstash/config
-        ports:
-            - "5044:5044"
         environment:
             - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-            - elasticsearch.username=${LOGSTASH_USERNAME}
-            - elasticsearch.password=${LOGSTASH_PASSWORD}
+            - ELASTIC_USER=elastic
+            - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+            - LS_JAVA_OPTS=-Xms256m -Xmx256m
             - xpack.monitoring.enabled=false
-            - LS_JAVA_OPTS=-Xms64m -Xmx64m
-            - LS_OPTS=--pipeline.batch.size=125 --pipeline.batch.delay=50
-        deploy:
-            resources:
-                limits:
-                    memory: 192M
+        ports:
+            - "5044:5044"
+            - "5000:5000"
         networks:
             - elk_network
         depends_on:
-            - elasticsearch
+            elasticsearch:
+                condition: service_healthy
         restart: unless-stopped
 
     kibana:
         container_name: kibana
-        image: docker.elastic.co/kibana/kibana:9.2.0
-        env_file: .env
-        deploy:
-            resources:
-                limits:
-                    memory: 192M
+        build: ./requierements/elk/kibana
         environment:
             - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-            - elasticsearch.username=${KIBANA_USERNAME}
-            - elasticsearch.password=${KIBANA_PASSWORD}
-            - xpack.monitoring.enabled=false
+            - ELASTICSEARCH_USERNAME=elastic
+            - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
+            - SERVER_NAME=kibana
+            - SERVER_HOST=0.0.0.0
         ports:
             - "5601:5601"
         networks:
             - elk_network
         depends_on:
-            - elasticsearch
+            elasticsearch:
+                condition: service_healthy
         restart: unless-stopped
+
+    kibana-setup:
+        build: ./requierements/elk/kibana
+        container_name: kibana-setup
+        environment:
+            - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
+        networks:
+            - elk_network
+            - app_network
+        depends_on:
+            - kibana
+            - user-service
+            - chat-service
+        command: /bin/bash /create-dashboards.sh
+        restart: "no"
 
     prometheus:
         container_name: prometheus
@@ -158,23 +165,6 @@ services:
 
 volumes:
     es_data:
-        driver: local
-        driver_opts:
-            type: none
-            o: bind
-            device: ./volumes/es_data
-    logs_pipeline:
-        driver: local
-        driver_opts:
-            type: none
-            o: bind
-            device: ./volumes/logstash/logs_pipeline
-    logs_config:
-        driver: local
-        driver_opts:
-            type: none
-            o: bind
-            device: ./volumes/logstash/logs_config
     prometheus_db:
         driver: local
         driver_opts:
