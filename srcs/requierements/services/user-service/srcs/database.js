@@ -1,31 +1,24 @@
 import sqlite3 from 'sqlite3';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import { mkdirSync, existsSync } from 'fs';
+import { mkdirSync } from 'fs';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const DB_PATH = '/srcs/data/transcendence.db';
+const DB_DIR = '/srcs/data';
 
 class Database {
 	constructor() {
-		// Créer le dossier data s'il n'existe pas
-		const dataDir = join(__dirname, '../data');
-		if (!existsSync(dataDir)) {
-			mkdirSync(dataDir, { recursive: true });
-		}
-
-		// Créer la base de données SQLite
-		this.db = new sqlite3.Database(join(dataDir, 'transcendence.db'), (err) => {
-			if (err) {
-				console.error('Erreur lors de l\'ouverture de la base de données:', err.message);
-			} else {
-				console.log('Connecté à la base de données SQLite');
-				this.initTables();
-			}
-		});
+		mkdirSync(DB_DIR, { recursive: true });
+		this.db = new sqlite3.Database(DB_PATH, this.onConnect.bind(this));
 	}
 
-	// Initialiser les tables
+	onConnect(err) {
+		if (err) {
+			console.error('Database connection failed:', err.message);
+			process.exit(1);
+		}
+		console.log('Connected to SQLite database');
+		this.initTables();
+	}
+
 	initTables() {
 		const tables = [
 			// Table des utilisateurs
@@ -37,33 +30,12 @@ class Database {
 				display_name VARCHAR(50),
 				avatar_url VARCHAR(255) DEFAULT '/assets/default-avatar.png',
 				is_online BOOLEAN DEFAULT 0,
-				is_user BOOLEAN DEFAULT 1,
-				created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-				updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-			)`,
-			
-			// Table des statistiques utilisateur
-			`CREATE TABLE IF NOT EXISTS user_stats (
-				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				user_id INTEGER UNIQUE,
+				has_seen_welcome BOOLEAN DEFAULT 0,
 				wins INTEGER DEFAULT 0,
 				losses INTEGER DEFAULT 0,
-				games_played INTEGER DEFAULT 0,
-				FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+				created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 			)`,
-			
-			// Table des amis
-			`CREATE TABLE IF NOT EXISTS friends (
-				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				user_id INTEGER,
-				friend_id INTEGER,
-				status VARCHAR(20) DEFAULT 'pending',
-				created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-				FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
-				FOREIGN KEY(friend_id) REFERENCES users(id) ON DELETE CASCADE,
-				UNIQUE(user_id, friend_id)
-			)`,
-			
+
 			// Table de l'historique des matches
 			`CREATE TABLE IF NOT EXISTS match_history (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -78,7 +50,7 @@ class Database {
 				FOREIGN KEY(player2_id) REFERENCES users(id) ON DELETE CASCADE,
 				FOREIGN KEY(winner_id) REFERENCES users(id) ON DELETE CASCADE
 			)`,
-			
+
 			// Table des tokens blacklistés
 			`CREATE TABLE IF NOT EXISTS blacklisted_tokens (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -88,7 +60,7 @@ class Database {
 				expires_at DATETIME NOT NULL,
 				FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 			)`,
-			
+
 			// Table des utilisateurs bloqués
 			`CREATE TABLE IF NOT EXISTS blocked_users (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -98,27 +70,46 @@ class Database {
 				FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
 				FOREIGN KEY(blocked_user_id) REFERENCES users(id) ON DELETE CASCADE,
 				UNIQUE(user_id, blocked_user_id)
-			)`,
-			
-			// Table des invitations de jeu
-			`CREATE TABLE IF NOT EXISTS game_invitations (
-				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				from_user_id INTEGER NOT NULL,
-				to_user_id INTEGER NOT NULL,
-				game_type VARCHAR(50) DEFAULT 'pong',
-				status VARCHAR(20) DEFAULT 'pending',
-				created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-				FOREIGN KEY(from_user_id) REFERENCES users(id) ON DELETE CASCADE,
-				FOREIGN KEY(to_user_id) REFERENCES users(id) ON DELETE CASCADE
 			)`
 		];
+
+		let tablesCreated = 0;
+		const totalTables = tables.length;
 
 		tables.forEach(tableSQL => {
 			this.db.run(tableSQL, (err) => {
 				if (err) {
-					console.error('Erreur lors de la création des tables:', err.message);
-				} else {
-					console.log('Table créée ou déjà existante');
+					console.error('Error creating tables:', err.message);
+				}
+
+				tablesCreated++;
+				if (tablesCreated === totalTables) {
+					console.log('Database tables initialized');
+					this.createIndexes();
+				}
+			});
+		});
+	}
+
+	createIndexes() {
+		const indexes = [
+			`CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)`,
+			`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`,
+			`CREATE INDEX IF NOT EXISTS idx_blacklist_jti ON blacklisted_tokens(token_jti)`,
+			`CREATE INDEX IF NOT EXISTS idx_blacklist_expires ON blacklisted_tokens(expires_at)`,
+			`CREATE INDEX IF NOT EXISTS idx_match_player1 ON match_history(player1_id)`,
+			`CREATE INDEX IF NOT EXISTS idx_match_player2 ON match_history(player2_id)`
+		];
+
+		let indexesCreated = 0;
+		indexes.forEach(indexSQL => {
+			this.db.run(indexSQL, (err) => {
+				if (err) {
+					console.error('Error creating indexes:', err.message);
+				}
+				indexesCreated++;
+				if (indexesCreated === indexes.length) {
+					console.log('Database indexes created');
 				}
 			});
 		});
@@ -170,7 +161,6 @@ class Database {
 				if (err) {
 					reject(err);
 				} else {
-					console.log('Connexion à la base de données fermée');
 					resolve();
 				}
 			});
