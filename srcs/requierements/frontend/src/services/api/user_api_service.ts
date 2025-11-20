@@ -1,9 +1,14 @@
-// src/services/api/userApi.ts
-
+// ========================= IMPORTS =========================
+// Types TypeScript et constantes pour l'API utilisateur
 import { User, BlockedUser, Match } from '../../utils/data_types';
 import { API_BASE_URL, STORAGE_KEYS } from '../../utils/app_constants';
 
+// ========================= SERVICE API UTILISATEUR =========================
+// Gere toutes les interactions HTTP avec le backend (profil, amis, blocage, matchs)
 export class UserApiService {
+
+    // ========================= HEADERS D'AUTHENTIFICATION =========================
+    // Genere headers avec token Bearer pour l'authentification API
     private static getAuthHeaders(): HeadersInit {
         const token = sessionStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
         return {
@@ -12,6 +17,7 @@ export class UserApiService {
         };
     }
 
+    // Headers d'auth sans Content-Type (pour DELETE)
     private static getAuthHeadersWithoutContentType(): HeadersInit {
         const token = sessionStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
         return {
@@ -19,6 +25,8 @@ export class UserApiService {
         };
     }
 
+    // ========================= PROFIL UTILISATEUR =========================
+    // GET /user/profile - Recupere le profil de l'utilisateur connecte
     static async getUserProfile(): Promise<User> {
         const response = await fetch(`${API_BASE_URL}/user/profile`, {
             headers: this.getAuthHeaders()
@@ -32,6 +40,7 @@ export class UserApiService {
         return data.user;
     }
 
+    // GET /user/by-username/{username} - Recherche utilisateur par nom
     static async getUserByUsername(username: string): Promise<User> {
         const response = await fetch(`${API_BASE_URL}/user/by-username/${username}`, {
             headers: this.getAuthHeaders()
@@ -45,6 +54,8 @@ export class UserApiService {
         return data.user;
     }
 
+    // ========================= SYSTEME DE BLOCAGE =========================
+    // GET /user/blocked - Liste des utilisateurs bloques
     static async getBlockedUsers(): Promise<BlockedUser[]> {
         const response = await fetch(`${API_BASE_URL}/user/blocked`, {
             headers: this.getAuthHeaders()
@@ -58,6 +69,7 @@ export class UserApiService {
         return data.success ? data.blocked_users : [];
     }
 
+    // POST /user/block - Bloque un utilisateur
     static async blockUser(blockedUserId: number): Promise<void> {
         const response = await fetch(`${API_BASE_URL}/user/block`, {
             method: 'POST',
@@ -71,6 +83,7 @@ export class UserApiService {
         }
     }
 
+    // DELETE /user/unblock/{id} - Debloque un utilisateur
     static async unblockUser(blockedUserId: number): Promise<void> {
         const headers = this.getAuthHeadersWithoutContentType();
 
@@ -92,6 +105,8 @@ export class UserApiService {
         }
     }
 
+    // ========================= GESTION PROFIL =========================
+    // PUT /user/profile - Met a jour le profil utilisateur
     static async updateProfile(updates: Partial<User>): Promise<User> {
         const response = await fetch(`${API_BASE_URL}/user/profile`, {
             method: 'PUT',
@@ -107,6 +122,8 @@ export class UserApiService {
         return data.user;
     }
 
+    // ========================= AUTHENTIFICATION =========================
+    // POST /auth/logout - Deconnecte l'utilisateur
     static async logout(): Promise<void> {
         const token = sessionStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
         if (token) {
@@ -119,6 +136,8 @@ export class UserApiService {
         }
     }
 
+    // ========================= VERIFICATIONS DISPONIBILITE =========================
+    // POST /user/check-display-name - Verifie si nom d'affichage disponible
     static async checkDisplayNameAvailability(displayName: string): Promise<boolean> {
         const response = await fetch(`${API_BASE_URL}/user/check-display-name`, {
             method: 'POST',
@@ -134,6 +153,7 @@ export class UserApiService {
         return data.available;
     }
 
+    // POST /user/check-email - Verifie si email disponible
     static async checkEmailAvailability(email: string): Promise<boolean> {
         const response = await fetch(`${API_BASE_URL}/user/check-email`, {
             method: 'POST',
@@ -149,6 +169,8 @@ export class UserApiService {
         return data.available;
     }
 
+    // ========================= GESTION AMIS =========================
+    // GET /user/friends - Liste des amis
     static async getFriends(): Promise<User[]> {
         const response = await fetch(`${API_BASE_URL}/user/friends`, {
             headers: this.getAuthHeaders()
@@ -162,6 +184,7 @@ export class UserApiService {
         return data.friends || [];
     }
 
+    // POST /user/friend-request - Envoie demande d'ami
     static async sendFriendRequest(friendId: number): Promise<void> {
         const response = await fetch(`${API_BASE_URL}/user/friend-request`, {
             method: 'POST',
@@ -175,6 +198,7 @@ export class UserApiService {
         }
     }
 
+    // PUT /user/friend-request/{id}/accept - Accepte demande d'ami
     static async acceptFriendRequest(requestId: number): Promise<void> {
         const response = await fetch(`${API_BASE_URL}/user/friend-request/${requestId}/accept`, {
             method: 'PUT',
@@ -187,6 +211,7 @@ export class UserApiService {
         }
     }
 
+    // PUT /user/friend-request/{id}/decline - Refuse demande d'ami
     static async declineFriendRequest(requestId: number): Promise<void> {
         const response = await fetch(`${API_BASE_URL}/user/friend-request/${requestId}/decline`, {
             method: 'PUT',
@@ -199,6 +224,7 @@ export class UserApiService {
         }
     }
 
+    // DELETE /user/friend/{id} - Supprime un ami
     static async removeFriend(friendId: number): Promise<void> {
         const response = await fetch(`${API_BASE_URL}/user/friend/${friendId}`, {
             method: 'DELETE',
@@ -211,6 +237,8 @@ export class UserApiService {
         }
     }
 
+    // ========================= HISTORIQUE MATCHS =========================
+    // GET /user/match-history - Historique des parties jouees
     static async getMatchHistory(): Promise<Match[]> {
         const response = await fetch(`${API_BASE_URL}/user/match-history`, {
             headers: this.getAuthHeaders()
