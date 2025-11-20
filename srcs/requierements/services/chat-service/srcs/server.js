@@ -1,11 +1,13 @@
+// ========================= IMPORTS =========================
+// On importe les modules necessaires : Fastify pour le serveur HTTP, prom-client pour les metriques, Socket.IO pour le temps reel, et les utilitaires de securite
 import Fastify from 'fastify'
 import client from 'prom-client'
 import { Server } from 'socket.io'
 import { SecurityUtils } from './security.js'
 import { sendToLogstash } from './logstashLogger.js'
 
-/*					____METRICS Prometheus____						*/
-
+// ========================= METRICS PROMETHEUS =========================
+// On configure les compteurs Prometheus pour surveiller les messages envoyes/recus et les connexions socket
 const msgSentReceived = new client.Counter({
     name: 'msg_send_received',
     help: 'Number of messages sent/received',
@@ -17,19 +19,22 @@ const socketConnections = new client.Counter({
     help: 'Total number of socket connections'
 });
 
-/*					____SERVER Fastify____						*/
-
+// ========================= SERVEUR FASTIFY =========================
+// On cree l'instance Fastify avec les logs actives pour le serveur HTTP de base
 const fastify = Fastify({
     logger: true
 })
 
-// Storage pour les clients connectés
+// ========================= STOCKAGE DES CLIENTS =========================
+// On utilise des Maps pour stocker les clients connectes : par socket ID, username, display name, etc.
 const clients = new Map();
 const clientUsernames = new Map();
 const clientDisplayNames = new Map();
 const socketToUsername = new Map();
 
-// Route for testing health
+// ========================= ROUTES HTTP =========================
+// Ces routes HTTP permettent de verifier l'etat du service et d'exposer des metriques pour le monitoring
+// Route pour tester la sante du service (health check)
 fastify.get('/health', async (request, reply) => {
     console.log('health route accessed!');
     return {
@@ -39,23 +44,25 @@ fastify.get('/health', async (request, reply) => {
     };
 });
 
-// Endpoint pour Prometheus
+// Endpoint pour exposer les metriques Prometheus aux outils de monitoring
 fastify.get('/metrics', async (request, reply) => {
     reply.type('text/plain');
     return (await client.register.metrics());
 });
 
-/*					____SOCKET.IO____						*/
-
+// ========================= SOCKET.IO =========================
+// On attache Socket.IO au serveur Fastify pour gerer les connexions temps reel
 const io = new Server(fastify.server, {
     cors: {
         origin: true
     }
 });
 
+// ========================= GESTION DES CONNEXIONS SOCKET =========================
+// Quand un client se connecte, on gere sa session : stockage, bienvenue, ecoute des evenements
 io.on('connection', (socket) => {
     const clientId = socket.id;
-    console.log('📡 Client connecté:', clientId);
+    console.log('Client connecté:', clientId);
     
     socketConnections.inc(); // Incrémenter le compteur de connexions
     
@@ -68,18 +75,20 @@ io.on('connection', (socket) => {
     
     // STOCKEZ IMMÉDIATEMENT
     clients.set(clientId, socket);
-    console.log('✅ Connexion stockée pour', clientId);
+    console.log('Connexion stockée pour', clientId);
 
     // Envoyez le message de bienvenue
     socket.emit('welcome', {
         clientId: clientId,
         message: 'Connexion établie'
     });
-    console.log('✅ Message de bienvenue envoyé à', clientId);
+    console.log('Message de bienvenue envoyé à', clientId);
 
     // Gérez les événements
+    // ========================= GESTION DE LA DECONNEXION =========================
+    // Quand un client se deconnecte, on nettoie ses donnees des Maps
     socket.on('disconnect', () => {
-        console.log('❌ Client déconnecté:', clientId);
+        console.log('Client déconnecté:', clientId);
         const username = socketToUsername.get(clientId);
         
         // Log chat disconnection
@@ -98,6 +107,8 @@ io.on('connection', (socket) => {
         broadcastUserList();
     });
 
+    // ========================= ENREGISTREMENT UTILISATEUR =========================
+    // Quand un client s'enregistre, on valide et stocke ses infos pour le chat
     socket.on('register', (msg) => {
         console.log('← register reçu de', clientId, ':', msg);
         
@@ -107,7 +118,7 @@ io.on('connection', (socket) => {
         
         // Validation
         if (!SecurityUtils.isValidUsername(username)) {
-            console.log('⚠️ Username invalide:', username);
+            console.log('Username invalide:', username);
             
             // Log failed registration
             sendToLogstash('warn', 'Chat registration failed - invalid username', {
@@ -122,7 +133,7 @@ io.on('connection', (socket) => {
         }
         
         if (!SecurityUtils.isValidDisplayName(display_name)) {
-            console.log('⚠️ Display name invalide:', display_name);
+            console.log('Display name invalide:', display_name);
             
             // Log failed registration
             sendToLogstash('warn', 'Chat registration failed - invalid display name', {
@@ -139,7 +150,7 @@ io.on('connection', (socket) => {
         
         // Détection d'injection SQL
         if (SecurityUtils.detectSQLInjection(username) || SecurityUtils.detectSQLInjection(display_name)) {
-            console.log('🚨 Tentative d\'injection SQL détectée!');
+            console.log('Tentative d\'injection SQL détectée!');
             
             // Log SQL injection attempt
             sendToLogstash('error', 'SQL injection attempt blocked in chat registration', {
@@ -161,7 +172,7 @@ io.on('connection', (socket) => {
             clientDisplayNames.set(username, display_name);
             clients.set(username, socket);
             clients.delete(clientId);
-            console.log('✅ Client enregistré:', username, display_name);
+            console.log('Client enregistré:', username, display_name);
             
             // Log successful registration
             sendToLogstash('info', 'Chat user registered successfully', {
@@ -175,6 +186,8 @@ io.on('connection', (socket) => {
         }
     });
 
+    // ========================= GESTION DES MESSAGES =========================
+    // Quand un message arrive, on le valide, sanitise, et le diffuse aux destinataires
     socket.on('message', (msg) => {
         console.log('← message reçu de', clientId, ':', msg);
         
@@ -183,14 +196,14 @@ io.on('connection', (socket) => {
         
         // Validation
         if (!SecurityUtils.isValidMessage(sanitizedText)) {
-            console.log('⚠️ Message invalide');
+            console.log('Message invalide');
             socket.emit('error', { message: 'Invalid message format or length' });
             return ;
         }
         
         // Détection d'injection SQL
         if (SecurityUtils.detectSQLInjection(sanitizedText)) {
-            console.log('🚨 Tentative d\'injection SQL dans le message!');
+            console.log('Tentative d\'injection SQL dans le message!');
             
             const fromUsername = socketToUsername.get(clientId) || clientId;
             
@@ -224,7 +237,7 @@ io.on('connection', (socket) => {
         const targetSocket = clients.get(msg.to);
         if (targetSocket) {
             targetSocket.emit('message', broadcastMessage);
-            console.log('✅ Message privé envoyé de', fromUsername, 'vers', msg.to);
+            console.log('Message privé envoyé de', fromUsername, 'vers', msg.to);
             msgSentReceived.inc({status: 'sent'});
             
             // Log successful message
@@ -236,7 +249,7 @@ io.on('connection', (socket) => {
                 socket_id: clientId
             });
         } else {
-            console.log('⚠️ Destinataire introuvable:', msg.to);
+            console.log('Destinataire introuvable:', msg.to);
             
             // Log failed message delivery
             sendToLogstash('warn', 'Chat message delivery failed - recipient not found', {
@@ -256,11 +269,13 @@ io.on('connection', (socket) => {
     broadcastUserList();
 });
 
+// ========================= DIFFUSION DE LA LISTE UTILISATEURS =========================
+// Fonction pour envoyer la liste des utilisateurs connectes a tous les clients
 function broadcastUserList() {
-    console.log('📢 Broadcasting to', clients.size, 'clients');
+    console.log('Broadcasting to', clients.size, 'clients');
     
     if (clients.size === 0) {
-        console.log('📢 Aucun client connecté');
+        console.log('Aucun client connecté');
         return ;
     }
     
@@ -278,7 +293,8 @@ function broadcastUserList() {
     });
 }
 
-// All interfaces IPV4 (host : '0.0.0.0'), 
+// ========================= DEMARRAGE DU SERVEUR =========================
+// On demarre le serveur Fastify sur le port 3001, accessible de partout (host 0.0.0.0)
 fastify.listen({ port: 3001, host: '0.0.0.0' }, function (err, address) {
     if (err) {
         fastify.log.error(err);
