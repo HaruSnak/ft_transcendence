@@ -1,6 +1,6 @@
 import Fastify from 'fastify';
 import userService from './userService.js';
-import { authenticateToken, validateUserData } from './middleware.js';
+import { authenticateToken, validateUserData, rateLimitLogin } from './middleware.js';
 import client from 'prom-client';
 
 const userRegistrations = new client.Counter({
@@ -18,8 +18,10 @@ const fastify = Fastify({
 });
 
 // Enregistrer le support CORS
+const allowedOrigin = 'https://localhost:8443';
+
 await fastify.register(import('@fastify/cors'), {
-	origin: true
+	origin: allowedOrigin
 });
 
 // Enregistrer le support pour les fichiers multipart
@@ -65,7 +67,7 @@ fastify.post('/api/auth/register', {
 
 // Connexion
 fastify.post('/api/auth/login', {
-	preHandler: validateUserData({ username: true, password: true })
+	preHandler: [rateLimitLogin, validateUserData({ username: true, password: true })]
 }, async (request, reply) => {
 	try {
 		const { username, password } = request.body;
