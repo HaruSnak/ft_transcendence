@@ -251,7 +251,7 @@ echo "   ✅ Dashboard created"
 
 # Create a completion log
 echo ""
-echo "8. Logging completion event..."
+echo "7. Logging completion event..."
 CURRENT_DATE=$(date -u +"%Y.%m.%d")
 CURRENT_TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
 
@@ -282,12 +282,11 @@ echo "Access Kibana at: http://localhost:5601"
 echo "Login: elastic / ${ELASTIC_PASSWORD}"
 echo ""
 echo "Available Dashboards:"
-echo "  1. ft_transcendence Logging Overview"
-echo "  2. Security & Monitoring"
+echo "  - Security & Monitoring"
 echo ""
 echo "Total events in Elasticsearch: ${LOGS_COUNT}"
 echo ""
-echo "Note: If you don't see any data in the dashboards,"
+echo "Note: If you don't see any data in the dashboard,"
 echo "make sure the services are running and generating logs."
 echo "You can re-run this setup with:"
 echo "  docker-compose up kibana-setup"
