@@ -37,7 +37,7 @@ fclean: clean
 	@echo "Full cleanup including volumes and node_modules..."
 	cd ./srcs && $(DOCKER_COMPOSE) -f docker-compose.yml down -v
 	docker volume rm -f srcs_es_data srcs_grafana_db srcs_prometheus_db || true
-	@echo "Removing volume directories with Docker (no sudo needed)..."
+	@echo "Removing volume directories with Docker..."
 	@if [ -d "$(DATA_PATH)" ]; then \
 		docker run --rm -v "$$(pwd)/$(DATA_PATH):/data" alpine find /data -mindepth 1 -delete 2>/dev/null || true; \
 	fi
