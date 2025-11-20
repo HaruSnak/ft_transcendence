@@ -15,9 +15,9 @@ let gameUIInstance: PongGameUI | null = null;
 */
 export function initGame()
 {
-    if (gameUIInstance) {
-        gameUIInstance.getCleanUpGame();
-    }
+	if (gameUIInstance) {
+		gameUIInstance.getCleanUpGame();
+	}
 	gameUIInstance = new PongGameUI();
 	gameUIInstance.showMainMenu();
 }

@@ -1,231 +1,231 @@
 {
-  "title": "Transcendence Monitoring",
-  "tags": ["transcendence"],
-  "timezone": "browser",
-  "panels": [
-    {
-      "id": 1,
-      "title": "Service Up Status",
-      "type": "stat",
-      "targets": [
-        {
-          "expr": "up{job=~\"chat-service|user-service\"}",
-          "legendFormat": "{{job}}"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "text": "DOWN",
-                  "color": "red"
-                },
-                "1": {
-                  "text": "UP",
-                  "color": "green"
-                }
-              },
-              "type": "value"
-            }
-          ]
-        }
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 0
-      }
-    },
-    {
-      "id": 2,
-      "title": "HTTP Requests Rate",
-      "type": "graph",
-      "targets": [
-        {
-          "expr": "rate(http_requests_total[5m])",
-          "legendFormat": "{{job}}"
-        }
-      ],
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 0
-      }
-    },
-    {
-      "id": 3,
-      "title": "CPU Usage",
-      "type": "graph",
-      "targets": [
-        {
-          "expr": "100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
-          "legendFormat": "CPU Usage %"
-        }
-      ],
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 8
-      }
-    },
-    {
-      "id": 4,
-      "title": "Memory Usage",
-      "type": "graph",
-      "targets": [
-        {
-          "expr": "(1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100",
-          "legendFormat": "Memory Usage %"
-        }
-      ],
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 8
-      }
-    },
-    {
-      "id": 5,
-      "title": "Disk Usage",
-      "type": "graph",
-      "targets": [
-        {
-          "expr": "(1 - node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100",
-          "legendFormat": "{{mountpoint}}"
-        }
-      ],
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 16
-      }
-    },
-    {
-      "id": 6,
-      "title": "Network Traffic",
-      "type": "graph",
-      "targets": [
-        {
-          "expr": "rate(node_network_receive_bytes_total[5m])",
-          "legendFormat": "Receive {{device}}"
-        },
-        {
-          "expr": "rate(node_network_transmit_bytes_total[5m])",
-          "legendFormat": "Transmit {{device}}"
-        }
-      ],
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 16
-      }
-    },
-    {
-      "id": 7,
-      "title": "Elasticsearch Status",
-      "type": "stat",
-      "targets": [
-        {
-          "expr": "up{job=\"elasticsearch\"}",
-          "legendFormat": "Elasticsearch"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "text": "DOWN",
-                  "color": "red"
-                },
-                "1": {
-                  "text": "UP",
-                  "color": "green"
-                }
-              },
-              "type": "value"
-            }
-          ]
-        }
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 0,
-        "y": 24
-      }
-    },
-    {
-      "id": 8,
-      "title": "Elasticsearch Cluster Health",
-      "type": "stat",
-      "targets": [
-        {
-          "expr": "elasticsearch_cluster_health_status",
-          "legendFormat": "Status"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "text": "GREEN",
-                  "color": "green"
-                },
-                "1": {
-                  "text": "YELLOW",
-                  "color": "yellow"
-                },
-                "2": {
-                  "text": "RED",
-                  "color": "red"
-                }
-              },
-              "type": "value"
-            }
-          ]
-        }
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 6,
-        "y": 24
-      }
-    },
-    {
-      "id": 9,
-      "title": "Elasticsearch Documents Count",
-      "type": "graph",
-      "targets": [
-        {
-          "expr": "elasticsearch_indices_docs",
-          "legendFormat": "Total Documents"
-        }
-      ],
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 24
-      }
-    }
-  ],
-  "time": {
-    "from": "now-1h",
-    "to": "now"
-  },
-  "refresh": "5s",
-  "uid": "transcendence-monitoring"
+	"title": "Transcendence Monitoring",
+	"tags": ["transcendence"],
+	"timezone": "browser",
+	"panels": [
+		{
+		"id": 1,
+		"title": "Service Up Status",
+		"type": "stat",
+		"targets": [
+			{
+			"expr": "up{job=~\"chat-service|user-service\"}",
+			"legendFormat": "{{job}}"
+			}
+		],
+		"fieldConfig": {
+			"defaults": {
+			"mappings": [
+				{
+				"options": {
+					"0": {
+					"text": "DOWN",
+					"color": "red"
+					},
+					"1": {
+					"text": "UP",
+					"color": "green"
+					}
+				},
+				"type": "value"
+				}
+			]
+			}
+		},
+		"gridPos": {
+			"h": 8,
+			"w": 12,
+			"x": 0,
+			"y": 0
+		}
+		},
+		{
+		"id": 2,
+		"title": "HTTP Requests Rate",
+		"type": "graph",
+		"targets": [
+			{
+			"expr": "rate(http_requests_total[5m])",
+			"legendFormat": "{{job}}"
+			}
+		],
+		"gridPos": {
+			"h": 8,
+			"w": 12,
+			"x": 12,
+			"y": 0
+		}
+		},
+		{
+		"id": 3,
+		"title": "CPU Usage",
+		"type": "graph",
+		"targets": [
+			{
+			"expr": "100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+			"legendFormat": "CPU Usage %"
+			}
+		],
+		"gridPos": {
+			"h": 8,
+			"w": 12,
+			"x": 0,
+			"y": 8
+		}
+		},
+		{
+		"id": 4,
+		"title": "Memory Usage",
+		"type": "graph",
+		"targets": [
+			{
+			"expr": "(1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100",
+			"legendFormat": "Memory Usage %"
+			}
+		],
+		"gridPos": {
+			"h": 8,
+			"w": 12,
+			"x": 12,
+			"y": 8
+		}
+		},
+		{
+		"id": 5,
+		"title": "Disk Usage",
+		"type": "graph",
+		"targets": [
+			{
+			"expr": "(1 - node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100",
+			"legendFormat": "{{mountpoint}}"
+			}
+		],
+		"gridPos": {
+			"h": 8,
+			"w": 12,
+			"x": 0,
+			"y": 16
+		}
+		},
+		{
+		"id": 6,
+		"title": "Network Traffic",
+		"type": "graph",
+		"targets": [
+			{
+			"expr": "rate(node_network_receive_bytes_total[5m])",
+			"legendFormat": "Receive {{device}}"
+			},
+			{
+			"expr": "rate(node_network_transmit_bytes_total[5m])",
+			"legendFormat": "Transmit {{device}}"
+			}
+		],
+		"gridPos": {
+			"h": 8,
+			"w": 12,
+			"x": 12,
+			"y": 16
+		}
+		},
+		{
+		"id": 7,
+		"title": "Elasticsearch Status",
+		"type": "stat",
+		"targets": [
+			{
+			"expr": "up{job=\"elasticsearch\"}",
+			"legendFormat": "Elasticsearch"
+			}
+		],
+		"fieldConfig": {
+			"defaults": {
+			"mappings": [
+				{
+				"options": {
+					"0": {
+					"text": "DOWN",
+					"color": "red"
+					},
+					"1": {
+					"text": "UP",
+					"color": "green"
+					}
+				},
+				"type": "value"
+				}
+			]
+			}
+		},
+		"gridPos": {
+			"h": 8,
+			"w": 6,
+			"x": 0,
+			"y": 24
+		}
+		},
+		{
+		"id": 8,
+		"title": "Elasticsearch Cluster Health",
+		"type": "stat",
+		"targets": [
+			{
+			"expr": "elasticsearch_cluster_health_status",
+			"legendFormat": "Status"
+			}
+		],
+		"fieldConfig": {
+			"defaults": {
+			"mappings": [
+				{
+				"options": {
+					"0": {
+					"text": "GREEN",
+					"color": "green"
+					},
+					"1": {
+					"text": "YELLOW",
+					"color": "yellow"
+					},
+					"2": {
+					"text": "RED",
+					"color": "red"
+					}
+				},
+				"type": "value"
+				}
+			]
+			}
+		},
+		"gridPos": {
+			"h": 8,
+			"w": 6,
+			"x": 6,
+			"y": 24
+		}
+		},
+		{
+		"id": 9,
+		"title": "Elasticsearch Documents Count",
+		"type": "graph",
+		"targets": [
+			{
+			"expr": "elasticsearch_indices_docs",
+			"legendFormat": "Total Documents"
+			}
+		],
+		"gridPos": {
+			"h": 8,
+			"w": 12,
+			"x": 12,
+			"y": 24
+		}
+		}
+	],
+	"time": {
+		"from": "now-1h",
+		"to": "now"
+	},
+	"refresh": "5s",
+	"uid": "transcendence-monitoring"
 }

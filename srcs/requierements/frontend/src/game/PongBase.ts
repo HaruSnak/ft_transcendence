@@ -74,9 +74,9 @@ export class PongGame {
 		Ajoute les écouteurs d'événements clavier avec addEventListener()
 	*/
 	constructor(
-        private buttonStart: HTMLButtonElement,
-        private buttonPause: HTMLButtonElement,
-        private divMessageWinOrLose: HTMLDivElement,
+		private buttonStart: HTMLButtonElement,
+		private buttonPause: HTMLButtonElement,
+		private divMessageWinOrLose: HTMLDivElement,
 		private divScoreInGame: HTMLDivElement,
 	) {
 		// Initialiser canvas et contexte
@@ -106,12 +106,12 @@ export class PongGame {
 		this.divMessageWinOrLose.style.color = 'oklch(98.7% 0.022 95.277)';
 		const player1Name = (this.currentMatch?.[0]?.displayName ? this.currentMatch[0].displayName : 'You');
 		const player2Name = (this.currentMatch?.[1]?.displayName ? this.currentMatch[1].displayName : 'Bot');
-	    this.divMessageWinOrLose.innerHTML = `
+		this.divMessageWinOrLose.innerHTML = `
 			<div class="text-center">
 				<div class="text-5xl font-bold mb-4 text-white drop-shadow-lg">${player1Name} <span class="text-orange-400">vs</span> ${player2Name}</div>
 				<div class="text-2xl text-gray-100 font-medium">Press 'Start Game' when ready!</div>
 			</div>
-    	`;	
+		`;	
 		return ;
 	}
 

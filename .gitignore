@@ -5,9 +5,9 @@ yarn-debug.log*
 yarn-error.log*
 
 # ==================== ENVIRONMENT ====================
-#.env
+.env
 .env.local
-#*.env
+*.env
 
 # ==================== DOCKER VOLUMES ====================
 srcs/volumes/
