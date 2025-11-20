@@ -2,13 +2,13 @@
 
 import './style.css';
 
-// Imports des pages (version de votre collègue pour tout sauf le game)
+// Imports des pages
 import { initLogin } from './pages/login.js';
 import { initSignup } from './pages/signup.js';
 import { initProfile } from './pages/profile/index.js';
 import { initLiveChat } from './pages/livechat/index.js';
 
-// Import du game (VOTRE version)
+// Import du game
 import { initGame, cleanUpGame } from './game/game.js';
 
 // Expose startPong() au window
@@ -29,7 +29,7 @@ const pages = [
 ] as const;
 type Page = (typeof pages)[number];
 
-// Affiche la page demandée et cache les autres (simplifié)
+// Affiche la page demandée et cache les autres
 function showPage(pageId: string) {
   // Hide all pages
   document.querySelectorAll('.page').forEach(page => {
@@ -57,7 +57,7 @@ function showPage(pageId: string) {
   }
 }
 
-// Navigation - VOTRE VERSION (garde la logique du game propre)
+// Navigation
 function initNavigation() {
   // Handle nav links
   document.querySelectorAll('[data-page]').forEach(link => {
@@ -107,7 +107,7 @@ function initNavigation() {
   });
 }
 
-// Change de page - HYBRID: votre logique game + sa logique navigation
+// Change de page - check si login
 export function navigateTo(page: string, push = true) {
   // Check access for protected pages
   if (page === 'profile' || page === 'live-chat') {
@@ -122,19 +122,19 @@ export function navigateTo(page: string, push = true) {
     window.location.hash = page;
   }
   
-  // VOTRE LOGIQUE: Clean up game si on quitte la page game
+  // Clean up game si on quitte la page game
   if (page !== 'game') {
     cleanUpGame();
   }
   
   showPage(page);
   
-  // VOTRE LOGIQUE: Initialisation spécifique pour le jeu
+  // Initialisation spécifique pour le jeu
   if (page === 'game') {
     // Utiliser setTimeout pour s'assurer que le DOM est complètement chargé
     setTimeout(() => {
       initGame();
-    }, 50); // 50ms devrait être suffisant pour que le DOM soit mis à jour
+    }, 50); // attente pour etre certain que le DOM a charger
   }
 
   // Mettre à jour la navbar après changement de page
@@ -143,7 +143,7 @@ export function navigateTo(page: string, push = true) {
 
 // Démarrage de l'app
 window.addEventListener('DOMContentLoaded', () => {
-  // Initialize pages (version de votre collègue)
+  // Initialize pages
   initLogin();
   initSignup();
   initProfile();
