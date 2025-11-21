@@ -9,7 +9,7 @@ import { sendToLogstash } from './logstashLogger.js'
 // ========================= METRICS PROMETHEUS =========================
 // On configure les compteurs Prometheus pour surveiller les messages envoyes/recus et les connexions socket
 const msgSentReceived = new client.Counter({
-	name: 'msg_send_received',
+	name: 'msg_send_received_total',
 	help: 'Number of messages sent/received',
 	labelNames: ['status']
 });
@@ -239,6 +239,7 @@ io.on('connection', (socket) => {
 			targetSocket.emit('message', broadcastMessage);
 			console.log('Message privé envoyé de', fromUsername, 'vers', msg.to);
 			msgSentReceived.inc({status: 'sent'});
+			msgSentReceived.inc({status: 'received'}); // Le destinataire a reçu le message
 			
 			// Log successful message
 			sendToLogstash('info', 'Chat message sent successfully', {
