@@ -91,6 +91,23 @@ export class UserApiService {
 		await this.apiRequest('DELETE', `/user/unblock/${blockedUserId}`, undefined, false);
 	}
 
+	// ========================= GESTION DES AMIS =========================
+	// GET /user/friends - Liste des amis
+	static async getFriends(): Promise<User[]> {
+		const data = await this.apiRequest<{ success: boolean; friends?: User[] }>('GET', '/user/friends');
+		return data.success ? data.friends || [] : [];
+	}
+
+	// POST /user/friend - Ajoute un ami
+	static async addFriend(friendUserId: number): Promise<void> {
+		await this.apiRequest('POST', '/user/friend', { friend_user_id: friendUserId });
+	}
+
+	// DELETE /user/friend/{id} - Supprime un ami
+	static async removeFriend(friendUserId: number): Promise<void> {
+		await this.apiRequest('DELETE', `/user/friend/${friendUserId}`, undefined, false);
+	}
+
 	// ========================= GESTION PROFIL =========================
 	// PUT /user/profile - Met a jour le profil utilisateur
 	static async updateProfile(updates: Partial<User>): Promise<User> {

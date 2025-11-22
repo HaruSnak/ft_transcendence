@@ -70,6 +70,17 @@ class Database {
 				FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
 				FOREIGN KEY(blocked_user_id) REFERENCES users(id) ON DELETE CASCADE,
 				UNIQUE(user_id, blocked_user_id)
+			)`,
+
+			// Table des amis
+			`CREATE TABLE IF NOT EXISTS friends (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				user_id INTEGER NOT NULL,
+				friend_user_id INTEGER NOT NULL,
+				created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+				FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+				FOREIGN KEY(friend_user_id) REFERENCES users(id) ON DELETE CASCADE,
+				UNIQUE(user_id, friend_user_id)
 			)`
 		];
 

@@ -219,6 +219,12 @@ export class ProfileManager {
 				const logoutBtn = document.querySelector('[data-action="logout"]');
 				if (logoutBtn) (logoutBtn as HTMLElement).style.display = 'none';
 			} else {
+				// Show buttons for own profile
+				const editBtn = document.querySelector('[data-action="edit"]');
+				if (editBtn) (editBtn as HTMLElement).style.display = '';
+				const logoutBtn = document.querySelector('[data-action="logout"]');
+				if (logoutBtn) (logoutBtn as HTMLElement).style.display = '';
+
 				// Initialize online friends widget for own profile
 				if (!this.onlineFriendsWidget) {
 					this.onlineFriendsWidget = new OnlineFriendsWidget('profile-online-friends');
@@ -315,7 +321,7 @@ export class ProfileManager {
 		const otherMatches: any[] = [];
 
 		matches.forEach((match) => {
-			if ((match.game_type || '').toLowerCase().includes('tournament')) {
+			if ((match.game_mode || '').toLowerCase().includes('tournament')) {
 				tournamentMatches.push(match);
 			} else {
 				otherMatches.push(match);
@@ -323,7 +329,7 @@ export class ProfileManager {
 		});
 
 		// For tournaments, sort by date descending and take only the most recent (final) match
-		tournamentMatches.sort((a, b) => new Date(b.game_date).getTime() - new Date(a.game_date).getTime());
+		tournamentMatches.sort((a, b) => new Date(b.played_at).getTime() - new Date(a.played_at).getTime());
 		const finalTournamentMatches = tournamentMatches.slice(0, 1); // Only the most recent
 
 		// Combine: final tournament match + all other matches
@@ -385,7 +391,7 @@ export class ProfileManager {
 		const otherMatches: any[] = [];
 
 		matches.forEach((match) => {
-			if ((match.game_type || '').toLowerCase().includes('tournament')) {
+			if ((match.game_mode || '').toLowerCase().includes('tournament')) {
 				tournamentMatches.push(match);
 			} else {
 				otherMatches.push(match);
@@ -393,7 +399,7 @@ export class ProfileManager {
 		});
 
 		// For tournaments, sort by date descending and take only the most recent (final) match
-		tournamentMatches.sort((a, b) => new Date(b.game_date).getTime() - new Date(a.game_date).getTime());
+		tournamentMatches.sort((a, b) => new Date(b.played_at).getTime() - new Date(a.played_at).getTime());
 		const finalTournamentMatches = tournamentMatches.slice(0, 1); // Only the most recent
 
 		// Combine: final tournament match + all other matches
@@ -405,7 +411,7 @@ export class ProfileManager {
 			matchDiv.className = 'bg-gray-800 p-4 rounded-lg mb-4';
 
 			// Add 'Z' if missing to indicate UTC time, fixing 1-hour time difference
-			const date = new Date(match.game_date + (match.game_date.includes('Z') ? '' : 'Z')).toLocaleString('fr-FR', {
+			const date = new Date(match.played_at + (match.played_at.includes('Z') ? '' : 'Z')).toLocaleString('fr-FR', {
 				year: 'numeric',
 				month: 'long',
 				day: 'numeric',
@@ -431,7 +437,7 @@ export class ProfileManager {
 			const isWin = userScore > opponentScore;
 
 			const result = isWin ? 'Win' : 'Lose';
-			const gameType = match.game_type || 'Unknown';
+			const gameType = match.game_mode || 'Unknown';
 			const score = `${userScore}-${opponentScore}`;
 
 			// SECURITY: Escape HTML to prevent XSS

@@ -1,15 +1,18 @@
 // src/pages/profile/online_friends_widget.ts
 
-import { SocketUser } from '../../utils/data_types';
+import { SocketUser, User } from '../../utils/data_types';
+import { UserApiService } from '../../services/api/user_api_service';
 
 // classe qui gere le widget des amis en ligne : affiche la liste des amis connectes, avec boutons pour discuter, voir profil, supprimer
 export class OnlineFriendsWidget {
 	private containerId: string;
 	private onlineUsers: SocketUser[] = [];
+	private friends: User[] = [];
 
 	constructor(containerId: string) {
 		this.containerId = containerId;
 		this.setupEventListeners();
+		this.loadFriends();
 	}
 
 	// ========================= INITIALISATION & ECOUTEURS =========================
@@ -22,7 +25,21 @@ export class OnlineFriendsWidget {
 			}
 		});
 
-		document.addEventListener('friendAdded', () => this.render());
+		document.addEventListener('friendAdded', () => this.loadFriends());
+		document.addEventListener('friendRemoved', () => this.loadFriends());
+	}
+
+	// charge la liste des amis depuis l'API
+	private async loadFriends(): Promise<void> {
+		try {
+			const friends = await UserApiService.getFriends();
+			this.friends = friends;
+			this.render();
+		} catch (error) {
+			console.error('Failed to load friends:', error);
+			this.friends = [];
+			this.render();
+		}
 	}
 
 	// ========================= GESTION DES DONNEES =========================
@@ -75,24 +92,12 @@ export class OnlineFriendsWidget {
 			return;
 		}
 
-		friends.forEach(friend => this.renderFriendItem(friend, container));
+		this.friends.forEach(friend => this.renderFriendItem(friend, container));
 	}
 
 	// retourne TOUS les users ajoutes comme amis (pas seulement ceux en ligne)
 	private getAllAddedFriends(): string[] {
-		const currentUser = this.getCurrentUsername();
-		if (!currentUser) return [];
-
-		const friends: string[] = [];
-		const prefix = `profile_visible_${currentUser}_`;
-
-		for (let i = 0; i < localStorage.length; i++) {
-			const key = localStorage.key(i);
-			if (key?.startsWith(prefix)) {
-				friends.push(key.replace(prefix, ''));
-			}
-		}
-		return friends;
+		return this.friends.map(f => f.username);
 	}
 
 	// verifie si un ami est actuellement en ligne
@@ -119,7 +124,8 @@ export class OnlineFriendsWidget {
 	}
 
 	// cree et ajoute un element HTML pour un ami : point vert si en ligne, nom, boutons (supprimer, profil, message)
-	private renderFriendItem(username: string, container: HTMLElement): void {
+	private renderFriendItem(friend: User, container: HTMLElement): void {
+		const username = friend.username;
 		const isOnline = this.isFriendOnline(username);
 
 		const item = document.createElement('div');
@@ -142,9 +148,9 @@ export class OnlineFriendsWidget {
 		const buttons = document.createElement('div');
 		buttons.className = 'flex gap-1 flex-shrink-0';
 
-		buttons.appendChild(this.createRemoveButton(username));
-		buttons.appendChild(this.createProfileButton(username));
-		if (isOnline) buttons.appendChild(this.createMessageButton(username));
+		buttons.appendChild(this.createRemoveButton(friend));
+		buttons.appendChild(this.createProfileButton(friend));
+		if (isOnline) buttons.appendChild(this.createMessageButton(friend));
 
 		item.appendChild(left);
 		item.appendChild(buttons);
@@ -153,22 +159,23 @@ export class OnlineFriendsWidget {
 
 	// ========================= CREATION DES BOUTONS =========================
 	// cree le bouton "✕" pour supprimer un user du profil
-	private createRemoveButton(username: string): HTMLButtonElement {
+	private createRemoveButton(friend: User): HTMLButtonElement {
 		const btn = document.createElement('button');
 		btn.className = 'text-xs px-1 py-0.5 rounded hover:bg-red-600';
 		btn.textContent = '✕';
 		btn.title = 'Remove from friendlist';
-		btn.addEventListener('click', (e) => {
+		btn.addEventListener('click', async (e) => {
 			e.stopPropagation();
-			if (confirm(`Remove ${username} from your friendlist?`)) {
-				const currentUser = this.getCurrentUsername();
-				if (currentUser) {
-					localStorage.removeItem(`profile_visible_${currentUser}_${username}`);
-					this.render();
-
+			if (confirm(`Remove ${friend.username} from your friendlist?`)) {
+				try {
+					await UserApiService.removeFriend(friend.id);
+					this.loadFriends();
 					document.dispatchEvent(new CustomEvent('friendRemoved', {
-						detail: { username }
+						detail: { username: friend.username }
 					}));
+				} catch (error) {
+					console.error('Failed to remove friend:', error);
+					alert('Failed to remove friend');
 				}
 			}
 		});
@@ -176,21 +183,21 @@ export class OnlineFriendsWidget {
 	}
 
 	// cree le bouton "👤" pour voir le profil d'un user
-	private createProfileButton(username: string): HTMLButtonElement {
+	private createProfileButton(friend: User): HTMLButtonElement {
 		const btn = document.createElement('button');
 		btn.className = 'text-xs px-1 py-0.5 rounded hover:bg-gray-600';
 		btn.textContent = '👤';
 		btn.title = 'View profile';
 		btn.addEventListener('click', (e) => {
 			e.stopPropagation();
-			sessionStorage.setItem('profileUsername', username);
-			window.location.hash = `profile-${username}`;
+			sessionStorage.setItem('profileUsername', friend.username);
+			window.location.hash = `profile-${friend.username}`;
 		});
 		return btn;
 	}
 
 	// cree le bouton "💬" pour envoyer un message a un user, qui navigue vers le chat et demarre une conversation
-	private createMessageButton(username: string): HTMLButtonElement {
+	private createMessageButton(friend: User): HTMLButtonElement {
 		const btn = document.createElement('button');
 		btn.className = 'text-xs px-1 py-0.5 rounded hover:bg-gray-600';
 		btn.textContent = '💬';
@@ -200,7 +207,7 @@ export class OnlineFriendsWidget {
 			window.location.hash = 'live-chat';
 			setTimeout(() => {
 				document.dispatchEvent(new CustomEvent('initiateDirectMessage', {
-					detail: { username, displayName: username }
+					detail: { username: friend.username, displayName: friend.username }
 				}));
 			}, 100);
 		});

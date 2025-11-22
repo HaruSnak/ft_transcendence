@@ -303,6 +303,45 @@ class UserService {
 			throw new Error('User is not blocked');
 		}
 	}
+
+	// Obtenir les amis
+	async getFriends(userId) {
+		const friends = await database.query(
+			`SELECT u.id, u.username, u.display_name, u.avatar_url, u.is_online
+			 FROM friends f
+			 JOIN users u ON f.friend_user_id = u.id
+			 WHERE f.user_id = ?`,
+			[userId]
+		);
+		return friends;
+	}
+
+	// Ajouter un ami
+	async addFriend(userId, friendUserId) {
+		if (userId === parseInt(friendUserId)) {
+			throw new Error('Cannot add yourself as friend');
+		}
+
+		const result = await database.run(
+			'INSERT OR IGNORE INTO friends (user_id, friend_user_id) VALUES (?, ?)',
+			[userId, friendUserId]
+		);
+
+		if (result.changes === 0) {
+			throw new Error('User is already a friend');
+		}
+	}
+
+	// Supprimer un ami
+	async removeFriend(userId, friendUserId) {
+		const result = await database.run(
+			'DELETE FROM friends WHERE user_id = ? AND friend_user_id = ?',
+			[userId, friendUserId]
+		);
+		if (result.changes === 0) {
+			throw new Error('User is not a friend');
+		}
+	}
 }
 
 export default new UserService();

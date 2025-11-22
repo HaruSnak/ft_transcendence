@@ -2,6 +2,7 @@
 
 import { SocketUser, SocketConnection } from '../../utils/data_types';
 import { UI_ELEMENTS } from '../../utils/app_constants';
+import { UserApiService } from '../api/user_api_service';
 
 // classe qui gere la liste des users en ligne : affichage dans l'interface, clics pour discuter, gestion des amis, etc.
 export class UserManagementService {
@@ -93,25 +94,24 @@ export class UserManagementService {
 		const button = document.createElement('button');
 		button.className = 'text-xs px-1 py-0.5 rounded hover:bg-green-600';
 		button.textContent = '+';
-		button.title = 'Add to profile';
+		button.title = 'Add to friends';
 
-		const key = `profile_visible_${this.currentUsername}_${user.username}`;
-		const isAlreadyFriend = localStorage.getItem(key) === 'true';
-
-		if (isAlreadyFriend) {
-			button.style.display = 'none';
-		}
-
-		button.addEventListener('click', (e) => {
+		button.addEventListener('click', async (e) => {
 			e.stopPropagation();
-			localStorage.setItem(key, 'true');
-			alert('Ajouté au profil !');
-			button.style.display = 'none';
+			try {
+				const userData = await UserApiService.getUserByUsername(user.username);
+				await UserApiService.addFriend(userData.id);
+				alert('Added to friends!');
+				button.style.display = 'none';
 
-			const friendAddedEvent = new CustomEvent('friendAdded', {
-				detail: { username: user.username }
-			});
-			document.dispatchEvent(friendAddedEvent);
+				const friendAddedEvent = new CustomEvent('friendAdded', {
+					detail: { username: user.username }
+				});
+				document.dispatchEvent(friendAddedEvent);
+			} catch (error) {
+				console.error('Failed to add friend:', error);
+				alert('Failed to add friend or already added');
+			}
 		});
 
 		return button;

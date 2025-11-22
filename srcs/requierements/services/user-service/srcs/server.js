@@ -444,6 +444,90 @@ fastify.delete('/api/user/unblock/:blocked_user_id', {
 	}
 });
 
+// Obtenir les amis
+fastify.get('/api/user/friends', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		const friends = await userService.getFriends(request.user.userId);
+		reply.send({
+			success: true,
+			friends: friends
+		});
+	} catch (error) {
+		reply.code(500).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
+// Ajouter un ami
+fastify.post('/api/user/friend', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		const { friend_user_id } = request.body;
+		if (!friend_user_id) {
+			return reply.code(400).send({
+				success: false,
+				error: 'friend_user_id is required'
+			});
+		}
+
+		await userService.addFriend(request.user.userId, friend_user_id);
+
+		// Log user add friend action
+		sendToLogstash('info', 'User added a friend', {
+			event: 'user_add_friend',
+			userId: request.user.userId,
+			username: request.user.username,
+			friend_userId: friend_user_id,
+			ip_address: request.ip,
+			user_agent: request.headers['user-agent']
+		});
+
+		reply.send({
+			success: true,
+			message: 'Friend added successfully'
+		});
+	} catch (error) {
+		reply.code(400).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
+// Supprimer un ami
+fastify.delete('/api/user/friend/:friend_user_id', {
+	preHandler: authenticateToken
+}, async (request, reply) => {
+	try {
+		await userService.removeFriend(request.user.userId, request.params.friend_user_id);
+
+		// Log user remove friend action
+		sendToLogstash('info', 'User removed a friend', {
+			event: 'user_remove_friend',
+			userId: request.user.userId,
+			username: request.user.username,
+			friend_userId: request.params.friend_user_id,
+			ip_address: request.ip,
+			user_agent: request.headers['user-agent']
+		});
+
+		reply.send({
+			success: true,
+			message: 'Friend removed successfully'
+		});
+	} catch (error) {
+		reply.code(400).send({
+			success: false,
+			error: error.message
+		});
+	}
+});
+
 // All interfaces IPV4 (host : '0.0.0.0'), 
 fastify.listen({ port : 3003, host : '0.0.0.0'}, function (err, address) {
 	if (err) {
