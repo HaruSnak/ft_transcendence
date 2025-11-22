@@ -49,23 +49,4 @@ export class TournamentPingService {
 	private static sendMessageToUser(toUserId: string, message: string): void {
 		socketService.sendDirectMessage(toUserId, message);
 	}
-
-	// gere la reception d'un ping (pour extension future si besoin)
-	static receivePing(_fromUserId: string, tournamentId: string, _message: string): void {
-		if (!this.isEnabled || this.currentTournamentId !== tournamentId) {
-			return;
-		}
-		// traitement supplementaire si necessaire
-	}
-
-	// ========================= GETTERS =========================
-	// verifie si les pings sont actives
-	static isPingsEnabled(): boolean {
-		return this.isEnabled;
-	}
-
-	// retourne l'ID du tournoi actuellement suivi
-	static getCurrentTournamentId(): string | null {
-		return this.currentTournamentId;
-	}
 }

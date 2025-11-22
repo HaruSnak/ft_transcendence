@@ -1,6 +1,6 @@
 // src/pages/profile/profile.ts
 
-import { User } from '../../utils/data_types';
+import { User, Match, ProfileUpdateData } from '../../utils/data_types';
 import { SecurityUtils } from '../../utils/SecurityUtils';
 import { OnlineFriendsWidget } from './online_friends_widget';
 import { updateNavbar } from '../../index.js';
@@ -32,18 +32,14 @@ export async function performFetchProfile(profileUsername?: string): Promise<Use
 }
 
 // met a jour le profil de l'utilisateur (nom, email, mot de passe) via une requete PUT
-export async function performUpdateProfile(displayName: string, email: string, password?: string): Promise<User> {
+export async function performUpdateProfile(updates: ProfileUpdateData): Promise<User> {
 	const response = await fetch('/api/user/profile', {
 		method: 'PUT',
 		headers: {
 		'Content-Type': 'application/json',
 		'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
 		},
-		body: JSON.stringify({
-		display_name: displayName,
-		email: email,
-		...(password && { password: password }),
-		}),
+		body: JSON.stringify(updates),
 	});
 
 	if (!response.ok) {
@@ -99,7 +95,7 @@ export async function performDeleteUser(): Promise<void> {
 }
 
 // charge l'historique des matches de l'utilisateur via une requete GET
-export async function performLoadMatchHistory(): Promise<any[]> {
+export async function performLoadMatchHistory(): Promise<Match[]> {
 	const response = await fetch('/api/user/matches', {
 		headers: {
 		'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`,
@@ -264,7 +260,7 @@ export class ProfileManager {
 			if (!avatar || avatar === '' || avatar === 'null') {
 				avatar = '/assets/default-avatar.png';
 			}
-			avatarField.src = avatar;
+			avatarField.src = SecurityUtils.sanitizeURL(avatar) || '/assets/default-avatar.png';
 		}
 
 		if (!isOtherUser) {
@@ -307,7 +303,7 @@ export class ProfileManager {
 	}
 
 	// Calcule les stats (wins/losses) a partir des matches, en gerant les tournois separement
-	private calculateStatsFromMatches(matches: any[]): void {
+	private calculateStatsFromMatches(matches: Match[]): void {
 		// Get current user username
 		const userData = sessionStorage.getItem('user');
 		if (!userData) return;
@@ -365,7 +361,7 @@ export class ProfileManager {
 	}
 
 	// Affiche l'historique des matches dans l'interface, avec echappement HTML pour la securite
-	private displayMatchHistory(matches: any[]): void {
+	private displayMatchHistory(matches: Match[]): void {
 		const container = document.getElementById('match-history');
 		if (!container) return;
 
@@ -526,7 +522,12 @@ export class ProfileManager {
 		this.showEditMsg('Mise à jour en cours...', true);
 
 		try {
-			const user = await performUpdateProfile(displayName, email, password || undefined);
+			const updates: ProfileUpdateData = {
+				display_name: displayName,
+				email: email,
+				...(password && { password: password }),
+			};
+			const user = await performUpdateProfile(updates);
 			sessionStorage.setItem('user', JSON.stringify(user));
 			this.showEditMsg('Profil mis à jour avec succès!', true);
 			setTimeout(() => this.loadProfile(), 1000);
@@ -557,7 +558,7 @@ export class ProfileManager {
 			const data = await performUploadAvatar(file);
 			const avatarImg = document.querySelector('[data-field="avatar"]') as HTMLImageElement;
 			if (avatarImg && data.avatar_url) {
-				avatarImg.src = data.avatar_url;
+				avatarImg.src = SecurityUtils.sanitizeURL(data.avatar_url) || '/assets/default-avatar.png';
 			}
 			const user = JSON.parse(sessionStorage.getItem('user') || '{}');
 			user.avatar_url = data.avatar_url;
