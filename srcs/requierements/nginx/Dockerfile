@@ -10,10 +10,7 @@ RUN apk add --no-cache openssl && \
 COPY nginx/conf/nginx.conf /etc/nginx/nginx.conf
 
 # Copy pre-built frontend files
-COPY frontend/public/index.html /usr/share/nginx/html/
-COPY frontend/public/js /usr/share/nginx/html/js
-COPY frontend/public/css /usr/share/nginx/html/css
-COPY frontend/public/assets /usr/share/nginx/html/assets
+COPY frontend/public/ /usr/share/nginx/html/public/
 
 EXPOSE 443
 
