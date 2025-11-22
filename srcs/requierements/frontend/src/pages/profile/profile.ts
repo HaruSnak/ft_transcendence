@@ -227,14 +227,10 @@ export class ProfileManager {
 				if (!this.onlineFriendsWidget) {
 					this.onlineFriendsWidget = new OnlineFriendsWidget('profile-online-friends');
 
-					import('../../services/socket/index.js').then(({ socketService }) => {
-						const onlineUsers = socketService.getOnlineUsers();
-						if (onlineUsers && onlineUsers.length > 0) {
-							this.onlineFriendsWidget?.updateOnlineUsers(onlineUsers);
-						}
-					}).catch(err => {
-						console.log('⚠️ Socket service not available yet:', err);
-					});
+					// Force update online users after a short delay to ensure socket service is ready
+					setTimeout(() => {
+						this.onlineFriendsWidget?.forceUpdateOnlineUsers();
+					}, 1000);
 				}
 			}
 		} catch (error) {

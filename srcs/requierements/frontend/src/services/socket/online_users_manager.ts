@@ -1,15 +1,13 @@
-// src/services/socket/userManagement.ts
+// src/services/socket/online_users_manager.ts
 
 import { SocketUser, SocketConnection } from '../../utils/data_types';
 import { UI_ELEMENTS } from '../../utils/app_constants';
-import { friendsManager } from '../../pages/profile/friends_manager';
 
 // classe qui gere la liste des users en ligne : affichage dans l'interface, clics pour discuter, gestion des amis, etc.
 export class UserManagementService {
 	private onlineUsers: SocketUser[] = [];
 	private currentUsername: string = '';
 
-	// @ts-ignore - Property used to initialize currentUsername in constructor
 	constructor(private _socketConnection: SocketConnection) {
 		this.currentUsername = _socketConnection.getCurrentUser()?.username || '';
 		this.setupEventListeners();
@@ -18,10 +16,7 @@ export class UserManagementService {
 	// ========================= INITIALISATION & ECOUTEURS =========================
 	// met en place les ecouteurs d'evenements, comme les mises a jour de la friendlist
 	private setupEventListeners(): void {
-		// Listen for friends list updates to refresh the user list
-		document.addEventListener('friendsListUpdated', () => {
-			this.renderUserList();
-		});
+		document.addEventListener('friendRemoved', () => this.renderUserList());
 	}
 
 	// ========================= GESTION DES UTILISATEURS EN LIGNE =========================
@@ -30,7 +25,6 @@ export class UserManagementService {
 		this.onlineUsers = users;
 		this.renderUserList();
 
-		// Dispatch event for other components (like online friends widget)
 		const event = new CustomEvent('onlineUsersUpdated', {
 			detail: { users: this.onlineUsers }
 		});
@@ -60,30 +54,21 @@ export class UserManagementService {
 		const userItem = document.createElement('div');
 		userItem.className = 'flex items-center justify-between py-1 px-1 rounded hover:bg-gray-600 overflow-hidden';
 
-		// Username display - clickable to start DM
 		const usernameSpan = document.createElement('span');
 		usernameSpan.className = 'text-sm truncate flex-1 min-w-0 min-w-24 cursor-pointer hover:text-blue-400';
 		usernameSpan.textContent = user.display_name || user.username;
 		usernameSpan.title = `Click to chat with ${user.display_name || user.username}`;
-		usernameSpan.addEventListener('click', (event) => {
-			event.stopPropagation();
+		usernameSpan.addEventListener('click', (e) => {
+			e.stopPropagation();
 			this.initiateDirectMessage(user);
 		});
 		userItem.appendChild(usernameSpan);
 
-		// Action buttons container
 		const buttonsContainer = document.createElement('div');
 		buttonsContainer.className = 'flex gap-1';
 
-		// Add friend button only if not friend
-		if (!friendsManager.isFriend(user.username)) {
-			const addFriendButton = this.createAddFriendButton(user);
-			buttonsContainer.appendChild(addFriendButton);
-		}
-
-		// Profile button
-		const profileButton = this.createProfileButton(user);
-		buttonsContainer.appendChild(profileButton);
+		buttonsContainer.appendChild(this.createAddFriendButton(user));
+		buttonsContainer.appendChild(this.createProfileButton(user));
 
 		userItem.appendChild(buttonsContainer);
 		container.appendChild(userItem);
@@ -96,8 +81,8 @@ export class UserManagementService {
 		button.className = 'text-xs px-1 py-0.5 rounded hover:bg-gray-500';
 		button.textContent = '👤';
 		button.title = 'View user profile';
-		button.addEventListener('click', (event) => {
-			event.stopPropagation();
+		button.addEventListener('click', (e) => {
+			e.stopPropagation();
 			window.location.hash = `profile-${user.username}`;
 		});
 		return button;
@@ -108,15 +93,25 @@ export class UserManagementService {
 		const button = document.createElement('button');
 		button.className = 'text-xs px-1 py-0.5 rounded hover:bg-green-600';
 		button.textContent = '+';
-		button.title = 'Add to friends';
+		button.title = 'Add to profile';
 
-		button.addEventListener('click', (event) => {
-			event.stopPropagation();
-			friendsManager.addFriend(user.username);
-			alert('Ami ajouté !');
+		const key = `profile_visible_${this.currentUsername}_${user.username}`;
+		const isAlreadyFriend = localStorage.getItem(key) === 'true';
+
+		if (isAlreadyFriend) {
 			button.style.display = 'none';
-			// Re-render to show the message button
-			this.renderUserList();
+		}
+
+		button.addEventListener('click', (e) => {
+			e.stopPropagation();
+			localStorage.setItem(key, 'true');
+			alert('Ajouté au profil !');
+			button.style.display = 'none';
+
+			const friendAddedEvent = new CustomEvent('friendAdded', {
+				detail: { username: user.username }
+			});
+			document.dispatchEvent(friendAddedEvent);
 		});
 
 		return button;
@@ -125,7 +120,6 @@ export class UserManagementService {
 	// ========================= ACTIONS UTILISATEUR =========================
 	// quand on clique sur un nom, emet un evenement pour demarrer une conversation privee (ouvre un/le dm)
 	private initiateDirectMessage(user: SocketUser): void {
-		// Emit event to message service
 		const event = new CustomEvent('initiateDirectMessage', {
 			detail: { username: user.username, displayName: user.display_name || user.username }
 		});
