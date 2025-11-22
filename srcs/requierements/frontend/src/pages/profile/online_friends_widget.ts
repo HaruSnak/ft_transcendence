@@ -2,6 +2,7 @@
 
 import { SocketUser } from '../../utils/data_types';
 
+// classe qui gere le widget des amis en ligne : affiche la liste des amis connectes, avec boutons pour discuter, voir profil, supprimer
 export class OnlineFriendsWidget {
 	private containerId: string;
 	private onlineUsers: SocketUser[] = [];
@@ -11,6 +12,8 @@ export class OnlineFriendsWidget {
 		this.setupEventListeners();
 	}
 
+	// ========================= INITIALISATION & ECOUTEURS =========================
+	// met en place les ecouteurs d'evenements : mises a jour des amis et des users en ligne
 	private setupEventListeners(): void {
 		document.addEventListener('onlineUsersUpdated', (event: any) => {
 			if (event.detail?.users) {
@@ -22,11 +25,14 @@ export class OnlineFriendsWidget {
 		document.addEventListener('friendAdded', () => this.render());
 	}
 
+	// ========================= GESTION DES DONNEES =========================
+	// met a jour la liste des users en ligne et fais le render
 	public updateOnlineUsers(users: SocketUser[]): void {
 		this.onlineUsers = users;
 		this.render();
 	}
 
+	// force la mise a jour des utilisateurs en ligne depuis le service socket
 	public forceUpdateOnlineUsers(): void {
 		import('../../services/socket/index.js').then(({ socketService }) => {
 			import('../../services/socket/socket_connection.js').then(({ SocketConnectionService }) => {
@@ -52,6 +58,8 @@ export class OnlineFriendsWidget {
 		});
 	}
 
+	// ========================= AFFICHAGE PRINCIPAL =========================
+	// Fonction principale : recupere TOUS les amis ajoutes, vide le conteneur et affiche chaque ami avec son statut en ligne
 	public render(): void {
 		const container = document.getElementById(this.containerId);
 		if (!container) {
@@ -70,6 +78,7 @@ export class OnlineFriendsWidget {
 		friends.forEach(friend => this.renderFriendItem(friend, container));
 	}
 
+	// retourne TOUS les users ajoutes comme amis (pas seulement ceux en ligne)
 	private getAllAddedFriends(): string[] {
 		const currentUser = this.getCurrentUsername();
 		if (!currentUser) return [];
@@ -86,10 +95,12 @@ export class OnlineFriendsWidget {
 		return friends;
 	}
 
+	// verifie si un ami est actuellement en ligne
 	private isFriendOnline(username: string): boolean {
 		return this.onlineUsers.some(user => user.username === username);
 	}
 
+	// recupere le nom d'utilisateur actuel
 	private getCurrentUsername(): string | null {
 		try {
 			const user = JSON.parse(sessionStorage.getItem('user') || '{}');
@@ -99,6 +110,7 @@ export class OnlineFriendsWidget {
 		}
 	}
 
+	// affiche un message quand aucun ami n'a ete ajoute
 	private renderEmptyState(container: HTMLElement): void {
 		const div = document.createElement('div');
 		div.className = 'text-muted text-xs text-center py-4';
@@ -106,6 +118,7 @@ export class OnlineFriendsWidget {
 		container.appendChild(div);
 	}
 
+	// cree et ajoute un element HTML pour un ami : point vert si en ligne, nom, boutons (supprimer, profil, message)
 	private renderFriendItem(username: string, container: HTMLElement): void {
 		const isOnline = this.isFriendOnline(username);
 
@@ -138,6 +151,8 @@ export class OnlineFriendsWidget {
 		container.appendChild(item);
 	}
 
+	// ========================= CREATION DES BOUTONS =========================
+	// cree le bouton "✕" pour supprimer un user du profil
 	private createRemoveButton(username: string): HTMLButtonElement {
 		const btn = document.createElement('button');
 		btn.className = 'text-xs px-1 py-0.5 rounded hover:bg-red-600';
@@ -160,6 +175,7 @@ export class OnlineFriendsWidget {
 		return btn;
 	}
 
+	// cree le bouton "👤" pour voir le profil d'un user
 	private createProfileButton(username: string): HTMLButtonElement {
 		const btn = document.createElement('button');
 		btn.className = 'text-xs px-1 py-0.5 rounded hover:bg-gray-600';
@@ -173,6 +189,7 @@ export class OnlineFriendsWidget {
 		return btn;
 	}
 
+	// cree le bouton "💬" pour envoyer un message a un user, qui navigue vers le chat et demarre une conversation
 	private createMessageButton(username: string): HTMLButtonElement {
 		const btn = document.createElement('button');
 		btn.className = 'text-xs px-1 py-0.5 rounded hover:bg-gray-600';
