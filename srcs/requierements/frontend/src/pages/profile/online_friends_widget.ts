@@ -2,6 +2,8 @@
 
 import { SocketUser, User } from '../../utils/data_types';
 import { UserApiService } from '../../services/api/user_api_service';
+import { socketService } from '../../services/socket/index';
+import { SocketConnectionService } from '../../services/socket/socket_connection';
 
 // classe qui gere le widget des amis en ligne : affiche la liste des amis connectes, avec boutons pour discuter, voir profil, supprimer
 export class OnlineFriendsWidget {
@@ -50,30 +52,20 @@ export class OnlineFriendsWidget {
 	}
 
 	// force la mise a jour des utilisateurs en ligne depuis le service socket
-	public forceUpdateOnlineUsers(): void {
-		import('../../services/socket/index.js').then(({ socketService }) => {
-			import('../../services/socket/socket_connection.js').then(({ SocketConnectionService }) => {
-				const connectionService = new SocketConnectionService();
-				const socket = connectionService.getSocket();
+	   public forceUpdateOnlineUsers(): void {
+		   const connectionService = new SocketConnectionService();
+		   const socket = connectionService.getSocket();
 
-				if (socket?.connected) {
-					const onlineUsers = socketService.getOnlineUsers();
-					if (onlineUsers && onlineUsers.length >= 0) {
-						this.onlineUsers = onlineUsers;
-						this.render();
-					}
-				} else {
-					setTimeout(() => this.forceUpdateOnlineUsers(), 2000);
-				}
-			}).catch(() => {
-				const onlineUsers = socketService.getOnlineUsers();
-				if (onlineUsers && onlineUsers.length >= 0) {
-					this.onlineUsers = onlineUsers;
-					this.render();
-				}
-			});
-		});
-	}
+		   if (socket?.connected) {
+			   const onlineUsers = socketService.getOnlineUsers();
+			   if (onlineUsers && onlineUsers.length >= 0) {
+				   this.onlineUsers = onlineUsers;
+				   this.render();
+			   }
+		   } else {
+			   setTimeout(() => this.forceUpdateOnlineUsers(), 2000);
+		   }
+	   }
 
 	// ========================= AFFICHAGE PRINCIPAL =========================
 	// Fonction principale : recupere TOUS les amis ajoutes, vide le conteneur et affiche chaque ami avec son statut en ligne
