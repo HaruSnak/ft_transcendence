@@ -5,25 +5,20 @@ ELASTIC_PASSWORD="${ELASTICSEARCH_PASSWORD:-changeme}"
 KIBANA_URL="http://kibana:5601"
 ES_URL="http://elasticsearch:9200"
 
-echo "=== Kibana Dashboard Provisioning Script ==="
-echo ""
 
 # Wait for Kibana
-echo "1. Waiting for Kibana to be ready..."
 until curl -s -f "${KIBANA_URL}/app/home" > /dev/null 2>&1; do
-	echo "   Kibana not ready yet, waiting..."
+	echo "Kibana not ready yet, waiting..."
 	sleep 5
 done
-echo "   ✅ Kibana is ready"
 sleep 10
 
+
 # Check for existing logs
-echo ""
-echo "2. Checking for logs in Elasticsearch..."
 LOGS_COUNT=$(curl -s -u "elastic:${ELASTIC_PASSWORD}" "${ES_URL}/logs-*/_count" 2>/dev/null | grep -o '"count":[0-9]*' | cut -d: -f2 || echo "0")
 
 if [ -z "$LOGS_COUNT" ] || [ "$LOGS_COUNT" -eq "0" ]; then
-	echo "   No logs found yet. Generating dummy log to initialize index..."
+	echo "No logs found yet. Generating dummy log to initialize index..."
 	
 	# Create a dummy log entry to initialize the index with proper mappings
 	CURRENT_DATE=$(date -u +"%Y.%m.%d")
@@ -45,18 +40,16 @@ if [ -z "$LOGS_COUNT" ] || [ "$LOGS_COUNT" -eq "0" ]; then
 			\"ip_address\": \"127.0.0.1\"
 		}" > /dev/null
 	
-	echo "   ✅ Dummy log created"
 	sleep 2
 	
 	# Verify log was created
 	LOGS_COUNT=$(curl -s -u "elastic:${ELASTIC_PASSWORD}" "${ES_URL}/logs-*/_count" 2>/dev/null | grep -o '"count":[0-9]*' | cut -d: -f2 || echo "0")
 fi
 
-echo "   ✅ Found ${LOGS_COUNT} log entries in Elasticsearch"
+echo "Found ${LOGS_COUNT} log entries in Elasticsearch"
+
 
 # Create index pattern
-echo ""
-echo "3. Creating index pattern 'logs-*'..."
 curl -s -X POST "${KIBANA_URL}/api/saved_objects/index-pattern/logs-star?overwrite=true" \
 -u "elastic:${ELASTIC_PASSWORD}" \
 -H "kbn-xsrf: true" \
@@ -67,22 +60,17 @@ curl -s -X POST "${KIBANA_URL}/api/saved_objects/index-pattern/logs-star?overwri
 	"timeFieldName": "@timestamp"
 	}
 }' | jq -r '.id'
-echo "   ✅ Index pattern created"
+
 
 # Refresh fields
-echo ""
-echo "4. Refreshing index pattern fields..."
 curl -s -X POST "${KIBANA_URL}/api/index_patterns/index_pattern/logs-star/refresh_fields" \
 -u "elastic:${ELASTIC_PASSWORD}" \
 -H "kbn-xsrf: true" > /dev/null
-echo "   ✅ Fields refreshed"
+
 
 # Create Visualizations
-echo ""
-echo "5. Creating visualizations..."
 
 # Viz 1: Events by Type (Pie)
-echo "   - Events by Type (pie chart)..."
 curl -s -X POST "${KIBANA_URL}/api/saved_objects/visualization/events-by-type?overwrite=true" \
 -u "elastic:${ELASTIC_PASSWORD}" \
 -H "kbn-xsrf: true" \
@@ -101,7 +89,6 @@ curl -s -X POST "${KIBANA_URL}/api/saved_objects/visualization/events-by-type?ov
 }' > /dev/null
 
 # Viz 2: Events Timeline (Area)
-echo "   - Events Timeline (area chart)..."
 curl -s -X POST "${KIBANA_URL}/api/saved_objects/visualization/events-timeline?overwrite=true" \
 -u "elastic:${ELASTIC_PASSWORD}" \
 -H "kbn-xsrf: true" \
@@ -120,7 +107,6 @@ curl -s -X POST "${KIBANA_URL}/api/saved_objects/visualization/events-timeline?o
 }' > /dev/null
 
 # Viz 3: Log Levels (Pie)
-echo "   - Log Levels (pie chart)..."
 curl -s -X POST "${KIBANA_URL}/api/saved_objects/visualization/log-levels?overwrite=true" \
 -u "elastic:${ELASTIC_PASSWORD}" \
 -H "kbn-xsrf: true" \
@@ -139,7 +125,6 @@ curl -s -X POST "${KIBANA_URL}/api/saved_objects/visualization/log-levels?overwr
 }' > /dev/null
 
 # Viz 4: Events by Service (Donut)
-echo "   - Events by Service (donut chart)..."
 curl -s -X POST "${KIBANA_URL}/api/saved_objects/visualization/events-by-service?overwrite=true" \
 -u "elastic:${ELASTIC_PASSWORD}" \
 -H "kbn-xsrf: true" \
@@ -158,7 +143,6 @@ curl -s -X POST "${KIBANA_URL}/api/saved_objects/visualization/events-by-service
 }' > /dev/null
 
 # Viz 5: Top Active Users (Bar)
-echo "   - Top Active Users (horizontal bar)..."
 curl -s -X POST "${KIBANA_URL}/api/saved_objects/visualization/top-active-users?overwrite=true" \
 -u "elastic:${ELASTIC_PASSWORD}" \
 -H "kbn-xsrf: true" \
@@ -177,7 +161,6 @@ curl -s -X POST "${KIBANA_URL}/api/saved_objects/visualization/top-active-users?
 }' > /dev/null
 
 # Viz 6: Security Events (Filter: warn/error)
-echo "   - Security Events (warn/error only)..."
 curl -s -X POST "${KIBANA_URL}/api/saved_objects/visualization/security-events?overwrite=true" \
 -u "elastic:${ELASTIC_PASSWORD}" \
 -H "kbn-xsrf: true" \
@@ -196,7 +179,6 @@ curl -s -X POST "${KIBANA_URL}/api/saved_objects/visualization/security-events?o
 }' > /dev/null
 
 # Viz 7: Event Count (Metric)
-echo "   - Total Event Count (metric)..."
 curl -s -X POST "${KIBANA_URL}/api/saved_objects/visualization/total-events?overwrite=true" \
 -u "elastic:${ELASTIC_PASSWORD}" \
 -H "kbn-xsrf: true" \
@@ -214,11 +196,8 @@ curl -s -X POST "${KIBANA_URL}/api/saved_objects/visualization/total-events?over
 	}
 }' > /dev/null
 
-echo "   ✅ All visualizations created"
 
 # Create Dashboard
-echo ""
-echo "6. Creating dashboard..."
 curl -s -X POST "${KIBANA_URL}/api/saved_objects/dashboard/main-dashboard?overwrite=true" \
 -u "elastic:${ELASTIC_PASSWORD}" \
 -H "kbn-xsrf: true" \
@@ -247,11 +226,8 @@ curl -s -X POST "${KIBANA_URL}/api/saved_objects/dashboard/main-dashboard?overwr
 	]
 }' > /dev/null
 
-echo "   ✅ Dashboard created"
 
 # Create a completion log
-echo ""
-echo "7. Logging completion event..."
 CURRENT_DATE=$(date -u +"%Y.%m.%d")
 CURRENT_TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
 
@@ -271,23 +247,8 @@ curl -s -X POST "${ES_URL}/logs-${CURRENT_DATE}/_doc" \
 		\"ip_address\": \"127.0.0.1\"
 	}" > /dev/null
 
-echo "   ✅ Completion logged"
 
-echo ""
-echo "========================================="
-echo "✅ DASHBOARD PROVISIONING COMPLETE!"
-echo "========================================="
-echo ""
 echo "Access Kibana at: http://localhost:5601"
 echo "Login: elastic / ${ELASTIC_PASSWORD}"
-echo ""
-echo "Available Dashboards:"
-echo "  - Security & Monitoring"
-echo ""
 echo "Total events in Elasticsearch: ${LOGS_COUNT}"
-echo ""
-echo "Note: If you don't see any data in the dashboard,"
-echo "make sure the services are running and generating logs."
-echo "You can re-run this setup with:"
-echo "  docker-compose up kibana-setup"
-echo ""
+
