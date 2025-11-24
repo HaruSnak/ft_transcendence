@@ -12,7 +12,7 @@ export class SecurityUtils {
 
 	private static readonly USERNAME_REGEX = /^[a-zA-Z0-9_-]{3,20}$/;
 	private static readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-	private static readonly DISPLAY_NAME_REGEX = /^[a-zA-Z0-9]{1,24}$/;
+	private static readonly DISPLAY_NAME_REGEX = /^[a-zA-Z0-9_]{1,24}$/;
 
 	// ==================== SANITIZATION XSS ====================
 
@@ -57,7 +57,7 @@ export class SecurityUtils {
 
 	/**
 		Sanitise un display name en supprimant balises HTML et scripts
-		Garde uniquement caractères alphanumériques (max 24 caractères)
+		Garde uniquement caractères alphanumériques et underscores (max 24 caractères)
 	*/
 	static sanitizeDisplayName(displayName: string): string {
 		if (!displayName) return '';
@@ -65,7 +65,7 @@ export class SecurityUtils {
 		let sanitized = displayName.replace(/<[^>]*>/g, '');
 		sanitized = sanitized.replace(/javascript:/gi, '');
 		sanitized = sanitized.replace(/on\w+\s*=/gi, '');
-		sanitized = sanitized.replace(/[^a-zA-Z0-9]/g, '');
+		sanitized = sanitized.replace(/[^a-zA-Z0-9_]/g, '');
 		sanitized = sanitized.trim();
 
 		if (sanitized.length > 24) {
@@ -150,7 +150,7 @@ export class SecurityUtils {
 
 	/**
 		Valide un display name et retourne un message d'erreur si invalide
-		Vérifie la longueur (1-24 chars) et le format (alphanumériques uniquement)
+		Vérifie la longueur (1-24 chars) et le format (alphanumériques et underscores uniquement)
 	*/
 	static validateDisplayName(displayName: string): string | null {
 		if (!displayName) return 'Display name cannot be empty';

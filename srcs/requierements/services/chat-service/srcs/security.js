@@ -80,8 +80,8 @@ export class SecurityUtils {
 		sanitized = sanitized.replace(/javascript:/gi, '');
 		sanitized = sanitized.replace(/on\w+\s*=/gi, '');
 		
-		// Garder seulement alphanumériques
-		sanitized = sanitized.replace(/[^a-zA-Z0-9]/g, '');
+		// Garder seulement alphanumériques et underscores
+		sanitized = sanitized.replace(/[^a-zA-Z0-9_]/g, '');
 		
 		// Limiter longueur
 		const MAX_DISPLAY_NAME_LENGTH = 24;
@@ -106,7 +106,7 @@ export class SecurityUtils {
 	 */
 	static isValidDisplayName(displayName) {
 		if (!displayName) return false;
-		const displayNameRegex = /^[a-zA-Z0-9]{1,24}$/;
+		const displayNameRegex = /^[a-zA-Z0-9_]{1,24}$/;
 		return displayNameRegex.test(displayName);
 	}
 
