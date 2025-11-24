@@ -21,9 +21,9 @@ export class PongGame {
 	private readonly PADDLE_WIDTH = 10;			// Largeur des paddles
 	private readonly PADDLE_HEIGHT = 100;			// Hauteur des paddles
 	private readonly BALL_SIZE = 12;				// Taille de la balle
-	private readonly PADDLE_SPEED = 3;				// Vitesse des paddles
-	private readonly BALL_SPEED = 1.8;				// Vitesse de la balle (fixe, pas de changement) | 2.7
-	private readonly WINNING_SCORE = 10;			// Score pour gagner la partie | 10
+	private readonly PADDLE_SPEED = 6;				// Vitesse des paddles
+	private readonly BALL_SPEED = 4;				// Vitesse de la balle (fixe, pas de changement) | 2.7
+	private readonly WINNING_SCORE = 3;			// Score pour gagner la partie | 10
 
 	// Stocker les touches
 	private readonly keys: Set<string> = new Set();

@@ -329,7 +329,7 @@ export class ProfileManager {
 		});
 
 		// For tournaments, sort by date descending and take only the most recent (final) match
-		tournamentMatches.sort((a, b) => new Date(b.played_at).getTime() - new Date(a.played_at).getTime());
+		tournamentMatches.sort((a, b) => new Date(b.game_date).getTime() - new Date(a.game_date).getTime());
 		const finalTournamentMatches = tournamentMatches.slice(0, 1); // Only the most recent
 
 		// Combine: final tournament match + all other matches
@@ -399,7 +399,7 @@ export class ProfileManager {
 		});
 
 		// For tournaments, sort by date descending and take only the most recent (final) match
-		tournamentMatches.sort((a, b) => new Date(b.played_at).getTime() - new Date(a.played_at).getTime());
+		tournamentMatches.sort((a, b) => new Date(b.game_date).getTime() - new Date(a.game_date).getTime());
 		const finalTournamentMatches = tournamentMatches.slice(0, 1); // Only the most recent
 
 		// Combine: final tournament match + all other matches
@@ -411,7 +411,7 @@ export class ProfileManager {
 			matchDiv.className = 'bg-gray-800 p-4 rounded-lg mb-4';
 
 			// Add 'Z' if missing to indicate UTC time, fixing 1-hour time difference
-			const date = new Date(match.played_at + (match.played_at.includes('Z') ? '' : 'Z')).toLocaleString('fr-FR', {
+			const date = new Date(match.game_date + (match.game_date.includes('Z') ? '' : 'Z')).toLocaleString('fr-FR', {
 				year: 'numeric',
 				month: 'long',
 				day: 'numeric',
@@ -451,7 +451,7 @@ export class ProfileManager {
 			if (gameType && gameType.toLowerCase().includes('tournament')) {
 				displayText = `${safeResult} - Tournament - ${safeDate}`;
 			} else {
-				displayText = `${safeResult} - ${safeGameType} - ${safeOpponent} - ${safeScore} - ${safeDate}`;
+				displayText = `${safeResult} - ${safeOpponent} - ${safeScore} - ${safeDate}`;
 			}
 
 			matchDiv.innerHTML = `

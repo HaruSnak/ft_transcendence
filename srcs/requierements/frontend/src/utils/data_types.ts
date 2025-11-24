@@ -71,7 +71,7 @@ export interface Match {
 	score_player1: number;
 	score_player2: number;
 	game_mode: string;
-	played_at: string;
+	game_date: string;
 	tournament_id?: number;
 	tournament_name?: string;
 }
