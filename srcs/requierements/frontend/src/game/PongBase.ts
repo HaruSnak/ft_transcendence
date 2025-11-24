@@ -23,7 +23,7 @@ export class PongGame {
 	private readonly BALL_SIZE = 12;				// Taille de la balle
 	private readonly PADDLE_SPEED = 3;				// Vitesse des paddles
 	private readonly BALL_SPEED = 1.8;				// Vitesse de la balle (fixe, pas de changement) | 2.7
-	private readonly WINNING_SCORE = 3;			// Score pour gagner la partie | 10
+	private readonly WINNING_SCORE = 10;			// Score pour gagner la partie | 10
 
 	// Stocker les touches
 	private readonly keys: Set<string> = new Set();
@@ -36,8 +36,6 @@ export class PongGame {
 	private readonly INITIAL_PADDLE_Y = this.CANVAS_HEIGHT / 2 - this.PADDLE_HEIGHT / 2; // Position verticale initiale des paddles
 	private readonly BALL_CENTER_X = this.CANVAS_WIDTH / 2;                        // Centre horizontal de la balle
 	private readonly BALL_CENTER_Y = this.CANVAS_HEIGHT / 2;                       // Centre vertical de la balle
-	private readonly SCORE_LEFT_X = this.CANVAS_WIDTH / 4;                         // Position X du score gauche
-	private readonly SCORE_RIGHT_X = 3 * this.CANVAS_WIDTH / 4;                    // Position X du score droit
 	private readonly PADDLE_MAX_Y = this.CANVAS_HEIGHT - this.PADDLE_HEIGHT;       // Limite supérieure des paddles
 	private readonly RIGHT_PADDLE_STARTING_X_POSITION = this.CANVAS_WIDTH - this.PADDLE_WIDTH; // Position horizontale initiale du paddle droit
 
@@ -65,8 +63,7 @@ export class PongGame {
 	private aiTargetY = this.INITIAL_PADDLE_Y;		// Position cible prédite par l'IA
 	private aiPredictedBallY = this.BALL_CENTER_Y;	// Position Y prédite de la balle
 	private aiUpdateInterval = 1000;				// L'IA met à jour sa vue chaque seconde
-	private aiReactionDelay = 0.15;					// Délai de réaction pour simuler un comportement humain
-	private aiPredictionError = 0;					// Erreur de prédiction pour rendre l'IA moins parfaite
+	private aiReactionDelay = 0.20;					// Délai de réaction pour simuler un comportement humain
 
 	/**
 		Constructeur - Initialise le jeu Pong avec les éléments DOM
@@ -103,7 +100,7 @@ export class PongGame {
 	*/
 	private showPreGameMessage() {
 		this.divMessageWinOrLose.classList.remove('hidden');
-		this.divMessageWinOrLose.style.color = 'oklch(98.7% 0.022 95.277)';
+		this.divMessageWinOrLose.style.color = 'rgba(255, 255, 255, 0.95)';
 		const player1Name = (this.currentMatch?.[0]?.displayName ? this.currentMatch[0].displayName : 'You');
 		const player2Name = (this.currentMatch?.[1]?.displayName ? this.currentMatch[1].displayName : 'Bot');
 		this.divMessageWinOrLose.innerHTML = `
@@ -111,8 +108,7 @@ export class PongGame {
 				<div class="text-5xl font-bold mb-4 text-white drop-shadow-lg">${player1Name} <span class="text-orange-400">vs</span> ${player2Name}</div>
 				<div class="text-2xl text-gray-100 font-medium">Press 'Start Game' when ready!</div>
 			</div>
-		`;	
-		return ;
+		`;
 	}
 
 	/**
@@ -122,12 +118,12 @@ export class PongGame {
 	*/
 	private drawPlayerNames() {
 		if (this.gameBotGM) {
-			this.ctx.fillText(`You`, this.SCORE_LEFT_X, 50);
-			this.ctx.fillText(`Bot`, this.SCORE_RIGHT_X, 50);
+			this.ctx.fillText(`You`, (this.CANVAS_WIDTH / 4), 50);
+			this.ctx.fillText(`Bot`, (3 * this.CANVAS_WIDTH / 4), 50);
 		}
 		else if (this.gameLocalGM || this.gameTournamentGM) {
-			this.ctx.fillText(this.currentMatch[0].displayName, this.SCORE_LEFT_X, 50);
-			this.ctx.fillText(this.currentMatch[1].displayName, this.SCORE_RIGHT_X, 50);
+			this.ctx.fillText(this.currentMatch[0].displayName, (this.CANVAS_WIDTH / 4), 50);
+			this.ctx.fillText(this.currentMatch[1].displayName, (3 * this.CANVAS_WIDTH / 4), 50);
 		}
 	}
 
@@ -145,14 +141,14 @@ export class PongGame {
 			this.showPreGameMessage();
 			return ;
 		}
-		// Draw background gradient - clearer but professional
+		// Dessiner le dégradé d'arrière-plan
 		const gradient = this.ctx.createLinearGradient(0, 0, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
 		gradient.addColorStop(0, '#659999');
 		gradient.addColorStop(1, '#f4791f');
 		this.ctx.fillStyle = gradient;
 		this.ctx.fillRect(0, 0, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
 		
-		// Draw center line - clean white with subtle shadow
+		// Tracer une ligne centrale blanche et nette avec une ombre subtile
 		this.ctx.strokeStyle = '#ffffff';
 		this.ctx.lineWidth = 2;
 		this.ctx.setLineDash([10, 10]);
@@ -165,17 +161,17 @@ export class PongGame {
 		this.ctx.setLineDash([]);
 		this.ctx.shadowBlur = 0; // Reset shadow
 		
-		this.ctx.fillStyle = "#ffffff"; // White paddles for maximum contrast
+		this.ctx.fillStyle = "#ffffff"; // Paddles blanc pour un contraste maximal
 		this.ctx.shadowColor = '#000000';
 		this.ctx.shadowBlur = 2;
 		this.ctx.fillRect(this.leftPaddle.x, this.leftPaddle.y, this.PADDLE_WIDTH, this.PADDLE_HEIGHT);
 		this.ctx.fillRect(this.rightPaddle.x, this.rightPaddle.y, this.PADDLE_WIDTH, this.PADDLE_HEIGHT);
 		this.ctx.shadowBlur = 0; // Reset shadow
 		this.ctx.font = '30px Arial';
-		this.ctx.fillStyle = "#ffffff"; // White text
+		this.ctx.fillStyle = "#ffffff"; // Texte blanc
 		this.drawPlayerNames();
 		this.divScoreInGame.querySelector('span').textContent = `${this.leftPaddle.score} - ${this.rightPaddle.score}`;
-		this.ctx.fillStyle = "#ffffff"; // White ball for visibility
+		this.ctx.fillStyle = "#ffffff"; // Balle blanche
 		this.ctx.shadowColor = '#ffffff';
 		this.ctx.shadowBlur = 3;
 		this.ctx.beginPath();
@@ -285,13 +281,11 @@ export class PongGame {
 			const text = countdown > 0 ? countdown.toString() : 'GO!';
 
 			this.ctx.clearRect(0, 0, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
-			this.ctx.save();
 			this.ctx.fillStyle = countdown > 0 ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 255, 0, 0.9)';
 			this.ctx.font = 'bold 120px Arial';
 			this.ctx.textAlign = 'center';
 			this.ctx.textBaseline = 'middle';
 			this.ctx.fillText(text, this.CANVAS_WIDTH / 2, this.CANVAS_HEIGHT / 2);
-			this.ctx.restore();
 			countdown--;
 			if (countdown < -1) {
 				clearInterval(countdownInterval);
@@ -307,7 +301,6 @@ export class PongGame {
 	*/
 	public startGame() {
 		if (!this.gameRunning) {
-			console.log(`start jeu`);
 			this.resetGameState();
 			this.buttonStart.disabled = true;
 			this.divMessageWinOrLose.classList.add('hidden');
@@ -372,7 +365,7 @@ export class PongGame {
 		this.lastAITime = 0;
 		this.aiTargetY = this.INITIAL_PADDLE_Y;
 		this.aiPredictedBallY = this.BALL_CENTER_Y;
-		this.aiReactionDelay = 0.15;
+		this.aiReactionDelay = 0.20;
 		this.keys.delete('ArrowUp');
 		this.keys.delete('ArrowDown');
 		if (this.animationFrameId)
@@ -468,12 +461,12 @@ export class PongGame {
 		if (currentTime - this.lastAITime >= this.aiUpdateInterval) {
 			this.lastAITime = currentTime;
 			this.aiPredictedBallY = this.predictBallPosition();
-			this.aiPredictionError = (Math.random() - 0.5) * this.PADDLE_HEIGHT * this.aiReactionDelay;
-			this.aiTargetY = this.aiPredictedBallY + this.aiPredictionError;
+			const aiPredictionError = (Math.random() - 0.5) * this.PADDLE_HEIGHT * this.aiReactionDelay;
+			this.aiTargetY = this.aiPredictedBallY + aiPredictionError;
 			this.aiTargetY = Math.max(0, Math.min(this.PADDLE_MAX_Y, this.aiTargetY));
 		}
 		const paddleCenter = this.rightPaddle.y + this.PADDLE_HEIGHT / 2;
-		const tolerance = 2; // Zone morte pour éviter les oscillations
+		const tolerance = 10; // Zone morte pour éviter les oscillations
 
 		if (paddleCenter > this.aiTargetY + tolerance) {
 			if (!this.keys.has('ArrowUp')) {
@@ -520,10 +513,10 @@ export class PongGame {
 		const scoreDifference = this.rightPaddle.score - this.leftPaddle.score;
 
 		if (scoreDifference > 2) {
-			this.aiReactionDelay = Math.min(0.3, this.aiReactionDelay + 0.05);
+			this.aiReactionDelay = Math.min(0.4, this.aiReactionDelay + 0.05);
 		}
 		else if (scoreDifference < -2) {
-			this.aiReactionDelay = Math.max(0.05, this.aiReactionDelay - 0.05);
+			this.aiReactionDelay = Math.max(0.15, this.aiReactionDelay - 0.05);
 		}
 	}
 	
@@ -569,8 +562,8 @@ export class PongGame {
 	/**
 		Retourne l'état actuel du jeu (en cours ou non)
 	*/
-	public async getStatusGame() {
-		return (this.gameRunning);
+	public getStatusGame(): boolean {
+		return this.gameRunning;
 	}
 
 	/*

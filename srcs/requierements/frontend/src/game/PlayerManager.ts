@@ -189,33 +189,21 @@ export abstract class PlayerManager {
 		Appelle resetScore() après l'enregistrement
 	*/
 	protected addMatchHistory(player1: TournamentPlayer, player2: TournamentPlayer, winner: TournamentPlayer, gameType: string): void {
-		const matchKey = `${player1.type}-${player2.type}`;
-		switch (matchKey) {
-			case 'Guest-Guest':
-				console.log('Guest vs Guest match - no history saved');
-				break;
-			case 'User-User':
-				this.userApiService.saveUserVSUser(player1, player2, winner, gameType);
-				break;
-			case 'User-Guest':
-				this.userApiService.saveUserVSGuest(player1, player2, winner, gameType);
-				break;
-			case 'Guest-User':
-				this.userApiService.saveUserVSGuest(player2, player1, winner, gameType);
-				break;
-			default:
-				console.error(`Unexpected match combination: ${matchKey}`);
-				break;
+		if (player1.type === 'User' && player2.type === 'User') {
+			this.userApiService.saveUserVSUser(player1, player2, winner, gameType);
+		} else if (player1.type === 'User' && player2.type === 'Guest') {
+			this.userApiService.saveUserVSGuest(player1, player2, winner, gameType);
+		} else if (player1.type === 'Guest' && player2.type === 'User') {
+			this.userApiService.saveUserVSGuest(player2, player1, winner, gameType);
 		}
 		this.resetScore(player1, player2);
 	}
 
 	/*
-		Retourne une copie du tableau des joueurs
-		Utilise spread operator [...] pour éviter les modifications externes
+		Retourne le tableau des joueurs
 	*/
 	public getPlayers(): TournamentPlayer[] {
-		return ([...this.players]);
+		return this.players;
 	}
 
 	/*
