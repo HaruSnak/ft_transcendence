@@ -359,9 +359,8 @@ export class ProfileManager {
 		});
 
 		// Update the stats display
-		const winsElements = document.querySelectorAll('.text-2xl.font-bold.mb-sm');
-		const winsElement = winsElements[0] as HTMLElement;
-		const lossesElement = winsElements[1] as HTMLElement;
+		const winsElement = document.querySelector('[data-field="wins"]') as HTMLElement;
+		const lossesElement = document.querySelector('[data-field="losses"]') as HTMLElement;
 
 		if (winsElement) winsElement.textContent = wins.toString();
 		if (lossesElement) lossesElement.textContent = losses.toString();
