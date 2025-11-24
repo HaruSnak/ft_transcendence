@@ -4,6 +4,7 @@ import { User, Match, ProfileUpdateData } from '../../utils/data_types';
 import { SecurityUtils } from '../../utils/SecurityUtils';
 import { OnlineFriendsWidget } from './online_friends_widget';
 import { updateNavbar } from '../../index.js';
+import { socketService } from '../../services/socket';
 
 // Business logic: Profile operations (modifier uniquement ici pour le backend)
 // recupere les donnees du profil d'un utilisateur (soi-meme ou un autre) via une requete API
@@ -535,6 +536,7 @@ export class ProfileManager {
 			};
 			const user = await performUpdateProfile(updates);
 			sessionStorage.setItem('user', JSON.stringify(user));
+			socketService.updateUserProfile(user);
 			this.showEditMsg('Profil mis à jour avec succès!', true);
 			setTimeout(() => this.loadProfile(), 1000);
 		} catch (error) {
