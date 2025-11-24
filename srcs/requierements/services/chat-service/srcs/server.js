@@ -155,8 +155,8 @@ io.on('connection', (socket) => {
 			// Log SQL injection attempt
 			sendToLogstash('error', 'SQL injection attempt blocked in chat registration', {
 				event: 'sql_injection_blocked',
-				username: msg.username,
-				display_name: msg.display_name,
+				username: msg.username ? msg.username.substring(0, 100) : '',
+				display_name: msg.display_name ? msg.display_name.substring(0, 100) : '',
 				socket_id: clientId,
 				attack_type: 'sql_injection'
 			});

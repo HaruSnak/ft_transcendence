@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import userService from './userService.js';
+import { sendToLogstash } from './logstashLogger.js';
 
 // 5 tentatives de login par minute et par IP
 const loginAttempts = {};
@@ -129,6 +130,17 @@ export function validateUserData(schema) {
 				}
 
 				if (detectSQLInjection(username)) {
+					// Log SQL injection attempt
+					sendToLogstash('error', 'SQL injection attempt blocked in user authentication', {
+						event: 'sql_injection_blocked',
+						field: 'username',
+						username: username.substring(0, 100),
+						ip_address: request.ip,
+						user_agent: request.headers['user-agent'],
+						attack_type: 'sql_injection',
+						endpoint: request.url
+					});
+					
 					reply.code(400).send({ error: 'Caractères dangereux détectés dans le nom d\'utilisateur.' });
 					return;
 				}
@@ -151,6 +163,17 @@ export function validateUserData(schema) {
 				}
 
 				if (detectSQLInjection(email)) {
+					// Log SQL injection attempt
+					sendToLogstash('error', 'SQL injection attempt blocked in user authentication', {
+						event: 'sql_injection_blocked',
+						field: 'email',
+						email: email.substring(0, 100),
+						ip_address: request.ip,
+						user_agent: request.headers['user-agent'],
+						attack_type: 'sql_injection',
+						endpoint: request.url
+					});
+					
 					reply.code(400).send({ error: 'Caractères dangereux détectés dans l\'email.' });
 					return;
 				}
@@ -183,6 +206,17 @@ export function validateUserData(schema) {
 				const displayName = request.body.display_name;
 
 				if (detectSQLInjection(displayName)) {
+					// Log SQL injection attempt
+					sendToLogstash('error', 'SQL injection attempt blocked in user authentication', {
+						event: 'sql_injection_blocked',
+						field: 'display_name',
+						display_name: displayName.substring(0, 100),
+						ip_address: request.ip,
+						user_agent: request.headers['user-agent'],
+						attack_type: 'sql_injection',
+						endpoint: request.url
+					});
+					
 					reply.code(400).send({ error: 'Caractères dangereux détectés dans le nom d\'affichage.' });
 					return;
 				}
