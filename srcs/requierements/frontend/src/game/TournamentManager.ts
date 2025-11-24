@@ -76,6 +76,9 @@ export class TournamentManager extends PlayerManager {
 				window.location.reload();
 				return ;
 			}
+			if (nextRoundPlayers[0].displayName === "Bot") {
+				nextRoundPlayers.push(nextRoundPlayers.shift()!);
+			}
 			this.players = nextRoundPlayers;
 			playerMatch = this.createMatches();
 		}
