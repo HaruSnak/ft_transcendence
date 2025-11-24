@@ -435,6 +435,11 @@ export class ProfileManager {
 				opponentScore = match.score_player1;
 			}
 
+			// Check if opponent is a bot (display name is exactly "Bot")
+			if (opponent === 'Bot') {
+				opponent = 'Bot';
+			}
+
 			const isWin = userScore > opponentScore;
 
 			const result = isWin ? 'Win' : 'Lose';
