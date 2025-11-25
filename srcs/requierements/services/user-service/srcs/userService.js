@@ -26,17 +26,6 @@ class UserService {
 			throw new Error('Username or email already exists');
 		}
 
-		// Check display_name uniqueness if provided and different from username
-		if (display_name && display_name.trim() !== '' && display_name !== username) {
-			const existingDisplayName = await database.get(
-				'SELECT id FROM users WHERE display_name = ?',
-				[display_name]
-			);
-			if (existingDisplayName) {
-				throw new Error('Display name already exists');
-			}
-		}
-
 		const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
 		const finalDisplayName = display_name || username;
 		const finalAvatarUrl = avatar_url || '/assets/default-avatar.png';
