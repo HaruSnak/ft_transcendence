@@ -143,6 +143,37 @@ Configure `.env` for database passwords, JWT secrets, etc.
 
 ---
 
+## Docker Rootless Mode Compliance
+
+This project is designed to work in **rootless Docker environments** (e.g., campus clusters with security constraints):
+
+### Key Features for Rootless Compatibility
+
+1. **Single Command Deployment**
+   - Everything launches with `make all` or `docker compose up --build -d`
+   - All services are orchestrated through `docker-compose.yml`
+
+2. **Runtime in /goinfre**
+   - Persistent volumes (prometheus_db, grafana_db) are stored in `/goinfre/${USER}/ft_transcendence/volumes/`
+   - This respects campus security policies requiring runtime data outside home directories
+
+3. **No Problematic Bind-Mounts**
+   - Frontend files are **copied into the nginx image** at build time (no bind-mount)
+   - Configuration files (nginx.conf, prometheus.yml) are **baked into Docker images**
+   - Only Docker-managed volumes are used for persistent data
+
+4. **How It Works**
+   - `make build` creates volume directories in `/goinfre/${USER}/ft_transcendence/volumes/`
+   - Docker Compose uses these paths with bind-mount volumes for data persistence
+   - All application code is in the images (rebuilt when changed)
+
+### Important Notes for Campus Clusters
+- If you encounter permission issues with bind-mounts, ensure your Docker daemon runs in rootless mode
+- The `/goinfre` path is used by default; adjust in `docker-compose.yml` if your campus uses `/sgoinfre`
+- To rebuild after code changes: `make re` (cleans volumes and rebuilds all images)
+
+---
+
 ## Testing
 
 ### Automated Tests

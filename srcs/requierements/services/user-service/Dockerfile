@@ -1,14 +1,10 @@
-FROM node:18-alpine
-
-# Install required packages for SQLite
-RUN apk add --no-cache sqlite
+FROM node:22-alpine
 
 WORKDIR /srcs
 
 COPY package*.json ./
 RUN npm install
 
-# Create non-root user for security
 RUN if ! getent group srcsgroup > /dev/null 2>&1; then \
       addgroup -g 1001 -S srcsgroup; \
     fi && \

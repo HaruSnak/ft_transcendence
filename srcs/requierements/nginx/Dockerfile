@@ -7,10 +7,12 @@ RUN apk add --no-cache openssl && \
 	-out /etc/ssl/certs/nginx-selfsigned.crt \
 	-subj "/C=CH/ST=Vaud/L=Lausanne/O=42School/OU=Transcendence/CN=localhost"
 
+# Copy nginx configuration into the image (no bind-mount needed)
 COPY nginx/conf/nginx.conf /etc/nginx/nginx.conf
 
-# Copy pre-built frontend files
+# Copy all pre-built frontend files into the image (no bind-mount needed)
 COPY frontend/public/ /usr/share/nginx/html/public/
+COPY frontend/src/ /usr/share/nginx/html/src/
 
 EXPOSE 443
 

@@ -14,7 +14,8 @@ all: build up
 
 build:
 	@echo "Building Docker images..."
-	mkdir -p ./srcs/volumes/prometheus_db ./srcs/volumes/grafana_db
+	@echo "Creating volume directories in /goinfre/$$USER/ft_transcendence/volumes..."
+	@mkdir -p /goinfre/$$USER/ft_transcendence/volumes/prometheus_db /goinfre/$$USER/ft_transcendence/volumes/grafana_db
 	@echo "Building frontend assets locally (Node.js 18)..."
 	@cd ./srcs/requierements/frontend && npm ci && npm run build && npm run build-css
 	@echo "Frontend assets built successfully."
@@ -37,9 +38,10 @@ fclean: clean
 	@echo "Full cleanup including volumes and node_modules..."
 	cd ./srcs && $(DOCKER_COMPOSE) -f docker-compose.yml down -v
 	docker volume rm -f srcs_es_data srcs_grafana_db srcs_prometheus_db || true
-	@echo "Removing volume directories with Docker..."
-	@if [ -d "$(DATA_PATH)" ]; then \
-		docker run --rm -v "$$(pwd)/$(DATA_PATH):/data" alpine find /data -mindepth 1 -delete 2>/dev/null || true; \
+	@echo "Removing volume directories from /goinfre..."
+	@if [ -d "/goinfre/$$USER/ft_transcendence/volumes" ]; then \
+		echo "  Cleaning /goinfre/$$USER/ft_transcendence/volumes..."; \
+		rm -rf /goinfre/$$USER/ft_transcendence/volumes/*; \
 	fi
 	@echo "Removing all node_modules directories..."
 	@for dir in $(NODE_MODULES_PATHS); do \
