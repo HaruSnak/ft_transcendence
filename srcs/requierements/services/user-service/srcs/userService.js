@@ -54,12 +54,12 @@ class UserService {
 		);
 
 		if (!user) {
-			throw new Error('User not found');
+			throw new Error('Invalid username or password');
 		}
 
 		const isValidPassword = await bcrypt.compare(password, user.password_hash);
 		if (!isValidPassword) {
-			throw new Error('Invalid password');
+			throw new Error('Invalid username or password');
 		}
 
 		await database.run('UPDATE users SET is_online = 1 WHERE id = ?', [user.id]);

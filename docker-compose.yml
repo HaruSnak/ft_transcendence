@@ -1,7 +1,7 @@
 services:
     chat-service:
         container_name: chat-service
-        build: ./requierements/services/chat-service
+        build: ./srcs/requierements/services/chat-service
         env_file: .env
         networks:
             - app_network
@@ -11,7 +11,7 @@ services:
 
     user-service:
         container_name: user-service
-        build: ./requierements/services/user-service
+        build: ./srcs/requierements/services/user-service
         env_file: .env
         volumes:
             - user-service-data:/srcs/data
@@ -24,7 +24,7 @@ services:
     nginx:
         container_name: nginx
         build:
-            context: ./requierements
+            context: ./srcs/requierements
             dockerfile: nginx/Dockerfile
         ports:
             - "8443:443"
@@ -37,7 +37,7 @@ services:
 
     elasticsearch:
         container_name: elasticsearch
-        build: ./requierements/elk/elasticsearch
+        build: ./srcs/requierements/elk/elasticsearch
         environment:
             - discovery.type=single-node
             - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
@@ -61,7 +61,7 @@ services:
 
     logstash:
         container_name: logstash
-        build: ./requierements/elk/logstash
+        build: ./srcs/requierements/elk/logstash
         environment:
             - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
             - ELASTIC_USER=elastic
@@ -80,7 +80,7 @@ services:
 
     kibana:
         container_name: kibana
-        build: ./requierements/elk/kibana
+        build: ./srcs/requierements/elk/kibana
         environment:
             - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
             - ELASTICSEARCH_USERNAME=elastic
@@ -97,7 +97,7 @@ services:
         restart: unless-stopped
 
     kibana-setup:
-        build: ./requierements/elk/kibana
+        build: ./srcs/requierements/elk/kibana
         container_name: kibana-setup
         environment:
             - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
@@ -113,7 +113,7 @@ services:
 
     prometheus:
         container_name: prometheus
-        build: ./requierements/prometheus
+        build: ./srcs/requierements/prometheus
         command:
           - '--config.file=/etc/prometheus/prometheus.yml'
           - '--storage.tsdb.retention.time=30d'
@@ -136,7 +136,7 @@ services:
 
     grafana:
         container_name: grafana
-        build: ./requierements/grafana
+        build: ./srcs/requierements/grafana
         env_file:
             - .env
         environment:

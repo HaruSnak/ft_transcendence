@@ -1,5 +1,5 @@
 DOCKER_COMPOSE = docker-compose
-DOCKER_COMPOSE_FILE = ./srcs/docker-compose.yml
+DOCKER_COMPOSE_FILE = ./docker-compose.yml
 DATA_PATH = ./srcs/volumes
 
 # Chemins des node_modules
@@ -23,11 +23,11 @@ build:
 
 up:
 	@echo "Starting containers..."
-	cd ./srcs && $(DOCKER_COMPOSE) -f docker-compose.yml up -d
+	$(DOCKER_COMPOSE) -f docker-compose.yml up -d
 
 down:
 	@echo "Stopping containers..."
-	cd ./srcs && $(DOCKER_COMPOSE) -f docker-compose.yml down
+	$(DOCKER_COMPOSE) -f docker-compose.yml down
 
 clean: down
 	@echo "Cleaning up containers and images..."
@@ -36,13 +36,10 @@ clean: down
 # Nettoyage complet : volumes Docker + node_modules pour un rebuild 100% propre
 fclean: clean
 	@echo "Full cleanup including volumes and node_modules..."
-	cd ./srcs && $(DOCKER_COMPOSE) -f docker-compose.yml down -v
+	$(DOCKER_COMPOSE) -f docker-compose.yml down -v
 	docker volume rm -f srcs_es_data srcs_grafana_db srcs_prometheus_db || true
 	@echo "Removing volume directories from /goinfre..."
-	@if [ -d "/goinfre/$$USER/ft_transcendence/volumes" ]; then \
-		echo "  Cleaning /goinfre/$$USER/ft_transcendence/volumes..."; \
-		rm -rf /goinfre/$$USER/ft_transcendence/volumes/prometheus_db/* /goinfre/$$USER/ft_transcendence/volumes/grafana_db/* || true; \
-	fi
+	@docker run --rm -v /goinfre/$$USER/ft_transcendence/volumes:/volumes --entrypoint /bin/sh grafana/grafana:latest -c "rm -rf /volumes/prometheus_db /volumes/grafana_db" 2>/dev/null || rm -rf /goinfre/$$USER/ft_transcendence/volumes/prometheus_db /goinfre/$$USER/ft_transcendence/volumes/grafana_db 2>/dev/null || true
 	@echo "Removing all node_modules directories..."
 	@for dir in $(NODE_MODULES_PATHS); do \
 		if [ -d "$$dir" ]; then \
@@ -57,7 +54,7 @@ fclean: clean
 re: fclean all
 
 logs:
-	cd ./srcs && $(DOCKER_COMPOSE) -f docker-compose.yml logs -f
+	$(DOCKER_COMPOSE) -f docker-compose.yml logs -f
 
 status:
-	cd ./srcs && $(DOCKER_COMPOSE) -f docker-compose.yml ps
+	$(DOCKER_COMPOSE) -f docker-compose.yml ps
