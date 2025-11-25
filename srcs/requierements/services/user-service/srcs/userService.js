@@ -26,6 +26,17 @@ class UserService {
 			throw new Error('Username or email already exists');
 		}
 
+		// Check display_name uniqueness if provided and different from username
+		if (display_name && display_name.trim() !== '' && display_name !== username) {
+			const existingDisplayName = await database.get(
+				'SELECT id FROM users WHERE display_name = ?',
+				[display_name]
+			);
+			if (existingDisplayName) {
+				throw new Error('Display name already exists');
+			}
+		}
+
 		const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
 		const finalDisplayName = display_name || username;
 		const finalAvatarUrl = avatar_url || '/assets/default-avatar.png';
@@ -123,6 +134,17 @@ class UserService {
 	// Mettre à jour le profil utilisateur
 	async updateUser(userId, updates) {
 		const { display_name, email, password, avatar_url, has_seen_welcome } = updates;
+
+		// Check display_name uniqueness if being updated
+		if (display_name !== undefined && display_name.trim() !== '') {
+			const existingDisplayName = await database.get(
+				'SELECT id FROM users WHERE display_name = ? AND id != ?',
+				[display_name, userId]
+			);
+			if (existingDisplayName) {
+				throw new Error('Display name already exists');
+			}
+		}
 
 		let updateFields = [];
 		let updateValues = [];
