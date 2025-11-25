@@ -41,7 +41,7 @@ fclean: clean
 	@echo "Removing volume directories from /goinfre..."
 	@if [ -d "/goinfre/$$USER/ft_transcendence/volumes" ]; then \
 		echo "  Cleaning /goinfre/$$USER/ft_transcendence/volumes..."; \
-		docker run --rm -v /goinfre/$$USER/ft_transcendence/volumes:/volumes alpine sh -c "rm -rf /volumes/*"; \
+		rm -rf /goinfre/$$USER/ft_transcendence/volumes/prometheus_db/* /goinfre/$$USER/ft_transcendence/volumes/grafana_db/* || true; \
 	fi
 	@echo "Removing all node_modules directories..."
 	@for dir in $(NODE_MODULES_PATHS); do \
