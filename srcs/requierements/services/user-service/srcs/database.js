@@ -27,7 +27,7 @@ class Database {
 				username VARCHAR(50) UNIQUE NOT NULL,
 				email VARCHAR(100) UNIQUE NOT NULL,
 				password_hash VARCHAR(255) NOT NULL,
-				display_name VARCHAR(50),
+				display_name VARCHAR(50) UNIQUE NOT NULL,
 				avatar_url VARCHAR(255) DEFAULT '/assets/default-avatar.png',
 				is_online BOOLEAN DEFAULT 0,
 				has_seen_welcome BOOLEAN DEFAULT 0,

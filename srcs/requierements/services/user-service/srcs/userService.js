@@ -18,12 +18,12 @@ class UserService {
 		const { username, email, password, display_name, avatar_url } = userData;
 
 		const existingUser = await database.get(
-			'SELECT id FROM users WHERE username = ? OR email = ?',
+			'SELECT id FROM users WHERE username = ? OR email = ? OR display_name = ?',
 			[username, email]
 		);
 
 		if (existingUser) {
-			throw new Error('Username or email already exists');
+			throw new Error('Username/display_name or email already exists');
 		}
 
 		const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
