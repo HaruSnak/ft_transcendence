@@ -36,10 +36,13 @@ clean: down
 # Nettoyage complet : volumes Docker + node_modules pour un rebuild 100% propre
 fclean: clean
 	@echo "Full cleanup including volumes and node_modules..."
+	@echo "Cleaning volume data from running containers..."
+	@docker exec grafana rm -rf /var/lib/grafana/* 2>/dev/null || true
+	@docker exec prometheus rm -rf /prometheus/* 2>/dev/null || true
 	$(DOCKER_COMPOSE) -f docker-compose.yml down -v
 	docker volume rm -f srcs_es_data srcs_grafana_db srcs_prometheus_db || true
 	@echo "Removing volume directories from /goinfre..."
-	@docker run --rm -v /goinfre/$$USER/ft_transcendence/volumes:/volumes --entrypoint /bin/sh grafana/grafana:latest -c "rm -rf /volumes/prometheus_db /volumes/grafana_db" 2>/dev/null || rm -rf /goinfre/$$USER/ft_transcendence/volumes/prometheus_db /goinfre/$$USER/ft_transcendence/volumes/grafana_db 2>/dev/null || true
+	@rm -rf /goinfre/$$USER/ft_transcendence/volumes/prometheus_db /goinfre/$$USER/ft_transcendence/volumes/grafana_db 2>/dev/null || true
 	@echo "Removing all node_modules directories..."
 	@for dir in $(NODE_MODULES_PATHS); do \
 		if [ -d "$$dir" ]; then \
