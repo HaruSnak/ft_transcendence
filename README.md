@@ -1,313 +1,449 @@
 <img src="readme/ft_transcendence.png" alt="ft_transcendence" width="900"/>
 
----
+<div align="center">
 
 # ft_transcendence
-So here we are at the ft_transcendence project, a full-stack web application implementing an online Pong game with tournaments, live chat, and user management. Built with **Node.js/Fastify** for the backend, **TypeScript** for the frontend, and a comprehensive DevOps stack including ELK, Prometheus, and Grafana.
+### A Full-Stack Web Application for Online Pong with Tournaments and Chat at 42 School
 
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
+[![License][license-shield]][license-url]
+
+</div>
 
 ---
 
-## 📒 Index
+## 🇬🇧 English
 
-- [About](#about)
-    - [Implemented Features](#implemented-features)
-	- [Architecture](#architecture)
-	- [Technologies Used](#technologies-used)
+<details>
+<summary><b>📖 Click to expand/collapse English version</b></summary>
+
+### 📖 About
+
+**ft_transcendence** is a compulsory project for 42 School students. It consists of creating a full-stack web application implementing an online Pong game with tournaments, live chat, and user management. The application features multiplayer gameplay, AI opponents, real-time communication, and comprehensive DevOps monitoring.
+
+This project teaches:
+- Full-stack web development with microservices architecture
+- Backend development with Node.js and Fastify
+- Frontend development with TypeScript and modern frameworks
+- Database management and authentication
+- Real-time communication with WebSockets
+- DevOps practices including containerization, logging, and monitoring
+- Security best practices and HTTPS implementation
+
+### 🧠 Skills Learned
+
+By completing the ft_transcendence project, students develop essential skills in web development and DevOps:
+
+- **Microservices Architecture**: Designing and implementing scalable backend services.
+- **RESTful APIs and WebSockets**: Building robust APIs for communication between services.
+- **Database Integration**: Using SQLite for data persistence with proper CRUD operations.
+- **Frontend Frameworks**: Developing SPAs with TypeScript, Tailwind CSS, and HTML5 Canvas.
+- **Authentication & Security**: Implementing JWT-based auth, XSS protection, and HTTPS.
+- **Game Development**: Creating real-time multiplayer games with AI opponents.
+- **DevOps Stack**: Setting up ELK for logging, Prometheus/Grafana for monitoring.
+- **Containerization**: Using Docker and Docker Compose for deployment.
+- **Tournament Systems**: Implementing bracket-based tournaments with match tracking.
+- **Real-Time Features**: Live chat and game synchronization.
+
+## Approach
+This project was developed collaboratively by a team of three: Astoll, Powlar, and HaruSnak. We divided the work to cover all major requirements:
+
+- **Astoll** handled the database backend and user management with authentication.
+- **Powlar** managed the frontend framework and live chat functionality.
+- **HaruSnak** took care of the DevOps infrastructure, backend framework, AI opponent, tournaments, and security features.
+
+The application follows a microservices architecture with independent services communicating via APIs, all containerized for easy deployment.
+
+### **Features**
+
+**Microservices Backend:** *Node.js/Fastify services for auth, chat, game, and user management.*<br>
+
+**Real-Time Gameplay:** *Multiplayer Pong with AI opponents and tournament support.*<br>
+
+**Live Chat:** *WebSocket-based messaging with global and private channels.*<br>
+
+**DevOps Monitoring:** *ELK stack for logging, Prometheus/Grafana for metrics.*<br>
+
+**Security & HTTPS:** *JWT authentication, input validation, and SSL encryption.*<br>
+
+**Tournament System:** *Bracket-based tournaments with match statistics.*<br>
+
+### **Features to be added:**
+
+**Advanced AI:** *More sophisticated AI difficulty levels and learning algorithms.*<br>
+
+**Mobile Support:** *Responsive design for mobile devices.*<br>
+
+**Spectator Mode:** *Allow users to watch ongoing matches.*<br>
+
+**Custom Game Modes:** *Additional variations of Pong gameplay.*<br>
+
+### 📋 Table of Contents
+
+- [Features](#features)
 - [Installation](#installation)
-- [Testing](#testing)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
 - [Development](#development)
-  - [File Structure](#file-structure)
- <!-- - [Diagram Architecture](#diagram-architecture)  -->
-- [Notes](#notes)
 - [Credits](#credits)
 
----
+<a name="features"></a>
 
-## About
+### ✨ Features
 
-I worked on this project with my teammates [Astoll](https://github.com/42andy) and [Powlar](https://github.com/powlar). ft_transcendence is a multiplayer Pong game platform featuring tournaments, real-time chat, user authentication, and AI opponents. We divided the work as follows:
+- **Full-Stack Web Application** with microservices architecture
+- **Real-Time Pong Game** with multiplayer and AI opponents
+- **Tournament System** with bracket management and statistics
+- **Live Chat** with WebSocket communication
+- **User Management** with JWT authentication and profiles
+- **DevOps Stack** including ELK, Prometheus, and Grafana
+- **Docker Deployment** with containerized services
+- **Security Features** with HTTPS, XSS protection, and input validation
 
-- **Astoll** handled the database backend ("Use a database for the backend" - minor V.2 Web) and the major module "Standard user management, authentication and users across tournaments" (V.3 User Management), with additional modifications I made to integrate tournaments properly.
-- **Powlar** managed the frontend framework ("Use a framework or toolkit to build the front-end" - minor V.2 Web, covering most of the frontend) and the major module for Live Chat (V.4 Gameplay and User Experience).
-- **I (HaruSnak)** took care of the entire V.7 DevOps section, the major module "Use a framework to build the backend" (V.2 Web), the mandatory gameplay features including the AI opponent ("Introduce an AI opponent" - major V.5 AI-Algo), the local 1vs1 mode, tournament setup with local login for registered users to save match stats, and XSS protections for frontend inputs. I also created my own frontend specifically for the Pingpong game mode.
+<a name="installation"></a>
 
-The project was developed collaboratively with pair programming for integration and individual contributions for specific modules.
+### 🚀 Installation
 
----
-
-## Implemented Features
-
-### V.2 Web
-
-#### Major Module: Use a Framework to Build the Backend
-- **Fastify with Node.js** : All backend services use Fastify for RESTful APIs, WebSocket handling, and middleware.
-- **Microservices Architecture** : Backend split into independent services (auth, chat, game, user) for scalability.
-
-#### Minor Module: Use a Database for the Backend
-- **SQLite Database** : User data, match history, and tournament stats stored in SQLite.
-- **Database Integration** : Full CRUD operations with authentication and data persistence.
-
-#### Minor Module: Use a Framework or Toolkit to Build the Front-End
-- **TypeScript and Tailwind CSS** : Modern frontend with type safety and responsive design.
-- **SPA Architecture** : Single-page application with routing for login, game, chat, and profiles.
-
-### V.3 User Management
-
-#### Major Module: Standard User Management, Authentication and Users Across Tournaments
-- **JWT Authentication** : Secure login/logout with token-based sessions.
-- **User Profiles** : Registration, profile updates, and match history.
-- **Tournament Integration** : Users can join tournaments with stats tracking across games.
-
-### V.4 Gameplay and User Experience
-
-#### Major Module: Live Chat
-- **Real-Time WebSocket Chat** : Global and private messaging with user lists.
-- **Message Validation** : Sanitization and length limits for security.
-
-### V.5 AI-Algo
-
-#### Major Module: Introduce an AI Opponent
-- **AI Pong Player** : Intelligent opponent with difficulty levels for single-player mode.
-- **Game Logic** : Ball physics, paddle movement, and scoring implemented in TypeScript.
-
-### V.7 DevOps
-
-#### Major Module: Infrastructure Setup with ELK
-- **Elasticsearch** : Log indexing and storage.
-- **Logstash** : Log collection and processing from services.
-- **Kibana** : Log visualization and dashboards.
-- **Security & Retention** : SSL encryption and 30-day log retention policies.
-
-#### Minor Module: Monitoring System
-- **Prometheus** : Metrics collection from all services with alerting rules.
-- **Grafana** : Dashboards for real-time monitoring and custom visualizations.
-- **Metrics Exposure** : Each service exposes `/metrics` for Prometheus scraping.
-
-### Additional Features
-- **Tournament System** : Bracket-based tournaments with local player connections.
-- **Local Mode** : 1vs1 offline gameplay.
-- **HTTPS & Security** : Full SSL encryption, SQL/XSS protections, and input validation.
-- **Docker Deployment** : Containerized services with docker-compose for easy setup.
-
----
-
-## Architecture
-
-The application follows a microservices architecture:
-- **Frontend** : TypeScript SPA served by Nginx.
-- **Backend Services** : 4 Node.js/Fastify services (auth, chat, game, user) communicating via REST APIs.
-- **Database** : SQLite for data persistence.
-- **DevOps Stack** : ELK for logging, Prometheus/Grafana for monitoring, all containerized.
-
----
-
-## Technologies Used
-
-- **Backend** : Node.js, Fastify, SQLite, WebSockets
-- **Frontend** : TypeScript, Tailwind CSS, HTML5 Canvas
-- **DevOps** : Docker, ELK Stack, Prometheus, Grafana
-- **Security** : JWT, HTTPS
-- **Game** : Custom Pong logic with AI
-
----
-
-## Installation
-
-### Prerequisites
-- Docker and Docker Compose installed.
-
-### Setup
 ```bash
-# Clone this repository
-$ git clone https://github.com/HaruSnak/ft_transcendence
-$ cd ft_transcendence
+# Clone the repository
+git clone https://github.com/HaruSnak/42-ft_transcendence
+cd 42-ft_transcendence
 
 # Start all services
-$ make all
-
-# Access the application
-# Frontend: https://localhost:8443
-# Kibana: http://localhost:5601
-# Grafana: http://localhost:3010
-# Prometheus: http://localhost:9090
+make all
 ```
 
-### Environment Variables
-Configure `.env` for database passwords, JWT secrets, etc.
+<a name="usage"></a>
 
----
+### 💻 Usage
 
-## Docker Rootless Mode Compliance
+Access the application:
+- **Frontend**: https://localhost:8443
+- **Kibana**: http://localhost:5601
+- **Grafana**: http://localhost:3010
+- **Prometheus**: http://localhost:9090
 
-This project is designed to work in **rootless Docker environments** (e.g., campus clusters with security constraints):
+Controls (in game):
+- **Arrow Keys or WASD**: Move paddle
+- **Mouse**: Navigate UI
 
-### Key Features for Rootless Compatibility
+<a name="project-structure"></a>
 
-1. **Single Command Deployment**
-   - Everything launches with `make all` or `docker compose up --build -d`
-   - All services are orchestrated through `docker-compose.yml`
+### 📂 Project Structure
 
-2. **Runtime in /goinfre**
-   - Persistent volumes (prometheus_db, grafana_db) are stored in `/goinfre/${USER}/ft_transcendence/volumes/`
-   - This respects campus security policies requiring runtime data outside home directories
+```
+42-ft_transcendence/
+├── Makefile                    # Build script
+├── docker-compose.yml          # Docker orchestration
+├── LICENSE                     # License file
+├── README.md                   # This file
+├── README-Template.md          # Template for README
+├── readme/                     # README assets
+├── srcs/                       # Source code
+│   ├── requirements/
+│   │   ├── elk/                # ELK stack configs
+│   │   ├── frontend/           # Frontend application
+│   │   ├── grafana/            # Grafana dashboards
+│   │   ├── nginx/              # Nginx config
+│   │   ├── prometheus/         # Monitoring configs
+│   │   └── services/           # Backend services
+│   │       ├── chat-service/
+│   │       ├── user-service/
+│   │       └── ...
+└── ...
+```
 
-3. **No Problematic Bind-Mounts**
-   - Frontend files are **copied into the nginx image** at build time (no bind-mount)
-   - Configuration files (nginx.conf, prometheus.yml) are **baked into Docker images**
-   - Only Docker-managed volumes are used for persistent data
+<a name="development"></a>
 
-4. **How It Works**
-   - `make build` creates volume directories in `/goinfre/${USER}/ft_transcendence/volumes/`
-   - Docker Compose uses these paths with bind-mount volumes for data persistence
-   - All application code is in the images (rebuilt when changed)
+### 🔧 Development
 
-### Important Notes for Campus Clusters
-- If you encounter permission issues with bind-mounts, ensure your Docker daemon runs in rootless mode
-- The `/goinfre` path is used by default; adjust in `docker-compose.yml` if your campus uses `/sgoinfre`
-- To rebuild after code changes: `make re` (cleans volumes and rebuilds all images)
+#### Prerequisites
+- Docker and Docker Compose
+- Node.js (for local development)
 
----
-
-## Testing
-
-### Automated Tests
+#### Environment Setup
 ```bash
-# Run service health checks
-$ curl http://localhost:3001/health  # Chat service
-$ curl http://localhost:3003/health  # User service
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your settings
 
-# Test API endpoints
-$ curl https://localhost:8443/api/auth/login  # Via Nginx proxy
+# Build and run
+make build
+make up
 ```
 
-### Manual Tests
-- **Gameplay** : Access https://localhost:8443, login, start a game or tournament.
-- **Chat** : Send messages in real-time.
-- **Monitoring** : Check Grafana dashboards for metrics.
-- **Logs** : View in Kibana.
+#### Testing
+```bash
+# Health checks
+curl http://localhost:3001/health  # Chat service
+curl http://localhost:3003/health  # User service
+
+# API testing
+curl https://localhost:8443/api/auth/login
+```
+
+### 📚 API Reference
+
+#### Main Services
+- **Auth Service**: User authentication and JWT management
+- **Chat Service**: Real-time messaging via WebSockets
+- **Game Service**: Pong game logic and tournament management
+- **User Service**: User profiles and statistics
+
+#### Key Endpoints
+- `POST /api/auth/login` - User login
+- `GET /api/game/matches` - Get match history
+- `WS /api/chat` - WebSocket chat connection
+
+### 👨‍🎓 Note
+<p align="left">
+<img width="198" height="171" alt="image" src="https://github.com/user-attachments/assets/2c722f1b-b820-4dd7-b813-ccaaa2600c3c" />
+
+</p>
+
+<a name="credits"></a>
+
+### 📖 Credits
+
+- **Documentation Fastify** : [Fastify.dev](https://fastify.dev/)
+- **Documentation Docker** : [Docker.com](https://docs.docker.com/)
+- **Documentation JavaScript** : [Developer Mozilla](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+- **Documentation TypeScript** : [Typescriptlang](https://www.typescriptlang.org/docs/)
+- **Documentation attacks XXS** : [Owasp](https://owasp.org/www-community/attacks/xss/)
+- **Documentation SQL Injection** : [Owasp](https://owasp.org/www-community/attacks/SQL_Injection)
+- **Stack ELK** : [Elastic.co](https://www.elastic.co/)
+
+### 📄 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+</details>
 
 ---
 
-## Development
-### File Structure
+## 🇫🇷 Français
+
+<details>
+<summary><b>📖 Cliquez pour développer/réduire la version française</b></summary>
+
+### 📖 À propos
+
+**ft_transcendence** est un projet obligatoire pour les étudiants de l'école 42. Il s'agit de créer une application web full-stack implémentant un jeu Pong en ligne avec tournois, chat en direct et gestion des utilisateurs. L'application propose un gameplay multijoueur, des adversaires IA, une communication en temps réel et une surveillance DevOps complète.
+
+Ce projet enseigne :
+- Le développement web full-stack avec architecture microservices
+- Le développement backend avec Node.js et Fastify
+- Le développement frontend avec TypeScript et frameworks modernes
+- La gestion de base de données et l'authentification
+- La communication en temps réel avec WebSockets
+- Les pratiques DevOps incluant la conteneurisation, les logs et la surveillance
+- Les meilleures pratiques de sécurité et l'implémentation HTTPS
+
+### 🧠 Compétences acquises
+
+En complétant le projet ft_transcendence, les étudiants développent des compétences essentielles en développement web et DevOps :
+
+- **Architecture Microservices** : Concevoir et implémenter des services backend évolutifs.
+- **APIs RESTful et WebSockets** : Construire des APIs robustes pour la communication entre services.
+- **Intégration Base de Données** : Utiliser SQLite pour la persistance des données avec opérations CRUD appropriées.
+- **Frameworks Frontend** : Développer des SPAs avec TypeScript, Tailwind CSS et HTML5 Canvas.
+- **Authentification & Sécurité** : Implémenter une auth basée JWT, protection XSS et HTTPS.
+- **Développement de Jeux** : Créer des jeux multijoueurs en temps réel avec adversaires IA.
+- **Stack DevOps** : Configurer ELK pour les logs, Prometheus/Grafana pour les métriques.
+- **Conteneurisation** : Utiliser Docker et Docker Compose pour le déploiement.
+- **Systèmes de Tournois** : Implémenter des tournois à base de brackets avec suivi des matchs.
+- **Fonctionnalités Temps Réel** : Chat en direct et synchronisation de jeu.
+
+## Approche
+Ce projet a été développé de manière collaborative par une équipe de trois personnes : Astoll, Powlar et HaruSnak. Nous avons divisé le travail pour couvrir toutes les exigences majeures :
+
+- **Astoll** s'est occupé du backend base de données et de la gestion des utilisateurs avec authentification.
+- **Powlar** a géré le framework frontend et les fonctionnalités de chat en direct.
+- **HaruSnak** s'est chargé de l'infrastructure DevOps, du framework backend, de l'adversaire IA, des tournois et des fonctionnalités de sécurité.
+
+L'application suit une architecture microservices avec des services indépendants communiquant via des APIs, tous conteneurisés pour un déploiement facile.
+
+### **Fonctionnalités**
+
+**Backend Microservices :** *Services Node.js/Fastify pour l'auth, le chat, le jeu et la gestion des utilisateurs.*<br>
+
+**Gameplay Temps Réel :** *Pong multijoueur avec adversaires IA et support des tournois.*<br>
+
+**Chat en Direct :** *Messagerie basée WebSocket avec canaux globaux et privés.*<br>
+
+**Surveillance DevOps :** *Stack ELK pour les logs, Prometheus/Grafana pour les métriques.*<br>
+
+**Sécurité & HTTPS :** *Authentification JWT, validation des entrées et chiffrement SSL.*<br>
+
+**Système de Tournois :** *Tournois à base de brackets avec statistiques des matchs.*<br>
+
+### **Fonctionnalités à ajouter :**
+
+**IA Avancée :** *Niveaux de difficulté IA plus sophistiqués et algorithmes d'apprentissage.*<br>
+
+**Support Mobile :** *Design responsive pour appareils mobiles.*<br>
+
+**Mode Spectateur :** *Permettre aux utilisateurs de regarder les matchs en cours.*<br>
+
+**Modes de Jeu Personnalisés :** *Variations supplémentaires du gameplay Pong.*<br>
+
+### 📋 Table des matières
+
+- [Caractéristiques](#caractéristiques)
+- [Installation](#installation-1)
+- [Utilisation](#utilisation)
+- [Structure du projet](#structure-du-projet)
+- [Développement](#développement)
+- [Crédits](#crédits-1)
+
+<a name="caractéristiques"></a>
+
+### ✨ Caractéristiques
+
+- **Application Web Full-Stack** avec architecture microservices
+- **Jeu Pong Temps Réel** avec multijoueur et adversaires IA
+- **Système de Tournois** avec gestion des brackets et statistiques
+- **Chat en Direct** avec communication WebSocket
+- **Gestion des Utilisateurs** avec authentification JWT et profils
+- **Stack DevOps** incluant ELK, Prometheus et Grafana
+- **Déploiement Docker** avec services conteneurisés
+- **Fonctionnalités de Sécurité** avec HTTPS, protection XSS et validation des entrées
+
+<a name="installation-1"></a>
+
+### 🚀 Installation
+
+```bash
+# Cloner le dépôt
+git clone https://github.com/HaruSnak/42-ft_transcendence
+cd 42-ft_transcendence
+
+# Démarrer tous les services
+make all
+```
+
+<a name="utilisation"></a>
+
+### 💻 Utilisation
+
+Accéder à l'application :
+- **Frontend** : https://localhost:8443
+- **Kibana** : http://localhost:5601
+- **Grafana** : http://localhost:3010
+- **Prometheus** : http://localhost:9090
+
+Contrôles (dans le jeu) :
+- **Flèches ou WASD** : Déplacer la raquette
+
+- **Souris** : Naviguer dans l'interface
+
+<a name="structure-du-projet"></a>
+
+### 📂 Structure du projet
 
 ```
-.
-└── 📁webnul
-    └── 📁confs
-        ├── eval.conf
-    └── 📁includes
-        └── 📁config
-            ├── ConfigParser.hpp
-            ├── GenericConfigParser.hpp
-            ├── GenericConfigParser.tpp
-            ├── LocationConfig.hpp
-            ├── LocationConfigParser.hpp
-            ├── ServerConfig.hpp
-            ├── ServerConfigParser.hpp
-        └── 📁core
-            ├── Client.hpp
-            ├── WebServ.hpp
-        └── 📁http
-            ├── HttpParser.hpp
-            ├── HttpResponse.hpp
-            ├── RequestHandler.hpp
-        ├── utils.hpp
-    └── 📁obj
-        └── 📁srcs
-            └── 📁config
-                ├── ConfigParser.o
-                ├── LocationConfig.o
-                ├── LocationConfigParser.o
-                ├── ServerConfig.o
-                ├── ServerConfigParser.o
-            └── 📁core
-                ├── WebServ.o
-            └── 📁http
-                ├── HttpParser.o
-                ├── HttpResponse.o
-                ├── RequestHandler.o
-            └── 📁utils
-                ├── errors.o
-            ├── main.o
-    └── 📁srcs
-        └── 📁config
-            ├── ConfigParser.cpp
-            ├── LocationConfig.cpp
-            ├── LocationConfigParser.cpp
-            ├── ServerConfig.cpp
-            ├── ServerConfigParser.cpp
-        └── 📁core
-            ├── WebServ.cpp
-        └── 📁http
-            ├── HttpParser.cpp
-            ├── HttpResponse.cpp
-            ├── RequestHandler.cpp
-        └── 📁utils
-            ├── errors.cpp
-        ├── main.cpp
-    └── 📁www
-        └── 📁api
-            ├── index.php
-            ├── test.py
-        └── 📁errors
-            ├── 404.html
-        └── 📁static
-            ├── index.html
-            ├── script.js
-            ├── style.css
-        └── 📁uploads
-            ├── upload_1752089165.dat
-            ├── upload_1752090522.dat
-        ├── index.htlm
-        ├── index.html
-        ├── test.php
-        ├── upload.html
-    ├── Makefile
-    ├── README.md
-    ├── tester.sh
-    └── webserv
+42-ft_transcendence/
+├── Makefile                    # Script de build
+├── docker-compose.yml          # Orchestration Docker
+├── LICENSE                     # Fichier de licence
+├── README.md                   # Ce fichier
+├── README-Template.md          # Template pour README
+├── readme/                     # Ressources README
+├── srcs/                       # Code source
+│   ├── requirements/
+│   │   ├── elk/                # Configs ELK
+│   │   ├── frontend/           # Application frontend
+│   │   ├── grafana/            # Dashboards Grafana
+│   │   ├── nginx/              # Config Nginx
+│   │   ├── prometheus/         # Configs surveillance
+│   │   └── services/           # Services backend
+│   │       ├── chat-service/
+│   │       ├── user-service/
+│   │       └── ...
+└── ...
 ```
 
-<!--### Diagram Architecture
-Write the build Instruction here.-->
+<a name="développement"></a>
+
+### 🔧 Développement
+
+#### Prérequis
+- Docker et Docker Compose
+- Node.js (pour développement local)
+
+#### Configuration de l'environnement
+```bash
+# Configurer les variables d'environnement
+cp .env.example .env
+# Éditer .env avec vos paramètres
+
+# Construire et exécuter
+make build
+make up
+```
+
+#### Tests
+```bash
+# Vérifications de santé
+curl http://localhost:3001/health  # Service chat
+curl http://localhost:3003/health  # Service utilisateur
+
+# Tests API
+curl https://localhost:8443/api/auth/login
+```
+
+### 📚 Référence API
+
+#### Services principaux
+- **Service Auth** : Authentification utilisateur et gestion JWT
+- **Service Chat** : Messagerie temps réel via WebSockets
+- **Service Jeu** : Logique du jeu Pong et gestion des tournois
+- **Service Utilisateur** : Profils utilisateur et statistiques
+
+#### Endpoints clés
+- `POST /api/auth/login` - Connexion utilisateur
+- `GET /api/game/matches` - Obtenir l'historique des matchs
+- `WS /api/chat` - Connexion WebSocket chat
+
+### 👨‍🎓 Note
+<p align="left">
+<img width="198" height="171" alt="image" src="https://github.com/user-attachments/assets/c6611943-f93e-4905-9548-4a6dbce0a951" />
+
+</p>
+
+<a name="crédits-1"></a>
+
+### 📖 Crédits
+
+- **Documentation Fastify** : [Fastify.dev](https://fastify.dev/)
+- **Documentation Docker** : [Docker.com](https://docs.docker.com/)
+- **Documentation JavaScript** : [Developer Mozilla](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+- **Documentation TypeScript** : [Typescriptlang](https://www.typescriptlang.org/docs/)
+- **Documentation attacks XXS** : [Owasp](https://owasp.org/www-community/attacks/xss/)
+- **Documentation SQL Injection** : [Owasp](https://owasp.org/www-community/attacks/SQL_Injection)
+- **Stack ELK** : [Elastic.co](https://www.elastic.co/)
+
+
+### 📄 Licence
+
+Ce projet est sous licence **MIT** - voir le fichier [LICENSE](LICENSE) pour plus de détails.
+
+</details>
+
 ---
 
-## Notes
-Soon
-
----
-
-## Credits
-
-Project developed as part of 42 School curriculum.
-
-## License
-This project is licensed under the MIT License.
-
-- [Astoll](https://github.com/42andy) : Database and User Management
-- [Powlar](https://github.com/powlar) : Frontend and Live Chat
-- [HaruSnak](https://github.com/HaruSnak) : DevOps, Backend Framework, AI, Tournaments
-
-Resources:
-- [Fastify Documentation](https://fastify.dev/)
-- [Prometheus Docs](https://prometheus.io/docs/)
-- [ELK Stack Guide](https://www.elastic.co/guide/index.html)
-
-[contributors-shield]: https://img.shields.io/github/contributors/HaruSnak/ft_transcendence.svg?style=for-the-badge
-[contributors-url]: https://github.com/HaruSnak/ft_transcendence/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/HaruSnak/ft_transcendence.svg?style=for-the-badge
-[forks-url]: https://github.com/HaruSnak/ft_transcendence/network/members
-[stars-shield]: https://img.shields.io/github/stars/HaruSnak/ft_transcendence.svg?style=for-the-badge
-[stars-url]: https://github.com/HaruSnak/ft_transcendence/stargazers
-[issues-shield]: https://img.shields.io/github/issues/HaruSnak/ft_transcendence.svg?style=for-the-badge
-[issues-url]: https://github.com/HaruSnak/ft_transcendence/issues
+[contributors-shield]: https://img.shields.io/github/contributors/HaruSnak/42-ft_transcendence.svg?style=for-the-badge
+[contributors-url]: https://github.com/HaruSnak/42-ft_transcendence/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/HaruSnak/42-ft_transcendence.svg?style=for-the-badge
+[forks-url]: https://github.com/HaruSnak/42-ft_transcendence/network/members
+[stars-shield]: https://img.shields.io/github/stars/HaruSnak/42-ft_transcendence.svg?style=for-the-badge
+[stars-url]: https://github.com/HaruSnak/42-ft_transcendence/stargazers
+[issues-shield]: https://img.shields.io/github/issues/HaruSnak/42-ft_transcendence.svg?style=for-the-badge
+[issues-url]: https://github.com/HaruSnak/42-ft_transcendence/issues
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/in/shany-moreno-5a863b2aa
-
+[license-shield]: https://img.shields.io/github/license/HaruSnak/42-ft_transcendence.svg?style=for-the-badge
+[license-url]: https://github.com/HaruSnak/42-ft_transcendence/blob/master/LICENSE
